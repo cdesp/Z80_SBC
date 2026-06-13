@@ -1,0 +1,24 @@
+-series GW5A
+-device GW5A-25
+-device_version A
+-package MBGA121N
+-part_number GW5A-LV25MG121NC1/I0
+
+
+-mod_name DPVRAM
+-file_name DPVRAM
+-path G:/_Programming/_DOCS/Schematics/NewbrainSBC/TANG25K/Z80SBC/src/DP_VideoRam/
+-type RAM_DP
+-file_type vhdl
+-bram_b true
+-dev_type GW5A-25A
+-depth_0 65535
+-depth_1 65535
+-width_0 8
+-width_1 8
+-read_mode_0 bypass
+-read_mode_1 bypass
+-write_mode_0 normal
+-write_mode_1 normal
+-speed false
+-reset_mode sync

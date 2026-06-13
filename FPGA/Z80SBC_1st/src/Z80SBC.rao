@@ -1,0 +1,94 @@
+<?xml version="1" encoding="UTF-8"?>
+<GAO_CONFIG>
+    <Version>3.0</Version>
+    <Mode>Standard</Mode>
+    <AoCore index="0" sample_clock="CLK_IN" trig_type="0" storage_depth="4096" window_num="1" capture_amount="4096" implementation="0" trigger_pos="0" module_name="Z80_FPGA_SYSTEM" force_trigger_by_falling_edge="false" capture_init_data_enabled="true">
+        <SignalList>
+            <Bus capture_enable="true" name="Z80_LA_BUS_INT[15:0]">
+                <Signal>Z80_LA_BUS_INT[15]</Signal>
+                <Signal>Z80_LA_BUS_INT[14]</Signal>
+                <Signal>Z80_LA_BUS_INT[13]</Signal>
+                <Signal>Z80_LA_BUS_INT[12]</Signal>
+                <Signal>Z80_LA_BUS_INT[11]</Signal>
+                <Signal>Z80_LA_BUS_INT[10]</Signal>
+                <Signal>Z80_LA_BUS_INT[9]</Signal>
+                <Signal>Z80_LA_BUS_INT[8]</Signal>
+                <Signal>Z80_LA_BUS_INT[7]</Signal>
+                <Signal>Z80_LA_BUS_INT[6]</Signal>
+                <Signal>Z80_LA_BUS_INT[5]</Signal>
+                <Signal>Z80_LA_BUS_INT[4]</Signal>
+                <Signal>Z80_LA_BUS_INT[3]</Signal>
+                <Signal>Z80_LA_BUS_INT[2]</Signal>
+                <Signal>Z80_LA_BUS_INT[1]</Signal>
+                <Signal>Z80_LA_BUS_INT[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="Z80_DATA_IN_INT[7:0]">
+                <Signal>Z80_DATA_IN_INT[7]</Signal>
+                <Signal>Z80_DATA_IN_INT[6]</Signal>
+                <Signal>Z80_DATA_IN_INT[5]</Signal>
+                <Signal>Z80_DATA_IN_INT[4]</Signal>
+                <Signal>Z80_DATA_IN_INT[3]</Signal>
+                <Signal>Z80_DATA_IN_INT[2]</Signal>
+                <Signal>Z80_DATA_IN_INT[1]</Signal>
+                <Signal>Z80_DATA_IN_INT[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="Z80_DATA_OUT_INT[7:0]">
+                <Signal>Z80_DATA_OUT_INT[7]</Signal>
+                <Signal>Z80_DATA_OUT_INT[6]</Signal>
+                <Signal>Z80_DATA_OUT_INT[5]</Signal>
+                <Signal>Z80_DATA_OUT_INT[4]</Signal>
+                <Signal>Z80_DATA_OUT_INT[3]</Signal>
+                <Signal>Z80_DATA_OUT_INT[2]</Signal>
+                <Signal>Z80_DATA_OUT_INT[1]</Signal>
+                <Signal>Z80_DATA_OUT_INT[0]</Signal>
+            </Bus>
+            <Signal capture_enable="true">CLK_Z80_INT</Signal>
+            <Signal capture_enable="true">s_z80_wr_n</Signal>
+            <Signal capture_enable="true">UART_nCS</Signal>
+        </SignalList>
+        <Triggers>
+            <Trigger index="0"/>
+            <Trigger index="1">
+                <SignalList>
+                    <Signal>UART_nCS</Signal>
+                </SignalList>
+            </Trigger>
+            <Trigger index="2"/>
+            <Trigger index="3"/>
+            <Trigger index="4"/>
+            <Trigger index="5"/>
+            <Trigger index="6"/>
+            <Trigger index="7"/>
+            <Trigger index="8"/>
+            <Trigger index="9"/>
+            <Trigger index="10"/>
+            <Trigger index="11"/>
+            <Trigger index="12"/>
+            <Trigger index="13"/>
+            <Trigger index="14"/>
+            <Trigger index="15"/>
+        </Triggers>
+        <MatchUnits>
+            <MatchUnit index="0" enabled="1" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="1" value1="0" trigger="1"/>
+            <MatchUnit index="1" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="2" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="3" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="4" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="5" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="6" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="7" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="8" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="9" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="10" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="11" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="12" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="13" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="14" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="15" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+        </MatchUnits>
+        <Expressions type="Static">
+            <Expression>M0</Expression>
+        </Expressions>
+    </AoCore>
+    <GAO_ID>0101101000010100</GAO_ID>
+</GAO_CONFIG>

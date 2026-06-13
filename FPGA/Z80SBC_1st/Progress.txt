@@ -1,0 +1,15 @@
+Top Entity
+
+Clocks 				ok 
+Arbiter 			ok (I/O decoder)  work in progress
+MMU 				ok
+DPSRAM 			ok
+
+---Devices---
+UART 					ok  RS232 via ft232 ic output to USB
+PS/2 Keyboard 	NOT ok
+i2c						NOT ok
+HDMI/DVI 			NOT ok
+ch376S 				NOT ok  USB Storage
+
+

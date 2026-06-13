@@ -1,0 +1,35 @@
+<?xml version="1" encoding="UTF-8"?>
+<!DOCTYPE gowin-fpga-project>
+<Project>
+    <Template>FPGA</Template>
+    <Version>5</Version>
+    <Device name="GW5A-25A" pn="GW5A-LV25MG121NC1/I0">gw5a25a-002</Device>
+    <FileList>
+        <File path="src/Clock_HDMI/Clock_TMDS.v" type="file.verilog" enable="1"/>
+        <File path="src/Clock_HDMI/Clock_TMDS_mod.v" type="file.verilog" enable="1"/>
+        <File path="src/clocks_pll/clocks_pll.v" type="file.verilog" enable="1"/>
+        <File path="src/clocks_pll/clocks_pll_mod.v" type="file.verilog" enable="1"/>
+        <File path="src/dvi_tx/dvi_tx.v" type="file.verilog" enable="1"/>
+        <File path="src/pll_init.v" type="file.verilog" enable="1"/>
+        <File path="src/DP_VideoRam/DPVRAM.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/MMU.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/PCA9665_FPGA_Master.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/RegisterN.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/VD_GenericZ80_module.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/VD_HDMI_Controller.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/VD_types_pkg.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/Z80_Bus_Arbiter.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/Z80_FPGA_SYSTEM.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/clk_div_18432.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/clock_manager.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/defs_pkg.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/ps2_keyboard_controller.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/tstSRAM.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/uart_master/uart_master.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/z80_gh16550_wrapper.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/z80_to_gowin_16550_wrapper.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/z80bridgedec.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/Z80SBC.cst" type="file.cst" enable="1"/>
+        <File path="src/Z80SBC.rao" type="file.gao" enable="0"/>
+    </FileList>
+</Project>
