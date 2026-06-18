@@ -1,0 +1,247 @@
+;
+; Multiply 8-bit values
+; In:  Multiply H with E
+; Out: HL = result
+;DESTROYS B,D,L
+@Mult8:
+    ld d,0
+    ld l,d
+    ld b,8
+Mult8_Loop:
+    add hl,hl
+    jr nc,Mult8_NoAdd
+    add hl,de
+Mult8_NoAdd:
+    djnz Mult8_Loop
+    ret
+;
+; Multiply 8-bit value with a 16-bit value
+; In: Multiply A with DE
+; Out: HL = result
+;DESTROYS B
+@Mult12:
+    ld l,0
+    ld b,8
+Mult12_Loop:
+    add hl,hl
+    add a,a
+    jr nc,Mult12_NoAdd
+    add hl,de
+Mult12_NoAdd:
+    djnz Mult12_Loop
+    ret
+
+;
+; Multiply 16-bit values (with 16-bit result)
+; In: Multiply BC with DE
+; Out: HL = result
+;
+@Mult16:	ld hl, 0
+		ld a, b
+		ld b, 16
+Mult16_Loop:	
+		add hl, hl
+		sla c
+		rla
+		jr nc, Mult16_NoAdd
+		add hl, de
+Mult16_NoAdd:	
+		djnz Mult16_Loop
+		ret
+;
+; Multiply 16-bit values (with 32-bit result)
+; In: Multiply BC with DE
+; Out: BCHL = result
+;
+@Mult32:	PUSH DE
+		ld a, c
+		ld c, b
+		ld hl, 0
+		ld b, 16
+Mult32_Loop:	
+		add hl, hl
+		rla
+		rl c
+		jr nc, Mult32_NoAdd
+		add hl, de
+		adc a, 0
+		jp nc, Mult32_NoAdd
+		inc c
+Mult32_NoAdd:	
+		djnz Mult32_Loop
+		ld b, c
+		ld c, a
+		POP DE
+		ret
+		
+;
+; Divide 8-bit values
+; In: Divide E by divider C
+; Out: A = result, B = rest
+;
+@Div8:
+    xor a
+    ld b,8
+Div8_Loop:
+    rl e
+    rla
+    sub c
+    jr nc,Div8_NoAdd
+    add a,c
+Div8_NoAdd:
+    djnz Div8_Loop
+    ld b,a
+    ld a,e
+    rla
+    cpl
+    ret
+
+; Divide 8-bit values
+;DIVIDE D BY E RESULT IN D REMAINDER IN A
+@DIV8_8:
+@div_d_e:
+   xor	a
+   ld	b, 8
+
+DIV8_8_loop:
+   sla	d
+   rla
+   cp	e
+   jr	c, $+4
+   sub	e
+   inc	d
+   
+   djnz	DIV8_8_loop
+   
+   ret
+     
+;DIVIDE 16-BIT BY 8-BIT
+;divides hl by c and places the quotient in hl and the remainder in a 
+@DIV16_8:    
+@div_hl_c:
+   xor	a
+   ld	b, 16
+
+DIV16_8_loop:
+   add	hl, hl
+   rla
+   jr	c, $+5
+   cp	c
+   jr	c, $+4
+
+   sub	c
+   inc	l
+   
+   djnz	DIV16_8_loop
+   
+   ret
+
+;
+; Divide 16-bit values (with 16-bit result)
+; In: Divide BC by divider DE
+; Out: BC = result, HL = rest
+;
+@Div16:
+    ld hl,0
+    ld a,b
+    ld b,8
+Div16_Loop1:
+    rla
+    adc hl,hl
+    sbc hl,de
+    jr nc,Div16_NoAdd1
+    add hl,de
+Div16_NoAdd1:
+    djnz Div16_Loop1
+    rla
+    cpl
+    ld b,a
+    ld a,c
+    ld c,b
+    ld b,8
+Div16_Loop2:
+    rla
+    adc hl,hl
+    sbc hl,de
+    jr nc,Div16_NoAdd2
+    add hl,de
+Div16_NoAdd2:
+    djnz Div16_Loop2
+    rla
+    cpl
+    ld b,c
+    ld c,a
+    ret		
+;==================================================
+; ADD ROUTINE 32+32BIT=32BIT
+; H'L'HL = H'L'HL + D'E'DE
+; CHANGES FLAGS
+;
+@ADD32:		
+		ADD HL, DE 							; 16-BIT ADD OF HL AND DE
+		EXX
+		ADC HL, DE 							; 16-BIT ADD OF HL AND DE WITH CARRY
+		EXX
+		
+; RESULT IS IN H'L'HL
+		RET
+		
+		
+		
+;
+; Square root of 16-bit value
+; In:  HL = value
+; Out:  D = result (rounded down)
+;
+@Sqr16:		
+		ld de, $0040
+		ld a, l
+		ld l, h
+		ld h, d
+		or a
+		ld b, 8
+Sqr16_Loop:	
+		sbc hl, de
+		jr nc, Sqr16_Skip
+		add hl, de
+Sqr16_Skip:	
+		ccf
+		rl d
+		add a, a
+		adc hl, hl
+		add a, a
+		adc hl, hl
+		djnz Sqr16_Loop
+		ret
+
+
+;RANDOM
+; Fast RND
+;
+; An 8-bit pseudo-random number generator,
+; using a similar method to the Spectrum ROM,
+; - without the overhead of the Spectrum ROM.
+;
+; R = random number seed
+; an integer in the range [1, 256]
+;
+; R -> (33*R) mod 257
+;
+; S = R - 1
+; an 8-bit unsigned integer
+;DESTROYS B
+;RETURNS A THE NUMBER
+@RND8:
+ ld a, (RNDseed)
+ ld b, a 
+
+ rrca ; multiply by 32
+ rrca
+ rrca
+ xor 0x1f
+
+ add a, b
+ sbc a, 255 ; carry
+
+ ld (RNDseed), a
+ ret

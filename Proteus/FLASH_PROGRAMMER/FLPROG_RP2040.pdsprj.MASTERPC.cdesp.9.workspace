@@ -1,28 +1,28 @@
 <?xml version='1.0' encoding='UTF-8' standalone='yes'?>
 <WORKSPACE>
  <FRAME activeWindow="1">
-  <PLACEMENT>01d9d0cb000300000000063ffffffff800000dbe000003ff000006410000009500000c7e000003c800000001020000000780000006400000001700000dbd000003fe</PLACEMENT>
+  <PLACEMENT>01d9d0cb000300000000063ffffffff800000dc000000408000006410000009500000c7e000003c800000001020000000780000006400000001700000dbf00000407</PLACEMENT>
   <WINDOW module="ISIS" index="0" mode="00050a00" type="default"/>
   <WINDOW module="ARES" index="0" mode="00060a00" type="default"/>
  </FRAME>
- <MODULE name="VSMEDIT">
-  <EDITOR/>
+ <MODULE name="ARES">
+  <editor xcursor="0" gridminor="40000" snaprange="20991" metric="1" scale="605" gridmode="2" snapidx="0" zoom="-1" gridmajor="1000000" snap="10000" orgmode="0" flipped="0">
+   <centre x="-11037910" y="2231275"/>
+   <origin x="0" y="0"/>
+   <world y2="12700000" x2="15240000" x1="-15240000" y1="-12700000"/>
+  </editor>
+ </MODULE>
+ <MODULE name="ISIS">
+  <editor xcursor="0" gridminor="127000" snaprange="63500" metric="0" scale="222" gridmode="2" snapidx="1" zoom="0" gridmajor="2540000" snap="127000" orgmode="0" flipped="0">
+   <centre x="5842000" y="5715000"/>
+   <origin x="0" y="0"/>
+   <world y2="8890000" x2="12700000" x1="-12700000" y1="-8890000"/>
+  </editor>
  </MODULE>
  <MODULE name="VSMDEBUG">
   <PWI/>
  </MODULE>
- <MODULE name="ISIS">
-  <editor gridmode="2" flipped="0" snaprange="63500" xcursor="0" scale="222" gridminor="127000" metric="0" snap="127000" zoom="0" orgmode="0" snapidx="1" gridmajor="2540000">
-   <centre y="5715000" x="5842000"/>
-   <origin y="0" x="0"/>
-   <world y2="8890000" x2="12700000" y1="-8890000" x1="-12700000"/>
-  </editor>
- </MODULE>
- <MODULE name="ARES">
-  <editor gridmode="2" flipped="0" snaprange="186764" xcursor="0" scale="68" gridminor="400000" metric="1" snap="10000" zoom="-1" orgmode="0" snapidx="0" gridmajor="10000000">
-   <centre y="-110000" x="-8760000"/>
-   <origin y="0" x="0"/>
-   <world y2="12700000" x2="15240000" y1="-12700000" x1="-15240000"/>
-  </editor>
+ <MODULE name="VSMEDIT">
+  <EDITOR/>
  </MODULE>
 </WORKSPACE>

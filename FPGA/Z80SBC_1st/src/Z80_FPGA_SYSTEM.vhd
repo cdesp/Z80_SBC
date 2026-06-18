@@ -9,7 +9,7 @@ USE work.VD_types_pkg.ALL;
 -- All signals are defined in the 3.3V logic domain (indicated by the 'L_' prefix)
 -- where they connect to the FPGA's I/O pins.
 
-entity Z80_FPGA_SYSTEM is
+entity Z80_FPGA_SYSTEM is 
     port (
         -- Global Clock/Reset (Mandatory inputs for the Clock_Manager and general FPGA operation)
         CLK_IN              : in  std_logic;                                   -- Main FPGA Clock (e.g., 50MHz ) E2
@@ -455,17 +455,17 @@ LA15<='Z';
 tst_mmu <= std_logic_vector(unsigned(test_addr_bus(15 downto 12)) - 2);
 
 
-EA13 <= test_addr_bus(13) when (stestsram = '0') and stest_ce_n='1' else tst_mmu(1) when stest_ce_n='0' else 'Z';
-EA14 <= test_addr_bus(14) when (stestsram = '0') and stest_ce_n='1' else tst_mmu(2) when stest_ce_n='0' else 'Z';
-EA15 <= test_addr_bus(15) when (stestsram = '0') and stest_ce_n='1' else tst_mmu(3) when stest_ce_n='0' else 'Z';
+EA13 <= 'Z' when flash_prog='0' else test_addr_bus(13) when (stestsram = '0') and stest_ce_n='1' else tst_mmu(1) when stest_ce_n='0' else 'Z';
+EA14 <= 'Z' when flash_prog='0' else test_addr_bus(14) when (stestsram = '0') and stest_ce_n='1' else tst_mmu(2) when stest_ce_n='0' else 'Z';
+EA15 <= 'Z' when flash_prog='0' else test_addr_bus(15) when (stestsram = '0') and stest_ce_n='1' else tst_mmu(3) when stest_ce_n='0' else 'Z';
 
 --EA13 <= test_addr_bus(13) when (stestsram = '0') and stest_ce_n='1' else '0' when stest_ce_n='0' else 'Z';
 --EA14 <= test_addr_bus(14) when (stestsram = '0') else 'Z';
 --EA15 <= test_addr_bus(15) when (stestsram = '0') else 'Z';
-EA16 <= '0' when (stestsram = '0') else 'Z';
-EA17 <= '0' when (stestsram = '0') else 'Z';
-EA18 <= '0' when (stestsram = '0') else 'Z';
-EA19 <= '0' when (stestsram = '0') else 'Z';
+EA16 <= 'Z' when flash_prog='0' else '0' when (stestsram = '0') else 'Z';
+EA17 <= 'Z' when flash_prog='0' else '0' when (stestsram = '0') else 'Z';
+EA18 <= 'Z' when flash_prog='0' else '0' when (stestsram = '0') else 'Z';
+EA19 <= 'Z' when flash_prog='0' else '0' when (stestsram = '0') else 'Z';
 
     -- 3. Control Signal Conditional Overrides
   --  EA13 <= 'Z'; 
@@ -476,7 +476,7 @@ EA19 <= '0' when (stestsram = '0') else 'Z';
   --  EA18 <= 'Z'; 
   -- EA19 <= 'Z';  
 
-
+ 
  
 inWR_n <= LWR_CPU_N when (stestsram = '0') else to_X01(LWR_N);
 inRD_n <= to_X01(L_RD_N);
@@ -485,12 +485,21 @@ inRD_n <= to_X01(L_RD_N);
  -- LWR_N <= test_we_n when (stestsram = '0') else 'Z';
  -- L_RD_N <= test_oe_n when (stestsram = '0') else 'Z';
  
-LRAMEN2_N <= stest_ce_n;  --outer chip enable
-sWRn <= LWR_CPU_N when stest_ce_n='0' AND L_MREQ_N='0'  else '1'; -- z when flashing
+LRAMEN2_N <= '0' when flash_prog='0' else stest_ce_n;  --outer chip enable
+sWRn <= LWR_CPU_N when stest_ce_n='0' AND L_MREQ_N='0'  else 'Z' when flash_prog='0' else '1'; -- z when flashing
 --LWR_N <= LWR_CPU_N when stest_ce_n='0' AND L_MREQ_N='0'  else '1'; -- z when flashing
-L_RD_N <='1' when LBUSACK_N='0' else 'Z';
-  
-test_ce_n <=  stest_ce_n;  
+L_RD_N <='Z' when LBUSACK_N='0' else 'Z';
+   
+test_ce_n <=  stest_ce_n;    
+
+LWR_N <= 'Z' when flash_prog='0' else sWRn;
+--LWR_N <= 'Z' when flash_prog='0' else sram_wr_reg;
+
+    --debug     
+    SCL <= stest_ce_n;
+    --SDA <= '0' when L_IORQ_N='0' and L_RD_N='0' else '1';
+   SDA <= sWRn;--sWRn when stest_ce_n='0' else '1'; --s_TestSig;
+
                 
 -- This creates a "safe" write pulse that ends 
 -- *before* the Z80 can possibly change the bus.
@@ -504,11 +513,10 @@ begin
         -- This effectively "chops" the tail off the WR signal
         else
             sram_wr_reg <= '1';
-        end if;
+        end if; 
     end if;
 end process;
 
-LWR_N <= sram_wr_reg;
 
 
 --FREEZE the cpu       
@@ -560,10 +568,10 @@ Z80_DATA_OUT_INT <=
   --      ps2_rx_data           when PS2_DSn ='0' and L_RD_N = '0' else --ps/2 keyboard read
         (others => 'Z');                           -- Default if no device is selected for read
 
-sIsDataOut <= '0' when VRAM_nCE = '0' or (stest_ce_n='1' and L_MREQ_N='0') or UART_nCS='0' else '1';
+sIsDataOut <= '1' when flash_prog='0' else '0' when (VRAM_nCE = '0' or (stest_ce_n='1' and L_MREQ_N='0') or UART_nCS='0') else '1';
 
-inpRD <= L_RD_N; 
-inpWR_CPU <= LWR_CPU_N; 
+inpRD <= L_RD_N;   
+inpWR_CPU <= LWR_CPU_N;  
 
     -- C. Data Bus (LD0-LD7) Tristate output
     -- Data is driven when Z80_DATA_OE is asserted (TBD logic)
@@ -748,7 +756,7 @@ begin
 end process;
 
     -- 2. Z80 Bus Masters & State Control
-    LBUSREQ_N <= '1'; -- Low to force Z80 into Tristate (Bus Acknowledgment requested)
+    LBUSREQ_N <= '0' when flash_prog='0' else '1'; -- Low to force Z80 into Tristate (Bus Acknowledgment requested)
     --LCLOCK    <= '0'; -- Keep Z80 clock low / parked
     LINT_N    <= 'H'; -- Pull-up state (Active Low Interrupt inactive)
 -- ***************************************************************
@@ -768,10 +776,10 @@ L_NMI_N <= '0' when fpga_drive_nmi_low = '1' else 'Z';
 --    D1N <= '0'; D1P <= '0';
 --    D0N <= '0'; D0P <= '0';
 --    CKN <= '0'; CKP <= '0';
-    D2P <= '0';
-    D1P <= '0';
-    D0P <= '0';
-    CKP <= '0';
+   -- D2P <= '0';
+   -- D1P <= '0';
+   -- D0P <= '0';
+   -- CKP <= '0';
 
 
 
@@ -921,10 +929,6 @@ u_uart_translator : z80_to_gowin_16550_wrapper
        
     CTS_N <= '0';-- s_uart_rtsn ;  
       
-    --debug     
-    SCL <= test_ce_n;
-    --SDA <= '0' when L_IORQ_N='0' and L_RD_N='0' else '1';
-   SDA <= tst_mmu(1);--sWRn when stest_ce_n='0' else '1'; --s_TestSig;
     
 
 --****************************************************************

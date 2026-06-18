@@ -64,7 +64,7 @@ begin
                 r <= x"00"; g <= x"00"; b <= x"00";
             end if;
         else
-            -- Border color
+            -- Border color 
             r <= video_regs(5);
             g <= video_regs(5);
             b <= video_regs(5);

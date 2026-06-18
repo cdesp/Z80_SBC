@@ -1,0 +1,792 @@
+		NAME UTILS
+		
+		GLOBAL DELAY5MICS
+		GLOBAL DELAYMILI
+		GLOBAL DELAYSEC
+		GLOBAL BCD2BN 							;CONVERT ONE BYTE BCD TO BINARY
+		GLOBAL BN2BCD 							;CONVERT ONE BYTE BINARY  TO BCD
+		GLOBAL B2BCD 							;CONVERT 16BIT ON HL TO 6 DIGIT BCD ON C:HL
+		GLOBAL BCD2HA 							;Converts a 6-digit BCD number to a hex ASCII string
+		GLOBAL OUTASC 							;CONVERTS A 16BIT BINARY NUMBER ON HL TO 6 DIGIT ASCII
+		GLOBAL Bcd2ASC 							;Converts a 2-digit BCD number to an ASCII string
+		GLOBAL strtob
+		GLOBAL StrfHex
+		GLOBAL ReadBCDByte
+		GLOBAL Read8bit
+		GLOBAL Read16bit
+		GLOBAL IsStrHex
+		GLOBAL IsStrDec
+		GLOBAL REVBITS
+		GLOBAL SkipWhitespace
+		GLOBAL SKIPSPC							;SKIP WHITESPACE SKIPS CHAR 32
+		GLOBAL STR_SET
+		GLOBAL STR_CLR
+		GLOBAL STR_VALID
+		GLOBAL STR_ADD
+		GLOBAL STR_ADDCHAR
+		GLOBAL NUM_ADDZERO
+		GLOBAL DIV
+		GLOBAL MUL
+
+
+;@SCCLS:		
+;@SCPRN:		
+		
+	;	RET
+
+
+;---------------- DELAY ROUTINES
+
+
+;DELAY RTN FOR 5us DELAY UP TO 20MHz
+DELAYRTN:
+m18:		nop         ; 4 cycles
+		nop         ; 4 cycles
+m16:   		nop         ; 4 cycles
+     		nop         ; 4 cycles
+     		nop         ; 4 cycles
+m14:   		nop         ; 4 cycles
+		nop         ; 4 cycles
+m12:   		nop         ; 4 cycles
+     		nop         ; 4 cycles
+     		nop         ; 4 cycles
+m10:   		nop         ; 4 cycles
+     		nop         ; 4 cycles
+m8:   		nop         ; 4 cycles
+     		nop         ; 4 cycles
+   		nop         ; 4 cycles
+m6:    		nop         ; 4 cycles
+   		nop         ; 4 cycles
+m4:		nop         ; 4 cycles
+	    	nop         ; 4 cycles
+     		nop         ; 4 cycles
+		JP DM3CONT
+	       ; ret         ; 10 cycles		
+
+;idx from delay5us 18 is for 4mhz
+		;MHZ  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20
+;DMHELPIDX:	DB 0,20,19,18,18,17,16,16,13,13,11,11,08,08,06,06,03,03,01,01,01  ;
+DMHELPIDX:	DB 0,20,19,18,18,17,16,16,13,13,11,11,11,08,06,06,03,03,01,00,00 ;FIXED FOR DELAYS 
+
+; b has the 5us multiple to delay
+; so for 250us b should be 250/5=50
+DELAY5MICS:	IN A, (128)          ; THE CPU SPEED IN MHZ e.g. 12
+		LD HL,DMHELPIDX
+		LD E,A
+		LD D,0
+		ADD HL,DE
+		LD A,(HL)
+		LD E,A
+		LD HL,DELAYRTN
+		ADD HL,DE
+DM3AGN:		JP (HL)
+DM3CONT:	DJNZ DM3AGN
+		RET
+
+
+;B THE NUMBER OF MS TO DELAY
+;ALL DESTROYED
+DELAYMILI:
+DELms:		;PUSH AF
+		;PUSH DE
+		;PUSH HL
+NXTMS:		PUSH BC
+		;1000 us IS 1ms
+		LD B,950/5		;FIX SHOULD BE 1000
+		CALL DELAY5MICS
+		POP BC
+		DJNZ NXTMS
+		;POP HL
+		;POP DE
+		;POP AF
+		RET
+
+
+;B THE NUMBER OF SECS TO DELAY
+;ALL DESTROYED
+DELAYSEC:	PUSH BC
+		LD B,250
+		CALL DELAYMILI
+		LD B,250
+		CALL DELAYMILI
+		LD B,250
+		CALL DELAYMILI
+		LD B,250
+		CALL DELAYMILI
+		POP BC
+		DJNZ DELAYSEC
+		RET
+
+		
+;CONVERTS A 16BIT NUMBER ON HL TO ASCII ON DE		
+; DE =THE TXT BUFFER
+; HL  =THE NUMBER
+OUTASC:		PUSH AF
+		PUSH DE
+		CALL B2Bcd
+		POP DE
+		CALL BCD2HA
+		POP AF
+		RET
+		
+;------------------------------------------------------------------------------
+		
+; BCD to Binary
+; Convert one byte BCD to one byte binary data
+; INPUT
+; BCD data in A
+; OUTPUT
+; Binary data in A
+;
+; REGISTERS : A,B,C,F
+;------------------------------------------------------------------------------
+		
+BCD2BN:		OR A
+		LD B, A
+		AND $F0
+		RRCA
+		LD C, A
+		RRCA
+		RRCA
+		ADD A, C
+		LD C, A
+		LD A, B
+		AND $0F
+		ADD A, C
+		RET
+		
+;------------------------------------------------------------------------------
+		
+; Binary to BCD
+; Convert one byte of binary data to two bytes of BCD data
+; INPUT
+; Binary data in A
+; OUTPUT
+; Hundreds digit in H
+; Tens and ones digits in L
+;
+; REGISTERS : AF,C,HL
+;------------------------------------------------------------------------------
+		
+BN2BCD:		LD H, $FF
+D100LP:		INC H
+		SUB 100
+		JR NC, D100LP
+		ADD A, 100
+		LD L, $FF
+D10LP:		INC L
+		SUB 10
+		JR NC, D10LP
+		ADD A, 10
+		LD C, A
+		LD A, L
+		RLCA
+		RLCA
+		RLCA
+		RLCA
+		OR C
+		LD L, A
+		RET
+		
+		
+;;--------------------------------------------------
+;; Binary to BCD conversion
+;;
+;; Converts a 16-bit unsigned integer into a 6-digit
+;; BCD number. 1181 Tcycles
+;;
+;; input: HL = unsigned integer to convert
+;; output: C:HL = 6-digit BCD number
+;; destroys: A,F,B,C,D,E,H,L
+;;--------------------------------------------------
+B2Bcd:		
+		LD BC, 16 * 256 + 0 						; handle 16 bits, one bit per iteration
+		LD DE, 0
+cvtLp:		
+		ADD HL, HL
+		LD A, E
+		ADC A, A
+		DAA
+		LD E, A
+		LD A, D
+		ADC A, A
+		DAA
+		LD D, A
+		LD A, C
+		ADC A, A
+		DAA
+		LD C, A
+		DJNZ cvtLp
+		EX DE, HL
+		RET
+		
+;------------------------------------------------------------------------------
+		
+; BCD to Binary
+; Convert one byte BCD to one byte binary data
+; INPUT
+; BCD data in A
+; OUTPUT
+; Binary data in A
+;
+; REGISTERS : A,B,C,F
+;------------------------------------------------------------------------------
+		
+BCD2BN:		OR A
+		LD B, A
+		AND $F0
+		RRCA
+		LD C, A
+		RRCA
+		RRCA
+		ADD A, C
+		LD C, A
+		LD A, B
+		AND $0F
+		ADD A, C
+		RET
+		
+		
+;;----------------------------------------------------
+;; Converts a 6-digit BCD number to a hex ASCII string
+;;
+;; input: DE = pointer to start of ASCII string
+;; C:HL number to be converted
+;; output: DE = pointer past end of ASCII string
+;; destroys: A,F,D,E
+;;-----------------------------------------------------
+Bcd2HA:		
+		LD A, C
+		CALL cvtUN
+		LD A, C
+		CALL cvtLN
+		LD A, H
+		CALL cvtUN
+		LD A, H
+		CALL cvtLN
+		LD A, L
+		CALL cvtUN
+		LD A, L
+		JR cvtLN
+cvtUN:		
+		RRA 								; move upper nibble into lower nibble
+		RRA
+		RRA
+		RRA
+cvtLN:		
+		AND 0Fh 							; isolate lower nibble
+		ADD A, 90h 							; old trick
+		DAA 								; for converting
+		ADC A, 40h 							; one nibble
+		DAA 								; to hex ASCII
+		LD (DE), A
+		INC DE
+		RET
+		
+		
+;;----------------------------------------------------
+;; Converts a 2-digit BCD number to a hex ASCII string
+;;
+;; input: DE = pointer to start of ASCII string
+;; L number to be converted
+;; output: DE = pointer past end of ASCII string
+;; destroys: A,F,D,E
+;;-----------------------------------------------------
+Bcd2ASC:	
+		LD A, L
+		CALL cvtUN
+		LD A, L
+		JR cvtLN
+cvtUN:		
+		RRA 								; move upper nibble into lower nibble
+		RRA
+		RRA
+		RRA
+cvtLN:		
+		AND 0Fh 							; isolate lower nibble
+		ADD A, 90h 							; old trick
+		DAA 								; for converting
+		ADC A, 40h 							; one nibble
+		DAA 								; to hex ASCII
+		LD (DE), A
+		INC DE
+		RET
+		
+		
+		
+		
+; Binary to decimal stuff
+; From https://www.msx.org/forum/development/msx-development/32-bit-long-ascii
+		
+; Combined routine for conversion of different sized binary numbers into
+; directly printable ASCII(Z)-string
+; Input value in registers, number size and -related to that- registers to fill
+; is selected by calling the correct entry:
+;
+;  entry  inputregister(s)  decimal value 0 to:
+;   B2D8             A                    255  (3 digits)
+;   B2D16           HL                  65535   5   "
+;   B2D24         E:HL               16777215   8   "
+;   B2D32        DE:HL             4294967295  10   "
+;   B2D48     BC:DE:HL        281474976710655  15   "
+;   B2D64  IX:BC:DE:HL   18446744073709551615  20   "
+;
+; The resulting string is placed into a small buffer attached to this routine,
+; this buffer needs no initialization and can be modified as desired.
+; The number is aligned to the right, and leading 0's are replaced with spaces.
+; On exit HL points to the first digit, (B)C = number of decimals
+; This way any re-alignment / postprocessing is made easy.
+; Changes: AF,BC,DE,HL,IX
+; P.S. some examples below
+		
+; by Alwin Henseler
+		
+@B2D8:		LD H, 0
+		LD L, A
+@B2D16:		LD E, 0
+@B2D24:		LD D, 0
+@B2D32:		LD BC, 0
+@B2D48:		LD IX, 0 							; zero all non-used bits
+@B2D64:		LD (B2DINV), HL
+		LD (B2DINV + 2), DE
+		LD (B2DINV + 4), BC
+		LD (B2DINV + 6), IX 						; place full 64-bit input value in buffer
+		LD HL, B2DBUF
+		LD DE, B2DBUF + 1
+		LD (HL), ' '
+B2DFILC:	EQU $ - 1 							; address of fill-character
+		LD BC, 18
+		LDIR 								; fill 1st 19 bytes of buffer with spaces
+		LD (B2DEND - 1), BC 						;set BCD value to "0" & place terminating 0
+		LD E, 1 							; no. of bytes in BCD value
+		LD HL, B2DINV + 8 						; (address MSB input)+1
+		LD BC, 0x0909
+		XOR A
+B2DSKP0:	DEC B
+		JR Z, B2DSIZ 							; all 0: continue with postprocessing
+		DEC HL
+		OR (HL) 							; find first byte <>0
+		JR Z, B2DSKP0
+B2DFND1:	DEC C
+		RLA
+		JR NC, B2DFND1 							; determine no. of most significant 1-bit
+		RRA
+		LD D, A 							; byte from binary input value
+B2DLUS2:	PUSH HL
+		PUSH BC
+B2DLUS1:	LD HL, B2DEND - 1 						; address LSB of BCD value
+		LD B, E 							; current length of BCD value in bytes
+		RL D 								; highest bit from input value -> carry
+B2DLUS0:	LD A, (HL)
+		ADC A, A
+		DAA
+		LD (HL), A 							; double 1 BCD byte from intermediate result
+		DEC HL
+		DJNZ B2DLUS0 							; and go on to double entire BCD value (+carry!)
+		JR NC, B2DNXT
+		INC E 								; carry at MSB -> BCD value grew 1 byte larger
+		LD (HL), 1 							; initialize new MSB of BCD value
+B2DNXT:		DEC C
+		JR NZ, B2DLUS1 							; repeat for remaining bits from 1 input byte
+		POP BC 								; no. of remaining bytes in input value
+		LD C, 8 							; reset bit-counter
+		POP HL 								; pointer to byte from input value
+		DEC HL
+		LD D, (HL) 							; get next group of 8 bits
+		DJNZ B2DLUS2 							; and repeat until last byte from input value
+B2DSIZ:		LD HL, B2DEND 							; address of terminating 0
+		LD C, E 							; size of BCD value in bytes
+		OR A
+		SBC HL, BC 							; calculate address of MSB BCD
+		LD D, H
+		LD E, L
+		SBC HL, BC
+		EX DE, HL 							; HL=address BCD value, DE=start of decimal value
+		LD B, C 							; no. of bytes BCD
+		SLA C 								; no. of bytes decimal (possibly 1 too high)
+		LD A, '0'
+		RLD 								; shift bits 4-7 of (HL) into bit 0-3 of A
+		CP '0' 								; (HL) was > 9h?
+		JR NZ, B2DEXPH 							; if yes, start with recording high digit
+		DEC C 								; correct number of decimals
+		INC DE 								; correct start address
+		JR B2DEXPL 							; continue with converting low digit
+B2DEXP:		RLD 								; shift high digit (HL) into low digit of A
+B2DEXPH:	LD (DE), A 							; record resulting ASCII-code
+		INC DE
+B2DEXPL:	RLD
+		LD (DE), A
+		INC DE
+		INC HL 								; next BCD-byte
+		DJNZ B2DEXP 							; and go on to convert each BCD-byte into 2 ASCII
+		SBC HL, BC 							; return with HL pointing to 1st decimal
+		RET
+		
+AppendB2D:	
+; Append results of B2D to string at HL
+		ex de, hl 							; Get destination into DE
+		ld hl, B2DBUF
+		call SkipWhitespace
+		ldir
+		ex de, hl 							; Get destination into DE
+		ret
+		
+;SKIPS SPACES ON A STRING POINTED BY HL		
+@SkipWhitespace:
+@SKIPSPC:
+		ld a, (hl)
+		cp ' '
+		ret nz
+		inc hl
+		jr SkipWhitespace
+		
+;REVERSE BITS ON A
+;DESTROYS B,L
+@REVBITS:	ld b, 8
+		ld l, a
+REVLOOP:	
+		rl l
+		rra
+		djnz REVLOOP
+		RET
+		
+		
+;string routines
+		
+;is String a decimal number
+;HL point to zero terminated string
+;preserves HL
+;zf set if it is
+@IsStrDec:	
+		push hl
+IsStrDec00:	
+		ld a, (hl)
+; Test for end of string
+		cp  0
+		jr z, IsStrDecTrue
+; Fail if < "0"
+		cp  '0'
+		jr c, IsStrDecFalse
+; Continue if <= "9" (< "9"+1)
+		cp  '9'+1
+		jr c, IsStrDecContinue
+		cp  '9'
+; Fall through to fail otherwise
+IsStrDecFalse:	
+		or 1 								; Reset zero flag
+		pop hl
+		ret
+IsStrDecTrue:	
+		cp a 								; Set zero flag
+		pop hl
+		ret
+IsStrDecContinue:	
+		inc hl
+		jr IsStrDec00
+		
+;is String a hex number
+;HL point to zero terminated string
+;preserves HL
+;zf set if it is
+@IsStrHex:	
+		push hl
+IsStrHex00:	
+		ld a, (hl)
+; Test for end of string
+		cp  0
+		jr z, IsStrHexTrue
+; Fail if < "0"
+		cp  '0'
+		jr c, IsStrHexFalse
+; Continue if <= "9" (< "9"+1)
+		cp  '9'+1
+		jr c, IsStrHexContinue
+; Fail if < "A"
+		cp  '0'
+		jr c, IsStrHexFalse
+; Continue if <= "F" (< "F"+1)
+		cp  'F'+1
+		jr c, IsStrHexContinue
+; Fall through to fail otherwise
+IsStrHexFalse:	
+		or 1 								; Reset zero flag
+		pop hl
+		ret
+IsStrHexTrue:	
+		cp a 								; Set zero flag
+		pop hl
+		ret
+IsStrHexContinue:	
+		inc hl
+		jr IsStrHex00
+		
+		
+;CONVERTS AN INTEGER STRING ON HL TO INTEGER ON A
+;UP TO 255
+;
+@strtob:	
+		xor a
+		call loop
+		ld a, d
+		ret
+loop:		
+		ld d, a
+		ld a, (hl)
+		inc hl
+		sub '9' + 1
+		add 10
+		ret nc
+		ld e, a
+		ld a, d
+		add a, a 							;double our accumulator
+		add a, a 							;double again (now x4)
+		add a, d 							;add the original (now x5)
+		add a, a 							;double again (now x10)
+		add a, e 							;add in the incoming digit
+		jr loop
+		
+		
+;Converts a HEX num 00-FF string to Number
+@Read8bit:	
+; HL is a pointer to a two-char string
+; This is read as an 8 bit hex number
+; The number is stored in A
+		ld a, (hl) 							; Copy first char to A
+		call Hex12 							; Convert first char
+		add a, a 							; Multiply by 16...
+		add a, a 							; ...
+		add a, a 							; ...
+		add a, a 							; ...done!
+		ld d, a 							; Store top 4 bits in D
+		inc hl 								; Advance to next char
+		ld a, (hl)
+		call Hex12 							; Convert second char
+		or d 								; Add back top bits
+		inc hl 								; Advance for next guy
+		ret
+Hex12:		sub a, '0'
+		cp 10
+		ret c
+		sub 'A' - '0' - 10
+		ret
+		
+;Converts a HEX num 0000-FFFF string to Number
+@Read16bit:	
+; HL is a pointer to a four-char string
+; This is read as a 16 bit hex number
+; The number is stored in BC
+		call Read8bit
+		ld b, a
+		call Read8bit
+		ld c, a
+		ret
+		
+;;;;;;;;;;;;;;;;;;;;;;;;
+		
+@ReadBCDByte:	
+; HL is a pointer to a two-char string
+; This is read as a decimal number (assumed <=80)
+; The number is stored in A in BCD format
+		ld a, (hl)
+		inc hl
+		sub '0'
+		sla a
+		sla a
+		sla a
+		sla a
+		ld b, a
+		ld a, (hl)
+		inc hl
+		sub '0'
+		or b
+		ret
+		
+;Converts a Byte on A to a two char string
+@StrfHex:	
+; Convert byte in A to two-char hex and append to HL
+		ld c, a 							; a = number to convert
+		call Num1
+		ld (hl), a
+		inc hl
+		ld a, c
+		call Num2
+		ld (hl), a
+		inc hl
+		ret
+Num1:		rra
+		rra
+		rra
+		rra
+Num2:		or $F0
+		daa
+		add a, $A0
+		adc a, $40 							; Ascii hex at this point (0 to F)
+		ret
+
+
+
+
+
+;------------------------------------
+;---- LINE STRING OUTPUT COMMANDS
+
+
+;HL THE LINE BUFFER
+STR_SET:	LD (LINESTR),HL
+		RET
+
+;CLEARS THE STRING ON LINE BUFFER
+STR_CLR:	XOR A
+		LD (LINEPOS),A
+		LD (LINESTR),A
+		LD (LINESTR+1),A
+		RET
+
+;CHECKS IF THERE IS A VALID LINEBUF SET
+STR_VALID:	LD A,(LINESTR)
+		LD B,A
+		LD A,(LINESTR+1)
+		ADD B
+		OR A
+		RET
+
+
+;CALCULATES LINESTR ADDRESS
+;DE THE LINESTR POSITION TO SAVE
+;PRESERVES HL,A
+STR_CALCADDR:	PUSH AF
+		LD DE,(LINESTR)
+		EX DE,HL
+		LD A,(LINEPOS)
+		LD C,A
+		LD B,0
+		ADD HL,BC
+		EX DE,HL
+		POP AF
+		RET
+
+;ADVANCES LINE POS
+;DESTROYS A
+STR_NEXTPOS:	LD A,(LINEPOS)
+		INC A
+		LD (LINEPOS),A
+		RET
+
+;ADDS A STRING TO LINE STRING
+;HL THE ZT STRING TO ADD
+STR_ADD:	CALL STR_CALCADDR
+STRA_AGN:	CALL STR_NEXTPOS
+		LD A,(HL)
+		LD (DE),A
+		INC HL
+		INC DE
+		OR A
+		RET Z
+		JR STRA_AGN
+		
+;A THE CHAR TO ADD TO THE LINE STRING
+STR_ADDCHAR:	CALL STR_CALCADDR
+		LD (DE),A
+		CALL STR_NEXTPOS
+		INC DE
+		XOR A
+		LD (DE),A
+		RET
+
+
+;---END LINE STRING UTILS
+
+;PRINTS A NUMBER IN HEX ON HL OR A TO SERIAL *** SHOULD GO TO A DEBUG UTILS OR RETURN A STRING
+;PRESERVES A
+;DESTROYS HL,DE
+@PRINTNUM:	LD H,0
+		LD L,A
+@PRINTNUM16:	PUSH AF
+		
+		LD DE,NUMBUF
+		CALL Bcd2ASC		;FOR HEX
+		LD A,'h'
+		LD (DE),A		
+		INC DE
+		XOR A
+		LD (DE),A		
+		;CALL OUTASC		;FOR DECIMAL OUTPUT
+		LD HL,NUMBUF
+		CALL RS_TXT
+		CALL RS_NEWLINE
+		POP AF
+		RET
+
+;ADDS ZEROES IN FRONT OF STRING IF NECESSARY
+;HL POINTS TO STRING
+;STRING BUFFER SHOULD HAVE ENOUGH BYTES AVAILABLE
+;NUMBER SHOULD BE AT THE END OF THE BUFFER
+;B NUMBER OF DIGITS (TOTAL)
+;ON RET HL POINT TO THE STRING WITH ZEROES
+@NUM_ADDZERO:	PUSH HL
+		LD C,0
+AZ_AGN:		LD A,(HL)			
+		INC HL
+		INC C
+		CP 0
+		JR NZ,AZ_AGN
+		DEC C	;EXCLUDE ZERO TERM
+		POP HL
+		LD A,C
+		CP B
+		RET Z
+		;ADD B-C ZEROES IN FRONT		
+		LD A,B
+		SUB C
+		RET C	;RETURN IF CARRY MEANS WE HAVE MORE DIGITS
+		LD B,A
+		LD A,'0'
+AZ_AGN2:	DEC HL
+		LD (HL),A
+		DJNZ AZ_AGN2	
+		RET
+
+;COPY THE FILENAME OR STRING
+;HL SOURCE ZT STRING
+;DE DESTINATION BUFFER FOR FILENAME IS STRGBUFF
+;DESTROYS A
+@COPYFNAME:	LD DE,STRGBUFF
+@COPYSTRING:    LD A,(HL)
+		LD (DE),A
+		CP 0
+		RET Z		
+		INC DE
+		INC HL
+		JR COPYSTRING
+;---------------------------math func
+
+; this routine performs the operation HL=H*E
+@Mul8b:		ld d,0                         ; clearing D and L
+  		ld l,d
+  		ld b,8                         ; we have 8 bits
+Mul8bLoop:  	add hl,hl                      ; advancing a bit
+  		jp nc,Mul8bSkip                ; if zero, we skip the addition (jp is used for speed)
+  		add hl,de                      ; adding to the product if necessary
+Mul8bSkip:	djnz Mul8bLoop
+  		ret
+
+; Multiplication routine to multiply B by C and store result in HL
+MUL:		LD HL, 0             ; Clear HL
+    		LD D, A              ; D = A (number of microseconds)
+    		LD E, C              ; E = C (CPU speed)
+MUL_LOOP:	ADD HL, DE           ; HL = HL + DE
+    		DEC D                ; Decrement D
+    		JR NZ, MUL_LOOP      ; Repeat until D is zero
+    		RET
+
+; Division routine to divide HL by E and store the quotient in A
+DIV:   		XOR A                ; Clear A (quotient)
+    		LD B, 16             ; Set bit counter (16 bits)
+DIV_LOOP:       ADD HL, HL           ; Shift HL left
+    		RL A                 ; Shift A left through carry
+    		CP E                 ; Compare A with E
+    		JR C, NO_SUB         ; If A < E, skip subtraction
+    		SUB E                ; A = A - E
+    		INC L                ; Increment L (part of quotient)
+NO_SUB:		DJNZ DIV_LOOP        ; Loop 16 times
+    		RET                  ; Return with quotient in A
