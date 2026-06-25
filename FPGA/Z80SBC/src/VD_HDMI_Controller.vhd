@@ -77,7 +77,7 @@ begin
         port map (
             I_rst_n => nRESET, I_serial_clk => CLK_TMDS, I_rgb_clk => CLK_PIXEL,
             I_rgb_vs => v_sync, I_rgb_hs => h_sync, I_rgb_de => de,
-            I_rgb_r => VIDEO_BUS_IN.r_8, I_rgb_g => VIDEO_BUS_IN.g_8, I_rgb_b => VIDEO_BUS_IN.b_8,
+            I_rgb_r => not VIDEO_BUS_IN.r_8, I_rgb_g => not VIDEO_BUS_IN.g_8, I_rgb_b => not VIDEO_BUS_IN.b_8,
             O_tmds_clk_p => CKP, O_tmds_clk_n => CKN,
             O_tmds_data_p => tmds_p, O_tmds_data_n => tmds_n
         );
