@@ -1,3 +1,5 @@
 FPGA/Z80SBC_1st/impl/
 Proteus/SBC/_oLD/
 FPGA/Z80SBC/impl/
+FPGA/Z80SBC/src/_Old/hw_uart.v
+FPGA/Z80SBC/src/_Old/
