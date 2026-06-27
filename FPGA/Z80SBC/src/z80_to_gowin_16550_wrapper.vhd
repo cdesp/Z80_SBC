@@ -301,13 +301,13 @@ end process;
             RTSn     => open --ip_rtsn           -- Tracked to feed back to physical flow control pin
         );
  
---  z80_wr_clean <= '1' when (UART_nCS = '0' and LWR_CPU_N = '0' and Z80_LA_BUS_INT = "000") else '0';
+
         testSig <= reg_mcr(0);
-ip_rtsn <= '0';
+        ip_rtsn <= '0';
 
 
 
--- Create a single-cycle 'Write_Event' pulse
+
 
 
 

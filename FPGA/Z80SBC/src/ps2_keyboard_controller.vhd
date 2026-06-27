@@ -137,20 +137,29 @@ begin
                 when TX_REQ_TO_SEND =>
                     clk_out_en <= '1'; -- Release clock
                     if ps2_clk_edge = '1' then -- Wait for keyboard to start clocking
-                        bit_cnt <= 0;
+                        bit_cnt <= 1;
                         state <= TX_BITS;
                         -- Prep shift register: Data(8) + Parity(1) + Stop(1)
                         -- Logic: calc odd parity
                         parity := not (TX_DATA_I(0) xor TX_DATA_I(1) xor TX_DATA_I(2) xor TX_DATA_I(3) xor 
                                        TX_DATA_I(4) xor TX_DATA_I(5) xor TX_DATA_I(6) xor TX_DATA_I(7));
-                        shift_reg(7 downto 0) <= TX_DATA_I; -- Fixed: changed from (0 downto 7)
-                        shift_reg(8) <= parity;
-                        shift_reg(9) <= '1'; -- Stop bit
+                        shift_reg(0) <= '0';
+                        shift_reg(1) <= TX_DATA_I(0); 
+                        shift_reg(2) <= TX_DATA_I(1); 
+                        shift_reg(3) <= TX_DATA_I(2); 
+                        shift_reg(4) <= TX_DATA_I(3); 
+                        shift_reg(5) <= TX_DATA_I(4); 
+                        shift_reg(6) <= TX_DATA_I(5); 
+                        shift_reg(7) <= TX_DATA_I(6); 
+                        shift_reg(8) <= TX_DATA_I(7); 
+                        shift_reg(9) <= parity;
+                        shift_reg(10) <= '1'; -- Stop bit
+                        
                     end if;
 
                 when TX_BITS =>
                     if ps2_clk_edge = '1' then
-                        if bit_cnt < 10 then
+                        if bit_cnt < 11 then
                             if shift_reg(bit_cnt) = '0' then
                                 data_out_en <= '0';
                             else
@@ -159,7 +168,7 @@ begin
                             bit_cnt <= bit_cnt + 1;
                         else
                             data_out_en <= '1'; -- Release data
-                            state <= TX_ACK_WAIT;
+                            state <= IDLE;
                         end if;
                     end if;
 

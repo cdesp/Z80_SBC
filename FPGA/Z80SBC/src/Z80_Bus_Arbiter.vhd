@@ -125,7 +125,7 @@ BEGIN
     UART_CS_N <= '0' when (Z80_IORQ_N = '0' and  Z80_IO_ADDR(7 downto 3) = UART_PORT_BASE(7 downto 3)) 
                   else '1';
 
-    PS2_DS_N <= '0' when (Z80_IORQ_N = '0' and Z80_IO_ADDR = C_PS2_PORT_ADDR)
+    PS2_DS_N <= '0' when (Z80_IORQ_N = '0' and (Z80_IO_ADDR = C_PS2_PORT_ADDR OR Z80_IO_ADDR = std_logic_vector(unsigned(C_PS2_PORT_ADDR) + 1) ))
                   else '1';
 
     VD_DS_N <= '0' when (Z80_IORQ_N = '0' and Z80_IO_ADDR = C_VD_PORT_ADDR)

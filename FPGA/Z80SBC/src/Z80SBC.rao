@@ -2,102 +2,100 @@
 <GAO_CONFIG>
     <Version>3.0</Version>
     <Mode>Standard</Mode>
-    <AoCore index="0" sample_clock="CLK_IN" trig_type="0" storage_depth="2048" window_num="1" capture_amount="2048" implementation="0" trigger_pos="0" module_name="Z80_FPGA_SYSTEM" force_trigger_by_falling_edge="false" capture_init_data_enabled="false">
+    <AoCore index="0" sample_clock="CLK_IN" trig_type="0" storage_depth="2048" window_num="1" capture_amount="2048" implementation="0" trigger_pos="20" module_name="Z80_FPGA_SYSTEM" force_trigger_by_falling_edge="false" capture_init_data_enabled="false">
         <SignalList>
-            <Signal capture_enable="true">U_PRODUCER_ATLAS/CAPTURE</Signal>
-            <Signal capture_enable="true">U_PRODUCER_ATLAS/frame_start</Signal>
-            <Bus capture_enable="true" name="U_PRODUCER_ATLAS/vidset[1:0]">
-                <Signal>U_PRODUCER_ATLAS/vidset[1]</Signal>
-                <Signal>U_PRODUCER_ATLAS/vidset[0]</Signal>
+            <Signal capture_enable="true">PS2_DSn</Signal>
+            <Signal capture_enable="true">LWR_CPU_N</Signal>
+            <Signal capture_enable="true">PS2KeybCtrl/nWR_sync2</Signal>
+            <Signal capture_enable="true">PS2KeybCtrl/wr_n_delayed</Signal>
+            <Bus capture_enable="true" name="PS2KeybCtrl/ps2_tx_data[7:0]">
+                <Signal>PS2KeybCtrl/ps2_tx_data[7]</Signal>
+                <Signal>PS2KeybCtrl/ps2_tx_data[6]</Signal>
+                <Signal>PS2KeybCtrl/ps2_tx_data[5]</Signal>
+                <Signal>PS2KeybCtrl/ps2_tx_data[4]</Signal>
+                <Signal>PS2KeybCtrl/ps2_tx_data[3]</Signal>
+                <Signal>PS2KeybCtrl/ps2_tx_data[2]</Signal>
+                <Signal>PS2KeybCtrl/ps2_tx_data[1]</Signal>
+                <Signal>PS2KeybCtrl/ps2_tx_data[0]</Signal>
             </Bus>
-            <Bus capture_enable="true" name="U_PRODUCER_ATLAS/pxlfore_r[3:0]">
-                <Signal>U_PRODUCER_ATLAS/pxlfore_r[3]</Signal>
-                <Signal>U_PRODUCER_ATLAS/pxlfore_r[2]</Signal>
-                <Signal>U_PRODUCER_ATLAS/pxlfore_r[1]</Signal>
-                <Signal>U_PRODUCER_ATLAS/pxlfore_r[0]</Signal>
+            <Signal capture_enable="true">PS2KeybCtrl/ps2_tx_start</Signal>
+            <Bus capture_enable="true" name="PS2KeybCtrl/tx_state[3:0]">
+                <Signal>PS2KeybCtrl/tx_state[3]</Signal>
+                <Signal>PS2KeybCtrl/tx_state[2]</Signal>
+                <Signal>PS2KeybCtrl/tx_state[1]</Signal>
+                <Signal>PS2KeybCtrl/tx_state[0]</Signal>
             </Bus>
-            <Bus capture_enable="true" name="U_PRODUCER_ATLAS/pxlback_r[3:0]">
-                <Signal>U_PRODUCER_ATLAS/pxlback_r[3]</Signal>
-                <Signal>U_PRODUCER_ATLAS/pxlback_r[2]</Signal>
-                <Signal>U_PRODUCER_ATLAS/pxlback_r[1]</Signal>
-                <Signal>U_PRODUCER_ATLAS/pxlback_r[0]</Signal>
+            <Bus capture_enable="true" name="Z80_DATA_IN_INT[7:0]">
+                <Signal>Z80_DATA_IN_INT[7]</Signal>
+                <Signal>Z80_DATA_IN_INT[6]</Signal>
+                <Signal>Z80_DATA_IN_INT[5]</Signal>
+                <Signal>Z80_DATA_IN_INT[4]</Signal>
+                <Signal>Z80_DATA_IN_INT[3]</Signal>
+                <Signal>Z80_DATA_IN_INT[2]</Signal>
+                <Signal>Z80_DATA_IN_INT[1]</Signal>
+                <Signal>Z80_DATA_IN_INT[0]</Signal>
             </Bus>
-            <Bus capture_enable="true" name="U_PRODUCER_ATLAS/txfontline[3:0]">
-                <Signal>U_PRODUCER_ATLAS/txfontline[3]</Signal>
-                <Signal>U_PRODUCER_ATLAS/txfontline[2]</Signal>
-                <Signal>U_PRODUCER_ATLAS/txfontline[1]</Signal>
-                <Signal>U_PRODUCER_ATLAS/txfontline[0]</Signal>
+            <Bus capture_enable="true" name="PS2KeybCtrl/Z80_DATA_sync2[7:0]">
+                <Signal>PS2KeybCtrl/Z80_DATA_sync2[7]</Signal>
+                <Signal>PS2KeybCtrl/Z80_DATA_sync2[6]</Signal>
+                <Signal>PS2KeybCtrl/Z80_DATA_sync2[5]</Signal>
+                <Signal>PS2KeybCtrl/Z80_DATA_sync2[4]</Signal>
+                <Signal>PS2KeybCtrl/Z80_DATA_sync2[3]</Signal>
+                <Signal>PS2KeybCtrl/Z80_DATA_sync2[2]</Signal>
+                <Signal>PS2KeybCtrl/Z80_DATA_sync2[1]</Signal>
+                <Signal>PS2KeybCtrl/Z80_DATA_sync2[0]</Signal>
             </Bus>
-            <Signal capture_enable="true">U_PRODUCER_ATLAS/regread</Signal>
-            <Bus capture_enable="true" name="U_PRODUCER_ATLAS/vram_data_reg[7:0]">
-                <Signal>U_PRODUCER_ATLAS/vram_data_reg[7]</Signal>
-                <Signal>U_PRODUCER_ATLAS/vram_data_reg[6]</Signal>
-                <Signal>U_PRODUCER_ATLAS/vram_data_reg[5]</Signal>
-                <Signal>U_PRODUCER_ATLAS/vram_data_reg[4]</Signal>
-                <Signal>U_PRODUCER_ATLAS/vram_data_reg[3]</Signal>
-                <Signal>U_PRODUCER_ATLAS/vram_data_reg[2]</Signal>
-                <Signal>U_PRODUCER_ATLAS/vram_data_reg[1]</Signal>
-                <Signal>U_PRODUCER_ATLAS/vram_data_reg[0]</Signal>
+            <Bus capture_enable="true" name="PS2KeybCtrl/KB_DATA_OUT[7:0]">
+                <Signal>PS2KeybCtrl/KB_DATA_OUT[7]</Signal>
+                <Signal>PS2KeybCtrl/KB_DATA_OUT[6]</Signal>
+                <Signal>PS2KeybCtrl/KB_DATA_OUT[5]</Signal>
+                <Signal>PS2KeybCtrl/KB_DATA_OUT[4]</Signal>
+                <Signal>PS2KeybCtrl/KB_DATA_OUT[3]</Signal>
+                <Signal>PS2KeybCtrl/KB_DATA_OUT[2]</Signal>
+                <Signal>PS2KeybCtrl/KB_DATA_OUT[1]</Signal>
+                <Signal>PS2KeybCtrl/KB_DATA_OUT[0]</Signal>
             </Bus>
-            <Bus capture_enable="true" name="U_PRODUCER_ATLAS/vram_addr_reg[15:0]">
-                <Signal>U_PRODUCER_ATLAS/vram_addr_reg[15]</Signal>
-                <Signal>U_PRODUCER_ATLAS/vram_addr_reg[14]</Signal>
-                <Signal>U_PRODUCER_ATLAS/vram_addr_reg[13]</Signal>
-                <Signal>U_PRODUCER_ATLAS/vram_addr_reg[12]</Signal>
-                <Signal>U_PRODUCER_ATLAS/vram_addr_reg[11]</Signal>
-                <Signal>U_PRODUCER_ATLAS/vram_addr_reg[10]</Signal>
-                <Signal>U_PRODUCER_ATLAS/vram_addr_reg[9]</Signal>
-                <Signal>U_PRODUCER_ATLAS/vram_addr_reg[8]</Signal>
-                <Signal>U_PRODUCER_ATLAS/vram_addr_reg[7]</Signal>
-                <Signal>U_PRODUCER_ATLAS/vram_addr_reg[6]</Signal>
-                <Signal>U_PRODUCER_ATLAS/vram_addr_reg[5]</Signal>
-                <Signal>U_PRODUCER_ATLAS/vram_addr_reg[4]</Signal>
-                <Signal>U_PRODUCER_ATLAS/vram_addr_reg[3]</Signal>
-                <Signal>U_PRODUCER_ATLAS/vram_addr_reg[2]</Signal>
-                <Signal>U_PRODUCER_ATLAS/vram_addr_reg[1]</Signal>
-                <Signal>U_PRODUCER_ATLAS/vram_addr_reg[0]</Signal>
+            <Signal capture_enable="true">PS2KeybCtrl/tx_busy</Signal>
+            <Signal capture_enable="true">LKB_DATA</Signal>
+            <Signal capture_enable="true">LKB_CLOCK</Signal>
+            <Signal capture_enable="true">PS2KeybCtrl/PS2_INST/RX_READY_O</Signal>
+            <Bus capture_enable="true" name="PS2KeybCtrl/rx_data[7:0]">
+                <Signal>PS2KeybCtrl/rx_data[7]</Signal>
+                <Signal>PS2KeybCtrl/rx_data[6]</Signal>
+                <Signal>PS2KeybCtrl/rx_data[5]</Signal>
+                <Signal>PS2KeybCtrl/rx_data[4]</Signal>
+                <Signal>PS2KeybCtrl/rx_data[3]</Signal>
+                <Signal>PS2KeybCtrl/rx_data[2]</Signal>
+                <Signal>PS2KeybCtrl/rx_data[1]</Signal>
+                <Signal>PS2KeybCtrl/rx_data[0]</Signal>
             </Bus>
-            <Bus capture_enable="true" name="VCTRL_ADDR_BUS[15:0]">
-                <Signal>VCTRL_ADDR_BUS[15]</Signal>
-                <Signal>VCTRL_ADDR_BUS[14]</Signal>
-                <Signal>VCTRL_ADDR_BUS[13]</Signal>
-                <Signal>VCTRL_ADDR_BUS[12]</Signal>
-                <Signal>VCTRL_ADDR_BUS[11]</Signal>
-                <Signal>VCTRL_ADDR_BUS[10]</Signal>
-                <Signal>VCTRL_ADDR_BUS[9]</Signal>
-                <Signal>VCTRL_ADDR_BUS[8]</Signal>
-                <Signal>VCTRL_ADDR_BUS[7]</Signal>
-                <Signal>VCTRL_ADDR_BUS[6]</Signal>
-                <Signal>VCTRL_ADDR_BUS[5]</Signal>
-                <Signal>VCTRL_ADDR_BUS[4]</Signal>
-                <Signal>VCTRL_ADDR_BUS[3]</Signal>
-                <Signal>VCTRL_ADDR_BUS[2]</Signal>
-                <Signal>VCTRL_ADDR_BUS[1]</Signal>
-                <Signal>VCTRL_ADDR_BUS[0]</Signal>
+            <Signal capture_enable="true">PS2KeybCtrl/PS2_INST/TX_ACK_ERROR_O</Signal>
+            <Bus capture_enable="true" name="PS2KeybCtrl/PS2_INST/shift_reg[10:0]">
+                <Signal>PS2KeybCtrl/PS2_INST/shift_reg[10]</Signal>
+                <Signal>PS2KeybCtrl/PS2_INST/shift_reg[9]</Signal>
+                <Signal>PS2KeybCtrl/PS2_INST/shift_reg[8]</Signal>
+                <Signal>PS2KeybCtrl/PS2_INST/shift_reg[7]</Signal>
+                <Signal>PS2KeybCtrl/PS2_INST/shift_reg[6]</Signal>
+                <Signal>PS2KeybCtrl/PS2_INST/shift_reg[5]</Signal>
+                <Signal>PS2KeybCtrl/PS2_INST/shift_reg[4]</Signal>
+                <Signal>PS2KeybCtrl/PS2_INST/shift_reg[3]</Signal>
+                <Signal>PS2KeybCtrl/PS2_INST/shift_reg[2]</Signal>
+                <Signal>PS2KeybCtrl/PS2_INST/shift_reg[1]</Signal>
+                <Signal>PS2KeybCtrl/PS2_INST/shift_reg[0]</Signal>
             </Bus>
-            <Bus capture_enable="true" name="VRAM_DATA_TO_VCTRL[7:0]">
-                <Signal>VRAM_DATA_TO_VCTRL[7]</Signal>
-                <Signal>VRAM_DATA_TO_VCTRL[6]</Signal>
-                <Signal>VRAM_DATA_TO_VCTRL[5]</Signal>
-                <Signal>VRAM_DATA_TO_VCTRL[4]</Signal>
-                <Signal>VRAM_DATA_TO_VCTRL[3]</Signal>
-                <Signal>VRAM_DATA_TO_VCTRL[2]</Signal>
-                <Signal>VRAM_DATA_TO_VCTRL[1]</Signal>
-                <Signal>VRAM_DATA_TO_VCTRL[0]</Signal>
-            </Bus>
-            <Bus capture_enable="true" name="U_PRODUCER_ATLAS/state[5:0]">
-                <Signal>U_PRODUCER_ATLAS/state.run</Signal>
-                <Signal>U_PRODUCER_ATLAS/state.read_r0_addr</Signal>
-                <Signal>U_PRODUCER_ATLAS/state.read_r0_wait</Signal>
-                <Signal>U_PRODUCER_ATLAS/state.read_r0_data</Signal>
-                <Signal>U_PRODUCER_ATLAS/state.read_r1_wait</Signal>
-                <Signal>U_PRODUCER_ATLAS/state.read_r1_data</Signal>
+            <Bus capture_enable="true" name="PS2KeybCtrl/PS2_INST/state[5:0]">
+                <Signal>PS2KeybCtrl/PS2_INST/state.idle</Signal>
+                <Signal>PS2KeybCtrl/PS2_INST/state.rx_bits</Signal>
+                <Signal>PS2KeybCtrl/PS2_INST/state.tx_inhibit</Signal>
+                <Signal>PS2KeybCtrl/PS2_INST/state.tx_req_to_send</Signal>
+                <Signal>PS2KeybCtrl/PS2_INST/state.tx_bits</Signal>
+                <Signal>PS2KeybCtrl/PS2_INST/state.tx_ack_wait</Signal>
             </Bus>
         </SignalList>
         <Triggers>
             <Trigger index="0">
                 <SignalList>
-                    <Signal>U_PRODUCER_ATLAS/CAPTURE</Signal>
+                    <Signal>PS2KeybCtrl/PS2_INST/state.tx_bits</Signal>
                 </SignalList>
             </Trigger>
             <Trigger index="1"/>

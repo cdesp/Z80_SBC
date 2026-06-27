@@ -208,14 +208,11 @@ architecture structural of Z80_FPGA_SYSTEM is
     signal L_BUSRQ_N_S         : std_logic; -- Connect this to your physical /BUSRQ pin
 
     -- Signal declarations for PS/2 Keyboard
-    signal ps2_rx_data    : std_logic_vector(7 downto 0);
-    signal ps2_rx_ready   : std_logic;
-    signal ps2_tx_data    : std_logic_vector(7 downto 0);
-    signal ps2_tx_start   : std_logic := '0';
-    signal ps2_tx_busy    : std_logic;
-    signal ps2_ack_err    : std_logic;
     signal PS2_DSn        : std_logic;  --ps/2 keyboard port signal 
-    signal wr_n_delayed   : std_logic := '1';
+--    signal wr_n_delayed   : std_logic := '1';
+    signal PS2_DATA_OUT   : std_logic_vector(7 downto 0);
+    signal sKB_CLOCK      : std_logic := '1'; 
+    signal sKB_DATA       : std_logic := '1'; 
 
     -- signals fro video generation
     -- 2. Internal Video Bus Signals
@@ -403,26 +400,20 @@ signal event_processed : std_logic := '0';
     end component;
 
 
-    component PS2_Keyboard_Controller
+    component Z80_PS2_Bridge is
         port (
-            CLK             : in    std_logic;
-            nRESET          : in    std_logic;
-
-            -- Physical Interface (to SN74LVC1G07 or direct pins with pull-ups)
-            PS2_CLK         : inout std_logic;
-            PS2_DATA        : inout std_logic;
-
-            -- Z80/System Interface (Raw Scan Codes)
-            RX_DATA_O       : out   std_logic_vector(7 downto 0);
-            RX_READY_O      : out   std_logic; -- Pulse high when raw byte received
-        
-            -- Command Interface (For LEDs / Initialization)
-            TX_DATA_I       : in    std_logic_vector(7 downto 0);
-            TX_START_I      : in    std_logic; -- Pulse high to send byte
-            TX_BUSY_O       : out   std_logic;
-            TX_ACK_ERROR_O  : out   std_logic  -- High if keyboard fails to ACK
+            CLK            : in    std_logic;
+            nRESET         : in    std_logic;
+            PS2_DS_N       : in    std_logic;
+            Z80_IO_ADDR    : in    std_logic_vector(7 downto 0);
+            Z80_RD_N       : in    std_logic;
+            Z80_WR_N       : in    std_logic;
+            Z80_DATA_IN    : in   std_logic_vector(7 downto 0);
+            Z80_DATA_OUT   : out   std_logic_vector(7 downto 0);
+            PS2_CLK        : inout std_logic;
+            PS2_DATA       : inout std_logic
         );
-    end component;
+    end component; 
 
     --****************************************************************
     -- Video system
@@ -741,55 +732,23 @@ begin
     CTS_N <= 'Z';--sCTS_N;--'0';
 
 
-    PS2KeybCtrl :PS2_Keyboard_Controller
+-- PS2 controller
+    PS2KeybCtrl : Z80_PS2_Bridge
     port map (
-        CLK             => CLK_in,          --50Mhz clock
-        nRESET          => reset_n_sync2,
-        -- Physical Interface (to SN74LVC1G07 or direct pins with pull-ups)
-        PS2_CLK         => LKB_CLOCK,
-        PS2_DATA        => LKB_DATA,
+        CLK          => CLK_in,
+        nRESET       => nRESET,
+        PS2_DS_N     => PS2_DSn,       -- Your decoded signal from top-level
+        Z80_IO_ADDR  => Z80_LA_BUS_INT(7 downto 0),   -- Connect to Z80 address bus
+        Z80_RD_N     => L_RD_N,       -- Connect to Z80 RD signal
+        Z80_WR_N     => LWR_CPU_N,       -- Connect to Z80 WR signal
+        Z80_DATA_IN  => Z80_DATA_IN_INT,
+        Z80_DATA_OUT => PS2_DATA_OUT,   -- Connect to Z80 data bus
+        PS2_CLK      => sKB_CLOCK,        -- External pin
+        PS2_DATA     => sKB_DATA        -- External pin
+    );    
 
-        -- Z80/System Interface (Raw Scan Codes)
-        RX_DATA_O       =>  ps2_rx_data,    --Scan Code
-        RX_READY_O      =>  ps2_rx_ready,   -- Pulse high when raw byte received
-        
-        -- Command Interface (For LEDs / Initialization)
-        TX_DATA_I       =>  ps2_tx_data,
-        TX_START_I      =>  ps2_tx_start,   -- Pulse high to send byte
-        TX_BUSY_O       =>  ps2_tx_busy,
-        TX_ACK_ERROR_O  =>  ps2_ack_err     -- High if keyboard fails to ACK
-    );
-    
-
-    -- Synchronous process to handle the Z80 Write to Port PS2/Keyb
-    -- write 0xED then 
-    --The status byte bit mapping is:
-    --Bit 0: Scroll Lock
-    --Bit 1: Number Lock
-    --Bit 2: Caps Lock
-    --Bits 3-7: Must be 0
-    process(CLK_Z80_INT, reset_n_sync2)
-    begin
-        if reset_n_sync2 = '0' then
-            ps2_tx_start   <= '0';
-            ps2_tx_data    <= (others => '0');
-            wr_n_delayed   <= '1';
-        elsif rising_edge(CLK_Z80_INT) then
-            -- Default state
-            ps2_tx_start <= '0';
-            
-            -- Edge detection for L_WR_N (falling edge)
-            wr_n_delayed <= nWR_CPU_r;
-            
-            -- If IORQ is active, port matches, and we see a falling edge of WR_N
-            if nIORQ_r = '0' and PS2_DSn = '0' then
-                if nWR_CPU_r = '0' and wr_n_delayed = '1' then
-                    ps2_tx_data  <= Z80_DATA_IN_INT; -- Capture the LED bits from Z80 bus
-                    ps2_tx_start <= '1';     -- Trigger the PS2 Controller for 1 clock cycle
-                end if;
-            end if;
-        end if;
-    end process;
+    LKB_CLOCK <= sKB_CLOCK;
+    LKB_DATA <= sKB_DATA;
 
 
     --****************************************************************
@@ -959,7 +918,7 @@ end process;
         IF rising_edge(CLK_Z80_INT) THEN
            Z80_DATA_OUT_INT <=         
                 s_uart_data_out       when UART_nCS = '0' and nRD_CPU_r = '0' else -- UART read selected          
-                ps2_rx_data           when PS2_DSn ='0' and nRD_CPU_r = '0' else --ps/2 keyboard read
+                PS2_DATA_OUT          when PS2_DSn ='0' and nRD_CPU_r = '0' else --ps/2 keyboard read
                 VRAM_DATA_TO_CPU      when VRAM_CE_CPU_N = '0' and nRD_CPU_r = '0' else   -- VRAM selected
                 clk_reg_out           when nCLK_SEL='0' and nRD_CPU_r = '0' else
                 (others => 'Z');                           -- Default if no device is selected for read
@@ -967,7 +926,6 @@ end process;
     END PROCESS;
 
    
-    
     sEnableDataOut <= '1' when flash_prog='0' 
            else '0' when ( UART_nCS = '0' or PS2_DSn ='0' or VRAM_CE_CPU_N = '0' or nCLK_SEL='0') and nRD_CPU_r = '0'--add i2c when it works
            else '1';
