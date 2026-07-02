@@ -27,6 +27,7 @@ ENTITY Z80_Bus_Arbiter IS
         UART_CS_N           : OUT std_logic;                    -- for UART RS232 Selection
         PS2_DS_N            : OUT std_logic;                    -- for PS/2 Keyboard Device communication
         VD_DS_N             : OUT std_logic;                    -- for Video Device Communication
+        I2C_CS_N            : OUT std_logic;                    -- for i2c pca9665 Communication
         -- Wait State Generation
         Z80_WAIT_N          : OUT STD_LOGIC;                    -- Z80 Wait Request (Active Low)
         
@@ -129,6 +130,9 @@ BEGIN
                   else '1';
 
     VD_DS_N <= '0' when (Z80_IORQ_N = '0' and Z80_IO_ADDR = C_VD_PORT_ADDR)
+                  else '1';
+
+    I2C_CS_N <= '0' when (Z80_IORQ_N = '0' and Z80_IO_ADDR(7 downto 3) =  C_I2C_PORT_ADDR_BASE(7 downto 3))
                   else '1';
 
     -- ***************************************************************

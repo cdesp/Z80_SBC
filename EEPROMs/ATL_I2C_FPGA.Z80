@@ -1,0 +1,325 @@
+		ok								;*******************************************************************************
+; Z80 I2C FPGA ROUTINES
+;
+; This module provides low-level routines for initializing and controlling the
+; FPGA I2C bus controller in a master-mode configuration. It includes
+; functions for bus initialization, writing data to a slave device, and
+; reading data from a slave device.
+;
+; The base address for the I2C device ports (DEVI2C) must be defined elsewhere.
+;*******************************************************************************
+		NAME I2C_ROUTINES
+		
+		GLOBAL I2C_INIT 						; Initializes the FPGA I2C bus.
+		GLOBAL I2C_READ 						; Reads data from a slave device.
+		GLOBAL I2C_WRITE 						; Writes data to a slave device.
+		
+		
+		Prescale_reg0 EQU DEVI2C + 0x00 				;LOW BYTE TO SET THE CLOCK
+		Prescale_reg1 EQU DEVI2C + 0x01 				;HIGH BYTE
+		Control_reg EQU DEVI2C + 0x02
+		Transmit_reg EQU DEVI2C + 0x03
+		Receive_reg EQU DEVI2C + 0x03
+		Command_reg EQU DEVI2C + 0x04
+		Status_reg EQU DEVI2C + 0x04
+		
+;[Master clock frequency / (5*sclk frequency) -1].
+		
+		CLK_LOW EQU 0X63
+		CLK_HIGH EQU 0X00
+		
+		
+;-------------------------------------------------------------------------------
+; I2C_RDSTAT_WT: Reads the I2C status register and waits for a valid status.
+;
+; This routine polls the control register until the Serial Interrupt (SI) bit
+; is set. This indicates that the I2C controller has completed an operation
+; and a new status code is available. A timeout is implemented to prevent
+; the routine from hanging indefinitely.
+;
+; Parameters:
+;   None
+;
+; Returns:
+;   A: Contains the status byte from the DI2C_STA register.
+;
+; Preserved Registers:
+;   BC
+;
+; STATUS_REG 	BIT 7 = RX ACK (0 ACK),
+;		BIT 6 = BUSY (1 BUSY)
+;		BIT 5 = AL (1 ERROR)
+;		BIT 4 =
+;		BIT 3 =
+;		BIT 2 =
+;		BIT 1 = TIP (1 TRANSFER DATA)
+;		BIT 0 = IF (1 = COMPLETE OR AL) INTERRUPT FLAG
+;-------------------------------------------------------------------------------
+; I2C_RDSTAT_WT:			PUSH BC
+; 				LD BC, $2000
+; I2CRWT_AGN:			IN A, (Status_reg)
+; 				BIT 6, A
+; 				JR NZ, I2CRWT_OK ;RECHECK IF BIT=1
+; 				DEC BC
+; 				LD A, B
+; 				OR C
+; 				JR NZ, I2CRWT_AGN
+; I2CRWT_OK:			POP BC
+; 				IN A, (Status_reg)
+; 				RET
+		
+		
+;-------------------------------------------------------------------------------
+; I2C_RDSTAT_NW: Reads the I2C status register without waiting.
+;
+; This routine checks the control register's BUSY bit. If the bit is set, it
+; returns the status byte. Otherwise, it returns an invalid status code.
+;
+; Parameters:
+;   None
+;
+; Returns:
+;   A: Contains the status byte from the DI2C_STA register, or $FF if
+;      the status is not ready.
+;-------------------------------------------------------------------------------
+; I2C_RDSTAT_NW:			IN A, (Status_reg)
+; 				BIT 6, A
+; 				LD A, $FF
+; 				RET Z
+; 				IN A, (Status_reg)
+; 				RET
+		
+		
+;-------------------------------------------------------------------------------
+; I2C_INIT: Initializes the PCA9665 I2C controller.
+;
+; Sets the local slave address, initializes the bus state machine, and
+; configures the I2C clock speed for standard mode.
+;
+; Parameters:
+;   None
+;
+; Returns:
+;   None
+;
+; Memory Accessed:
+;   I/O Ports: DI2C_INDPTR, DI2C_INDIR, DI2C_CON, DI2C_SCLH, DI2C_SCLL.
+;-------------------------------------------------------------------------------
+I2C_INIT:	LD A, CLK_LOW
+		OUT (Prescale_reg0), A
+		LD A, CLK_HIGH
+		OUT (Prescale_reg1), A
+		LD A, 10000000B 						;BIT 7 IS MASTER, BIT 6 IS INTERRUPT EN/DIS
+		OUT (Control_reg), A
+		CALL I2C_WAIT_TIP
+		RET
+		
+; I2C_WAIT_IDLE:
+;         IN A,(Status_reg)
+;         BIT 6,A          ; BUSY
+;         JR NZ,I2C_WAIT_IDLE
+;         RET
+		
+;-------------------------------------------------------------------------------
+; Wait until TIP clears. WITH TIMEOUT
+;
+; Returns when transfer complete.
+;-------------------------------------------------------------------------------
+		
+I2C_WAIT_TIP:	
+		
+		PUSH BC
+		LD BC, $2000
+WT_WAIT:	
+		IN A, (Status_reg)
+		LD E, A
+		BIT 1, A 							; TIP
+		JR Z, WT_OK
+		DEC BC
+		LD A, B
+		OR C
+		JR NZ, WT_WAIT
+		LD A, 't'
+		CALL RS_TX
+		LD A, E 							;TIMEOUT
+WT_OK:		POP BC
+		RET
+		
+I2C_CHK_TIP_ACK:	
+		CALL I2C_WAIT_TIP
+;CALL I2C_WAIT_IDLE		; WAIT BUSY FLAG TO GO 0 ** CAN BLOCK
+		IN A, (Status_reg)
+		BIT 7, A 							;(0 = ACK, 1 = NACK)
+		RET
+		
+		
+;-------------------------------------------------------------------------------
+; I2C_WRITE: Performs a master I2C write transaction.
+;
+; Initiates a start condition, sends the slave device address with the write
+; bit, and then transmits the specified number of data bytes from a buffer.
+;
+; Parameters:
+;   D:      Contains the 7-bit slave device address.
+;   HL:     Points to the buffer of bytes to transmit.
+;   BC:     Contains the number of bytes to transmit.
+;
+; Returns:
+;   A:      Contains the number of bytes that were *not* written, or 0 on success.
+;
+; Preserved Registers:
+;   None
+;-------------------------------------------------------------------------------
+I2C_WRITE:	
+I2C_WR_BYTE:	LD A, D
+		ADD A, A 							;PUT SLAVE ADDRESS TO BIT 7:1
+; BIT 0 IS 0 SO WRITE
+		OUT (Transmit_reg), A
+		LD A, 0X90 							;ENABLE START AND WRITE COMMANDS
+		OUT (Command_reg), A
+		CALL I2C_CHK_TIP_ACK
+		JR NZ, I2C_ERROR
+WR_LP1:		LD A, B
+		OR C
+		JR Z, WR_DN
+		LD A, (HL)
+		INC HL
+		OUT (Transmit_reg), A
+		DEC BC
+		LD A, B
+		OR C
+		JR Z, WR_LAST
+		LD A, 0X10 							; MORE BYTES TO SEND
+		OUT (Command_reg), A
+		CALL I2C_CHK_TIP_ACK
+		JR NZ, I2C_ERROR
+		JR WR_LP1
+WR_LAST:	LD A, 0X50 							;WRITE+STOP
+		OUT (Command_reg), A
+		CALL I2C_CHK_TIP_ACK
+		JR NZ, I2C_ERROR
+WR_DN:		XOR A
+		RET
+		
+		
+;-------------------------------------------------------------------------------
+; ERROR
+;-------------------------------------------------------------------------------
+		
+		
+I2C_ERROR:	LD E,A 			;ERROR STATUS BYTE
+		LD A, C
+		OR A
+		RET NZ
+		DEC A
+		RET
+		
+;-------------------------------------------------------------------------------
+; I2C_READ: Performs a master I2C read transaction.
+;
+; Initiates a start condition, sends the slave device address with the read
+; bit, and then reads the specified number of data bytes into a buffer. It
+; sends an ACK for all but the last byte, which receives a NAK.
+;
+; Parameters:
+;   D:      Contains the 7-bit slave device address.
+;   E:	    Contains the index register to read	
+;   HL:     Points to the buffer for storing received bytes.
+;   BC:     Contains the number of bytes to read.
+;
+; Returns:
+;   A:      Contains the number of bytes that were *not* read, or 0 on success.
+;
+; Preserved Registers:
+;   None
+;-------------------------------------------------------------------------------
+I2C_READ:
+
+;------------------------------------------------------
+; 1. SLA + WRITE
+;------------------------------------------------------
+
+        LD A,D
+        ADD A,A	
+        OUT (Transmit_reg),A
+
+        LD A,90h              ; START + WRITE
+        OUT (Command_reg),A
+	PUSH DE
+        CALL I2C_CHK_TIP_ACK
+	POP DE
+        JR NZ,I2C_ERROR
+
+;------------------------------------------------------
+; 2. REGISTER ADDRESS (IMPORTANT)
+;------------------------------------------------------
+
+        LD A,E             ; register address        
+        OUT (Transmit_reg),A
+
+        LD A,10h              ; WRITE
+        OUT (Command_reg),A
+        CALL I2C_CHK_TIP_ACK
+        JR NZ,I2C_ERROR
+
+;------------------------------------------------------
+; 3. REPEATED START + SLA + READ
+;------------------------------------------------------
+
+        LD A,D
+        ADD A,A
+        OR 01h                ; READ bit
+        OUT (Transmit_reg),A
+
+        LD A,90h              ; repeated START
+        OUT (Command_reg),A
+        CALL I2C_CHK_TIP_ACK
+        JR NZ,I2C_ERROR
+
+;------------------------------------------------------
+; 4. READ LOOP
+;------------------------------------------------------
+
+I2C_RD_LOOP:
+
+        LD A,B
+        OR C
+        JR Z,I2C_RD_DONE
+
+        DEC BC
+
+        LD A,B
+        OR C
+        JR Z,I2C_RD_LAST
+
+;-------------------------
+; READ + ACK
+;-------------------------
+
+        LD A,20h              ; READ + ACK
+        OUT (Command_reg),A
+        CALL I2C_WAIT_TIP
+
+        IN A,(Receive_reg)
+        LD (HL),A
+	CALL SOUTAS
+        INC HL
+
+        JR I2C_RD_LOOP
+
+;-------------------------
+; LAST BYTE
+;-------------------------
+
+I2C_RD_LAST:
+
+        LD A,68h              ; READ + NACK + STOP (VERIFY in IP!)
+        OUT (Command_reg),A
+        CALL I2C_WAIT_TIP
+
+        IN A,(Receive_reg)
+        LD (HL),A
+	CALL SOUTAS
+I2C_RD_DONE:
+        XOR A
+        RET

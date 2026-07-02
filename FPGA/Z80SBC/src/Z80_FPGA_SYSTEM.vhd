@@ -214,22 +214,42 @@ architecture structural of Z80_FPGA_SYSTEM is
     signal sKB_CLOCK      : std_logic := '1'; 
     signal sKB_DATA       : std_logic := '1'; 
 
+    -- Signal declarations for I2C
+    signal i2c_data_out : std_logic_vector(7 downto 0);
+--    signal i2c_sda_o  : std_logic;
+--    signal i2c_sda_oe : std_logic;
+--    signal i2c_scl_o  : std_logic;
+--    signal i2c_scl_oe : std_logic;
+
+    signal sSCL       : std_logic;
+    signal sSDA       : std_logic;
+    signal I2C_CSn    : std_logic;
+    signal o_rdata  : std_logic_vector(7 downto 0);
+    signal o_int    : std_logic;
+
+    signal i_tx_en  : std_logic := '0';
+    signal i_waddr  : std_logic_vector(2 downto 0) := (others=>'0');
+    signal i_wdata  : std_logic_vector(7 downto 0) := (others=>'0');
+
+    signal i_rx_en  : std_logic := '1';
+    signal i_raddr  : std_logic_vector(2 downto 0) := "100";
+    signal wr_sync1, wr_sync2 : std_logic;
+    signal rd_sync1, rd_sync2 : std_logic;
+
+
+
     -- signals fro video generation
-    -- 2. Internal Video Bus Signals
-    signal video_timing     : video_bus_in;
-    
+    -- Internal Video Bus Signals
+    signal video_timing     : video_bus_in;    
     -- Video Output from Video Systems
     signal v80_bus_out      : video_bus_out;  --demo
     signal atlas_bus_out    : video_bus_out;  --atlas video controller
     signal nb_bus_out       : video_bus_out;  --Newbrain video controller
     signal zx_bus_out       : video_bus_out;  --ZX Spectrum video controller
     signal am_bus_out       : video_bus_out;  --Amstrad video controller
-    
-
     -- The multiplexed bus sent to the HDMI controller
     signal selected_video   : video_bus_out;
-
-    -- 3. Control Signals
+    -- Control Signals
     signal video_selection : unsigned(3 downto 0) := (others => '0');
     signal reg_video_sel_n  : std_logic;
     signal VD_DSn           : std_logic; --for video registers
@@ -314,6 +334,7 @@ signal event_processed : std_logic := '0';
             UART_CS_N         : out std_logic;
             PS2_DS_N          : out std_logic;                    -- for PS/2 keyboard  
             VD_DS_N           : out std_logic;                    -- for Video
+            I2C_CS_N          : out std_logic;
             -- Wait State Generation
             Z80_WAIT_N        : out std_logic;
             -- Interrupt Management
@@ -414,6 +435,53 @@ signal event_processed : std_logic := '0';
             PS2_DATA       : inout std_logic
         );
     end component; 
+
+    --------------------------------------------------------------------------------
+    -- i2c inteface
+    --------------------------------------------------------------------------------
+
+--    component pca9665_wrapper
+--    port(
+--        clk     : in  std_logic;
+--        reset_n : in  std_logic;
+
+        ------------------------------------------------
+ --        Z80 interface
+        ------------------------------------------------
+--        cs      : in  std_logic;
+--        rd      : in  std_logic;
+--        wr      : in  std_logic;
+--        din     : in  std_logic_vector(7 downto 0);
+--        addr    : in  std_logic_vector(1 downto 0);       
+--        dout    : out std_logic_vector(7 downto 0);
+--        SCL     : inout std_logic;
+--        SDA     : inout std_logic
+--    );
+--    end component;
+
+  --------------------------------------------------------------------
+    -- Gowin I2C IP
+    --------------------------------------------------------------------
+    component I2C_MASTER_Top
+        port (
+            I_CLK     : in std_logic;
+            I_RESETN  : in std_logic;
+
+            I_TX_EN   : in std_logic;
+            I_WADDR   : in std_logic_vector(2 downto 0);
+            I_WDATA   : in std_logic_vector(7 downto 0);
+
+            I_RX_EN   : in std_logic;
+            I_RADDR   : in std_logic_vector(2 downto 0);
+
+            O_RDATA   : out std_logic_vector(7 downto 0);
+            O_IIC_INT : out std_logic;
+
+            SCL       : inout std_logic;
+            SDA       : inout std_logic
+        );
+    end component;
+
 
     --****************************************************************
     -- Video system
@@ -634,6 +702,7 @@ begin
             UART_CS_N         => UART_nCS,                -- RS232 cs  
             PS2_DS_N          => PS2_DSn,                 -- ps/2 keyb
             VD_DS_N           => VD_DSn,                  -- video 
+            I2C_CS_N          => I2C_CSn,                  --i2c
             -- Wait State Generation
             Z80_WAIT_N        => L_WAIT_N,                -- Output pin L_WAIT_N
             -- Interrupt Management
@@ -750,6 +819,84 @@ begin
     LKB_CLOCK <= sKB_CLOCK;
     LKB_DATA <= sKB_DATA;
 
+    --****************************************************************
+    -- i2c
+
+--    U_I2C : pca9665_wrapper
+--    port map(
+--        clk   => CLK_in,
+--        reset_n => nRESET,        
+        ------------------------------------------------
+      --   Z80 bus
+        ------------------------------------------------
+--        cs    => not I2C_CSn,        --Active High
+--        rd    => not L_RD_N,        --Active High
+--        wr    => not LWR_CPU_N,     --Active High
+--        din   => Z80_DATA_IN_INT,
+--        addr  => Z80_LA_BUS_INT(1 downto 0),       
+--        dout  => i2c_data_out,
+        ------------------------------------------------
+    --     I2C pins
+        ------------------------------------------------
+--        SDA  => SDA,
+--        SCL  => SCL
+--    );
+
+  --------------------------------------------------------------------
+    -- IP INSTANCE
+    --------------------------------------------------------------------
+    U1: I2C_MASTER_Top
+        port map (
+            I_CLK     => CLK_IN,
+            I_RESETN  => nRESET,
+
+            I_TX_EN   => i_tx_en,
+
+            I_WADDR   => i_waddr,
+            I_WDATA   => i_wdata,
+
+            I_RX_EN   => i_rx_en,
+            I_RADDR   => i_raddr,
+
+            O_RDATA   => o_rdata,
+            O_IIC_INT => o_int,
+
+            SCL       => SCL,
+            SDA       => SDA
+        );
+
+    i2c_data_out <= o_rdata;
+   -- i_tx_en <= '1' when I2C_CSn='0' and LWR_CPU_N='0';
+    i_waddr <= Z80_LA_BUS_INT(2 downto 0);
+    i_wdata <= Z80_DATA_IN_INT;
+   -- i_rx_en <= '1' when I2C_CSn='0' and L_RD_N='0';
+    i_raddr <= Z80_LA_BUS_INT(2 downto 0);
+    
+
+
+    process(CLK_IN)
+    begin
+        if rising_edge(CLK_IN) then
+
+            -- Synchronize the Z80 strobes
+            wr_sync1 <= '1' when (I2C_CSn='0' and LWR_CPU_N='0') else '0';
+            wr_sync2 <= wr_sync1;
+
+            rd_sync1 <= '1' when (I2C_CSn='0' and L_RD_N='0') else '0';
+            rd_sync2 <= rd_sync1;
+
+            -- Generate one-clock pulses
+            i_tx_en <= wr_sync1 and not wr_sync2;
+            i_rx_en <= rd_sync1 and not rd_sync2;
+
+        end if;
+    end process;
+
+
+   -- sSDA <= SDA;
+   -- sSCL <= SCL;
+--    SDA <= '0' when i2c_sda_oe='1' else 'Z';    --sda_oe = 1 → drive SDA LOW
+--    SCL <= '0' when i2c_scl_oe='1' else 'Z';    --scl_oe = 1 → drive SCL LOW
 
     --****************************************************************
     -- Video system
@@ -921,13 +1068,15 @@ end process;
                 PS2_DATA_OUT          when PS2_DSn ='0' and nRD_CPU_r = '0' else --ps/2 keyboard read
                 VRAM_DATA_TO_CPU      when VRAM_CE_CPU_N = '0' and nRD_CPU_r = '0' else   -- VRAM selected
                 clk_reg_out           when nCLK_SEL='0' and nRD_CPU_r = '0' else
+                i2c_data_out          when I2C_CSn ='0' and nRD_CPU_r = '0' else
                 (others => 'Z');                           -- Default if no device is selected for read
         END IF;
     END PROCESS;
 
+         
    
     sEnableDataOut <= '1' when flash_prog='0' 
-           else '0' when ( UART_nCS = '0' or PS2_DSn ='0' or VRAM_CE_CPU_N = '0' or nCLK_SEL='0') and nRD_CPU_r = '0'--add i2c when it works
+           else '0' when ( UART_nCS = '0' or PS2_DSn ='0' or VRAM_CE_CPU_N = '0' or nCLK_SEL='0' or I2C_CSn ='0') and nRD_CPU_r = '0'--add i2c when it works
            else '1';
     LWR_N <= 'Z' when flash_prog='0' else MMU_WR; --FlRam and Sram control
     L_RD_N <= 'Z'; --read only make the signal in
@@ -1005,7 +1154,5 @@ end process;
     nmi_input_clean <= L_NMI_N;
     L_NMI_N <= '0' when fpga_drive_nmi_low = '1' else 'Z';
 
-    SCL <= sCTS_N;--;s_uart_data_out(0) when UART_nCS='0' and nRD_CPU_r='0' else '1'; -- i2c not implemented yet
-    SDA <= s_TestSig; --'0' when BADEV1='1' and BADEV2='1' else '1';
 
 end structural;
