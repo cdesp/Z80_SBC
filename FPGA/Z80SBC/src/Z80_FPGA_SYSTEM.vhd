@@ -179,6 +179,8 @@ architecture structural of Z80_FPGA_SYSTEM is
     --BUS ARBITER 
     signal BADEV1           : std_logic;
     signal BADEV2           : std_logic;
+    signal L_BA_WAIT_N      : std_logic;
+
 
     -- INTERNAL RAM SIGNALS
     signal VRAM_CE_CPU_N    : std_logic; 
@@ -216,11 +218,6 @@ architecture structural of Z80_FPGA_SYSTEM is
 
     -- Signal declarations for I2C
     signal i2c_data_out : std_logic_vector(7 downto 0);
---    signal i2c_sda_o  : std_logic;
---    signal i2c_sda_oe : std_logic;
---    signal i2c_scl_o  : std_logic;
---    signal i2c_scl_oe : std_logic;
-
     signal sSCL       : std_logic;
     signal sSDA       : std_logic;
     signal I2C_CSn    : std_logic;
@@ -253,6 +250,13 @@ architecture structural of Z80_FPGA_SYSTEM is
     signal video_selection : unsigned(3 downto 0) := (others => '0');
     signal reg_video_sel_n  : std_logic;
     signal VD_DSn           : std_logic; --for video registers
+
+    --SND76489 SIGNALS
+    signal SN_DSn           : std_logic; --for SN76489
+    -- Internal signals for the state machine FOR WAIT SIGNAL
+    signal wait_counter : integer range 0 to 255 := 0;
+    signal state        : std_logic := '0'; -- 0: IDLE, 1: WAITING
+
 
 
 --debug signals
@@ -704,7 +708,7 @@ begin
             VD_DS_N           => VD_DSn,                  -- video 
             I2C_CS_N          => I2C_CSn,                  --i2c
             -- Wait State Generation
-            Z80_WAIT_N        => L_WAIT_N,                -- Output pin L_WAIT_N
+            Z80_WAIT_N        => L_BA_WAIT_N,                -- Output pin L_WAIT_N
             -- Interrupt Management
             INT_REQ_N         => nINT_REQ_PERIPH,         -- Master Peripheral Interrupt Request (TBD)
             Z80_INT_N         => LINT_N                   -- Output pin LINT_N
@@ -981,7 +985,7 @@ begin
        if rising_edge(CLK_IN) then            
             -- We want to run the clock only if NOT (Freeze Condition)   
             if (l_wait_n = '0') then
-                LCLOCK <= CLK_Z80_INT;--'1'; -- FREEZE: CPU stops mid-access
+                LCLOCK <= '1'; -- FREEZE: CPU stops mid-access
             else
                 LCLOCK <= CLK_Z80_INT; -- RUN: Normal operation
             end if;
@@ -994,6 +998,39 @@ begin
     -- ***************************************************************
     DEV1 <= BADEV1; -- Z80's decoded output
     DEV2 <= BADEV2; -- Z80's decoded output
+
+    SN_DSn <='0' WHEN BADEV1='0' AND BADEV2='1' ELSE '1';
+
+--L_WAIT_N <= L_BA_WAIT_N AND (OTHER SIGNALS)
+
+process(CLK_IN, reset_n_sync2)
+begin
+    if reset_n_sync2 = '0' then
+        l_wait_n <= '1';
+        wait_counter <= 0;
+        state <= '0';
+    elsif rising_edge(CLK_IN) then
+        case state is
+            when '0' => -- IDLE
+                l_wait_n <= '1';
+                if (SN_DSn = '0' AND LWR_CPU_N = '0') then
+                    l_wait_n <= '0';    -- Trigger Wait State
+                    wait_counter <= 200; -- Set counter (adjust based on your CLK_IN freq)
+                    state <= '1';       -- Move to Wait state
+                end if;
+            
+            when '1' => -- WAITING
+                l_wait_n <= '0';
+                if wait_counter > 0 then
+                    wait_counter <= wait_counter - 1;
+                else
+                    l_wait_n <= '1';    -- Release CPU
+                    state <= '0';       -- Return to Idle
+                end if;
+        end case;
+    end if;
+end process;
+
 
     --capturedata <= '1' when BADEV1='1' and BADEV2='1' else '0';
 

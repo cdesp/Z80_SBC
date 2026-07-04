@@ -27,7 +27,7 @@ ENTITY Z80_Bus_Arbiter IS
         UART_CS_N           : OUT std_logic;                    -- for UART RS232 Selection
         PS2_DS_N            : OUT std_logic;                    -- for PS/2 Keyboard Device communication
         VD_DS_N             : OUT std_logic;                    -- for Video Device Communication
-        I2C_CS_N            : OUT std_logic;                    -- for i2c pca9665 Communication
+        I2C_CS_N            : OUT std_logic;                    -- for i2c Communication
         -- Wait State Generation
         Z80_WAIT_N          : OUT STD_LOGIC;                    -- Z80 Wait Request (Active Low)
         
@@ -72,13 +72,26 @@ BEGIN
             CASE Z80_IO_ADDR IS
                 -- Custom Decoding Examples (as per user request)
                 WHEN C_LS139_Y1 => 
-                    -- OUT (40h, Data) activates Y1 (BA = 01) 
-                    LS139_BA_OUT <= B"01";   --pin 6 LAUD_MUX_N
+                    -- OUT (45h, Data) activates Y1 (BA = 01) 
+                    LS139_BA_OUT <= B"01";   --pin 6 LAUD_MUX_N select ausio device d7=1 selects AY
                     ISLS139 <='0';
                 WHEN C_LS139_Y2 => 
-                    -- OUT (41h, Data) activates Y2 (CBA = 010)
-                    LS139_BA_OUT <= B"10";   --pin 5 LAUD_CS_N 
+                    -- OUT (40h, Data) activates Y2 (CBA = 010)
+                    LS139_BA_OUT <= B"10";   --pin 5 LAUD_CS_N this for sn76489 
                     ISLS139 <='0';
+                WHEN C_LS139_Y2_1 => 
+                    -- OUT (41h, Data) activates Y2 (CBA = 010)
+                    LS139_BA_OUT <= B"10";   --pin 5 LAUD_CS_N this for ay38912 BCDIR=A0=1 BC1=A1=0
+                    ISLS139 <='0';
+                WHEN C_LS139_Y2_2 => 
+                    -- OUT (42h, Data) activates Y2 (CBA = 010)
+                    LS139_BA_OUT <= B"10";   --pin 5 LAUD_CS_N this for ay38912 BCDIR=A0=0 BC1=A1=1
+                    ISLS139 <='0';
+                WHEN C_LS139_Y2_3 => 
+                    -- OUT (43h, Data) activates Y2 (CBA = 010)
+                    LS139_BA_OUT <= B"10";   --pin 5 LAUD_CS_N this for ay38912 BCDIR=A0=1 BC1=A1=1
+                    ISLS139 <='0';
+
                 WHEN C_LS139_Y3_0 => 
                     -- OUT (30h, CMD) activates Y3 (CBA = 011)
                     LS139_BA_OUT <= B"11";   --pin 3 CH376_CS_N
@@ -134,6 +147,7 @@ BEGIN
 
     I2C_CS_N <= '0' when (Z80_IORQ_N = '0' and Z80_IO_ADDR(7 downto 3) =  C_I2C_PORT_ADDR_BASE(7 downto 3))
                   else '1';
+
 
     -- ***************************************************************
     -- ** 3. WAIT STATE GENERATION **

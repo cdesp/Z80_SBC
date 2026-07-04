@@ -1,4 +1,4 @@
-		ok								;*******************************************************************************
+;*******************************************************************************
 ; Z80 I2C FPGA ROUTINES
 ;
 ; This module provides low-level routines for initializing and controlling the
@@ -7,13 +7,13 @@
 ; reading data from a slave device.
 ;
 ; The base address for the I2C device ports (DEVI2C) must be defined elsewhere.
+; ALSO FOUND_DEVICES_BUFFER 10 BYTES 
 ;*******************************************************************************
 		NAME I2C_ROUTINES
 		
 		GLOBAL I2C_INIT 						; Initializes the FPGA I2C bus.
 		GLOBAL I2C_READ 						; Reads data from a slave device.
 		GLOBAL I2C_WRITE 						; Writes data to a slave device.
-		
 		
 		Prescale_reg0 EQU DEVI2C + 0x00 				;LOW BYTE TO SET THE CLOCK
 		Prescale_reg1 EQU DEVI2C + 0x01 				;HIGH BYTE
@@ -323,3 +323,7 @@ I2C_RD_LAST:
 I2C_RD_DONE:
         XOR A
         RET
+
+
+
+	 

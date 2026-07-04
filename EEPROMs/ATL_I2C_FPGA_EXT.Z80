@@ -1,0 +1,158 @@
+;*******************************************************************************
+; Z80 I2C ROUTINES
+;
+; This module provides EXTRA FUNCTIONS FOR I2C
+;
+; FOUND_DEVICES_BUFFER 10 BYTES 
+; NEEDS PRINT ROUTINE SPRN_MESNUM (MESSAGE AT HL, NUMBER AT A)
+;*******************************************************************************
+		NAME I2C_ROUTINES_EXTRA
+		
+		GLOBAL I2C_SCAN
+		GLOBAL I2C_REPORT
+		
+;-------------------------------------------------------------------------------
+; I2C_SCAN: Scans the I2C bus for active devices.
+;
+; Returns:
+;   A: Number of devices found.
+;   DE: Pointer to the buffer where addresses are stored.
+;-------------------------------------------------------------------------------
+I2C_SCAN:
+    LD  HL, FOUND_DEVICES_BUFFER  ; Buffer for up to 10 addresses
+    LD  DE, 0                     ; Counter for found devices
+    LD  B, 1                      ; Start checking from address 0x01
+
+SCAN_LOOP:
+    PUSH BC
+    PUSH DE    
+    PUSH BC
+    LD  D, B                      ; Load address into D for I2C_WRITE
+    LD  BC, 0                     ; 0 bytes to write (just address probe)
+    CALL I2C_WRITE                ; Returns 0 in A if ACK received
+    POP BC
+    POP DE
+    
+    OR  A                         ; Check if A == 0 (device found)
+    JR  NZ, SKIP_DEVICE
+    
+    ; Device found
+    LD  A, B                      ; Store address
+    LD  (HL), A
+;     PUSH AF
+;     LD A,'F'
+;     CALL RS_TX
+;     POP AF
+;     CALL SOUTAS    
+    INC HL
+    INC E                        ; Increment found count
+    
+    LD  A, E                      ; Check if we hit 10 devices
+    CP  10
+    JR  Z, SCAN_DONE
+
+SKIP_DEVICE:
+    POP BC
+    INC B
+    LD  A, B
+    CP  127                       ; Max 7-bit address
+    JR  NZ, SCAN_LOOP
+    PUSH BC
+
+SCAN_DONE:
+    POP BC                        ; Clean stack
+    LD  A, E                      ; Return count in A
+    RET
+
+
+;-------------------------------------------------------------------------------
+; I2C_REPORT: Matches found devices against the LUT.
+;-------------------------------------------------------------------------------
+I2C_REPORT:
+    LD  HL, FOUND_DEVICES_BUFFER  ; Pointer to found devices
+    LD  A, 10          		  ; Load number of devices found
+    OR  A
+    RET Z                         ; Return if nothing found
+
+REPORT_LOOP:
+    PUSH AF                       ; Save count
+    LD  B, (HL)                   ; B = current device address
+    LD A,B
+    OR A
+    JR NZ, DO_CHECK
+    POP AF
+    RET
+
+DO_CHECK:
+    PUSH HL                       ; Save buffer pointer    
+    ; Scan LUT for match
+    LD  HL, DEVICE_LUT
+LUT_MATCH:
+    LD  A, (HL)                   ; Get LUT address
+    OR  A                         ; Check for end of table (0x00)
+    JR  Z, NOT_FOUND
+    CP  B                         ; Does it match the found device?
+    JR  Z, FOUND_MATCH
+    
+    INC HL                        ; Move to next entry (3 bytes: 1 addr + 2 pointer)
+    INC HL
+    INC HL
+    JR  LUT_MATCH
+
+FOUND_MATCH:
+    INC HL                        ; Point to message address
+    LD  E, (HL)                   ; Load pointer into DE
+    INC HL
+    LD  D, (HL)
+    EX DE,HL
+    LD A,B
+    CALL SPRN_MESNUM
+    JR NXT_LP
+    
+NOT_FOUND:
+    LD A,B
+    LD HL,MSG_NFD
+    CALL SPRN_MESNUM
+NXT_LP:
+    POP HL                        ; Restore buffer pointer
+    INC HL                        ; Next device in buffer
+    POP AF                        ; Restore count
+    DEC A
+    JR  NZ, REPORT_LOOP
+    RET
+
+;-------------------------------------------------------------------------------
+; DEVICE_LUT: Lookup table for known I2C devices.
+; Format: DB Address, DW MessagePointer
+;-------------------------------------------------------------------------------
+DEVICE_LUT:
+    DB 0x20        ; GPIO Expander
+    DW MSG_GPIO
+    DB 0x27        ; LCD
+    DW MSG_LCD
+    DB 0x3C        ; OLED Display
+    DW MSG_OLED
+    DB 0x50        ; EEPROM
+    DW MSG_EPR
+    DB 0x68        ; RTC
+    DW MSG_RTC
+    DB 0x76        ; BME280 Sensor
+    DW MSG_BME
+    DB 0x00        ; End of table marker
+
+; Ensure your messages are defined as you had them
+MSG_GPIO: DEFM "GPIO EXP FOUND AT"
+          DB 0
+MSG_OLED: DEFM "OLED DISPLAY AT"
+          DB 0
+MSG_BME:  DEFM "BME280 SENSOR AT"
+          DB 0
+MSG_LCD: DEFM "LCD TEXT AT"
+	 DB 0
+MSG_EPR: DEFM "EEPROM 24LC AT"
+	 DB 0
+MSG_RTC: DEFM "RTC Clock AT"
+	 DB 0
+MSG_NFD: DEFM "DEV UNKNOWN AT"
+	DB 0
+	 

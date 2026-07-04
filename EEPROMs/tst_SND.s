@@ -1,0 +1,200 @@
+INCLUDE .\BIN\BOOTLD.SYM
+
+NUMBUFF EQU $F0B7
+
+DEVSND EQU $40
+DEVAY1 EQU $41
+DEVAY2 EQU $42
+DEVAY3 EQU $43
+DEVMUX EQU $45
+
+
+ORG $E000
+JP START
+
+;----SOUND MODULE
+		@CHANDATA:       ;SONG DATA ADDRESS 0 FOR NO DATA
+                DEFS 2
+                DEFS 2
+                DEFS 2
+                DEFS 2
+		@CHANDEL:	;CHANNEL DELAY TO MUTE
+                DEFS 2
+                DEFS 2
+                DEFS 2
+                DEFS 2
+		@CHANCN:         ;CURRENT NOTES IDX FOR CURRENT NOTE PLAYING
+                DEFS 1
+                DEFS 1
+                DEFS 1
+                DEFS 1
+		@CHANST         DEFS 1    ;CHANNEL STATUS  BITS 0-3 SET MEANS DISABLED                
+		@LINESTR 	DEFS 2		;ADDRESS OF LINEBUF FOR PRINTING ON STRING
+		@LINEPOS 	DEFS 1
+		@NUMBUF		DEFS 7
+		@STRG_STAT	DEFS 1 	;STORAGE_NEW STAUS BIT 0=0 NOT CONNECTED, 1=CONNECTED, BIT 7 DEVICE EXISTS
+
+INCLUDE ..\..\MyModular\EEPROMs\ATL_SOUND.Z80
+
+
+		@MYNUM DEFS 13 							;10CHARS MESSAGE FOR NUMBER AND 3 TERMINATED
+		
+
+
+@SOUTAS:	PUSH HL
+		PUSH BC
+		PUSH DE
+		PUSH AF 							;SERIAL PRINT ASCII IN DECIMAL
+		LD H, 0
+		LD L, A
+		LD DE, MYNUM
+		CALL OUTASC
+		
+		LD A, 10
+		LD (DE), A
+		INC DE
+		LD A, 13
+		LD (DE), A
+		INC DE
+		XOR A
+		LD (DE), A
+		
+		LD HL, MYNUM
+		CALL RS_TXT
+		POP AF
+		POP DE	
+		POP BC
+		POP HL
+		RET
+
+;A:THE NUMBER
+;HL THE MESSAGE
+@SPRN_MESNUM:   PUSH HL
+		PUSH BC
+		PUSH DE
+		PUSH AF 
+		
+		PUSH AF
+		CALL RS_TXT ;MESSAGE FIRST
+		LD A, ' '
+		CALL RS_TX
+		
+		LD HL, MYNUM
+		LD A, '0'
+		LD (HL),A
+		INC HL
+		LD A, 'x'
+		LD (HL),A
+		INC HL
+		POP AF
+		CALL StrfHex ;OUTASC
+		XOR A
+		LD (HL), A		
+		LD HL, MYNUM
+		CALL RS_TXT
+		CALL RS_NEWLINE	
+		
+		POP AF
+		POP DE	
+		POP BC
+		POP HL
+		RET
+
+@SPRN_NUMMES:   PUSH HL
+		PUSH BC
+		PUSH DE
+		PUSH AF 
+		
+		PUSH HL		
+		
+		;CALL BN2BCD	;A THE NUMBER OUTPUT AT HL THE BCD NUMBER		
+		CALL B2D8 	;B2DBUF HAS THE NUMBER TO PRINT AS ASCII TEXT
+		LD HL,B2DBUF
+		CALL SkipWhitespace
+		CALL RS_TXT
+		LD A, ' '
+		CALL RS_TX
+		LD HL, MYNUM
+		CALL RS_TXT
+		POP HL
+		CALL RS_TXT ;MESSAGE 
+		CALL RS_NEWLINE	
+		
+		POP AF
+		POP DE	
+		POP BC
+		POP HL
+		RET
+
+
+SND_OUT2:
+    ; --- ADD SETUP DELAY HERE ---
+    PUSH AF        ; Save data
+    LD B, 10       ; Small counter for a real delay
+.wait: DJNZ .wait  ; Count down
+    POP AF         ; Restore data
+    ; --- END DELAY ---
+    OUT (DEVSND), A
+    RET
+
+; Corrected Mute Routine
+SND_MUTEALL2:
+    LD A, $8F 
+    CALL SND_OUT2
+    LD A, $9F 
+    CALL SND_OUT2
+    LD A, $AF 
+    CALL SND_OUT2
+    LD A, $CF 
+    CALL SND_OUT2
+    LD A, $EF 
+    CALL SND_OUT2
+    RET
+
+
+
+SND_SETSN76489:	LD A,$80		;D7 CONTROLS THE AUDIO SELECTION
+		OUT (DEVMUX),A		;D7=1 THEN SN76489, D7=0 THEN AY38912
+		CALL SND_INIT
+		CALL SND_MUTEALL
+		CALL SND_BEEP
+
+		;CALL SND_BEEP
+
+		;CALL SND_BEEP2
+		;CALL SND_MUTEALL2
+;NAG	        LD A, $8F 
+ ;               CALL SND_OUT
+
+;		JR NAG	
+
+		RET
+
+
+
+
+
+START:	CALL RS_MESG
+	DEFM 'TESTING SOUND'
+	DB 10,13,0
+	
+	CALL SND_SETSN76489
+	
+
+
+
+	JP BOOTMENU
+
+
+	call printnum
+
+    RET
+
+STR_I2C	DEFM "I2C INITIALIZED"
+	DB 10,13,0
+
+STR0	DEFM "LCD INITIALIZED"
+	DB 0
+
+
+
