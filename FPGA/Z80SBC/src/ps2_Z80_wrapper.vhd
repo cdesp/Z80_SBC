@@ -133,7 +133,7 @@ end process;
     end process;
 
     -- Bus Multiplexer (Output to Z80)
-    process(Z80_IO_ADDR, PS2_DS_N, Z80_RD_N, byte_reg, byte_ready)
+    process(Z80_IO_ADDR, PS2_DS_N, Z80_RD_N, byte_reg, byte_ready, tx_busy)
     begin
         Z80_DATA_OUT <= (others => 'Z'); -- Default high-impedance
         

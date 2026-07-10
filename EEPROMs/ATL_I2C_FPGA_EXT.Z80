@@ -134,6 +134,8 @@ DEVICE_LUT:
     DW MSG_OLED
     DB 0x50        ; EEPROM
     DW MSG_EPR
+    DB 0x57        ; EEPROM
+    DW MSG_EPR
     DB 0x68        ; RTC
     DW MSG_RTC
     DB 0x76        ; BME280 Sensor

@@ -74,7 +74,7 @@ entity Z80_FPGA_SYSTEM is
 
         L_M1_N              : in std_logic;                                    -- P6 Z80 M1 K5 (Input from Z80)
         L_NMI_N             : inout std_logic;                                 -- P8 Z80 NMI InOut signal def IN L11
-        SCL                 : out std_logic;                                   -- P10 SCL E10
+        SCL                 : inout std_logic;                                   -- P10 SCL E10
         SDA                 : inout std_logic;                                 -- P12 SDA A10
         
         -- J13 CONNECTOR 12 PIN (HDMI/DVI CONNECTIONS) Only the positive the negative are handled as PAIR
@@ -960,7 +960,7 @@ begin
     process(CLK_Z80_INT, nRESET)
     begin
         if nRESET = '0' then
-            video_selection <= (others => '0');
+            video_selection <= "0000";
         elsif rising_edge(CLK_Z80_INT) then
             if reg_video_sel_n = '0' then
                 -- Store lower 4 bits to address 16 potential systems
@@ -979,6 +979,20 @@ begin
 
                           v80_bus_out when others;
 
+
+
+
+    -- ***************************************************************
+    -- ** CHIP ENABLE AND EXTENDED ADDRESS PIN MAPPING **
+    -- ***************************************************************
+    DEV1 <= BADEV1; -- Z80's decoded output
+    DEV2 <= BADEV2; -- Z80's decoded output
+
+    SN_DSn <='0' WHEN BADEV1='0' AND BADEV2='1' ELSE '1';
+
+
+-- Z80 CPU WAIT IMPLEMENTATION
+
     --FREEZE the cpu  -- implement wait states     
     process(CLK_IN,reset_n_sync2)   
     begin   
@@ -991,15 +1005,6 @@ begin
             end if;
         end if; 
     end process;
-
-
-    -- ***************************************************************
-    -- ** CHIP ENABLE AND EXTENDED ADDRESS PIN MAPPING **
-    -- ***************************************************************
-    DEV1 <= BADEV1; -- Z80's decoded output
-    DEV2 <= BADEV2; -- Z80's decoded output
-
-    SN_DSn <='0' WHEN BADEV1='0' AND BADEV2='1' ELSE '1';
 
 --L_WAIT_N <= L_BA_WAIT_N AND (OTHER SIGNALS)
 
@@ -1015,7 +1020,7 @@ begin
                 l_wait_n <= '1';
                 if (SN_DSn = '0' AND LWR_CPU_N = '0') then
                     l_wait_n <= '0';    -- Trigger Wait State
-                    wait_counter <= 200; -- Set counter (adjust based on your CLK_IN freq)
+                    wait_counter <= 240; -- Set counter (adjust based on your CLK_IN freq)
                     state <= '1';       -- Move to Wait state
                 end if;
             
