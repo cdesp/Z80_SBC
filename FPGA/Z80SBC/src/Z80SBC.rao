@@ -4,66 +4,98 @@
     <Mode>Standard</Mode>
     <AoCore index="0" sample_clock="CLK_IN" trig_type="0" storage_depth="2048" window_num="1" capture_amount="2048" implementation="0" trigger_pos="20" module_name="Z80_FPGA_SYSTEM" force_trigger_by_falling_edge="false" capture_init_data_enabled="false">
         <SignalList>
-            <Signal capture_enable="true">I2C_CSn</Signal>
-            <Signal capture_enable="true">L_RD_N</Signal>
-            <Signal capture_enable="true">LWR_CPU_N</Signal>
-            <Bus capture_enable="true" name="Z80_DATA_IN_INT[7:0]">
-                <Signal>Z80_DATA_IN_INT[7]</Signal>
-                <Signal>Z80_DATA_IN_INT[6]</Signal>
-                <Signal>Z80_DATA_IN_INT[5]</Signal>
-                <Signal>Z80_DATA_IN_INT[4]</Signal>
-                <Signal>Z80_DATA_IN_INT[3]</Signal>
-                <Signal>Z80_DATA_IN_INT[2]</Signal>
-                <Signal>Z80_DATA_IN_INT[1]</Signal>
-                <Signal>Z80_DATA_IN_INT[0]</Signal>
+            <Bus capture_enable="true" name="system_selection[3:0]">
+                <Signal>system_selection[3]</Signal>
+                <Signal>system_selection[2]</Signal>
+                <Signal>system_selection[1]</Signal>
+                <Signal>system_selection[0]</Signal>
             </Bus>
-            <Bus capture_enable="true" name="i2c_data_out[7:0]">
-                <Signal>i2c_data_out[7]</Signal>
-                <Signal>i2c_data_out[6]</Signal>
-                <Signal>i2c_data_out[5]</Signal>
-                <Signal>i2c_data_out[4]</Signal>
-                <Signal>i2c_data_out[3]</Signal>
-                <Signal>i2c_data_out[2]</Signal>
-                <Signal>i2c_data_out[1]</Signal>
-                <Signal>i2c_data_out[0]</Signal>
+            <Signal capture_enable="true">BA_Newbrain/KBint</Signal>
+            <Signal capture_enable="true">BA_Newbrain/kbintIN</Signal>
+            <Bus capture_enable="true" name="BA_Newbrain/ADDRin[7:0]">
+                <Signal>BA_Newbrain/ADDRin[7]</Signal>
+                <Signal>BA_Newbrain/ADDRin[6]</Signal>
+                <Signal>BA_Newbrain/ADDRin[5]</Signal>
+                <Signal>BA_Newbrain/ADDRin[4]</Signal>
+                <Signal>BA_Newbrain/ADDRin[3]</Signal>
+                <Signal>BA_Newbrain/ADDRin[2]</Signal>
+                <Signal>BA_Newbrain/ADDRin[1]</Signal>
+                <Signal>BA_Newbrain/ADDRin[0]</Signal>
             </Bus>
-            <Bus capture_enable="true" name="o_rdata[7:0]">
-                <Signal>o_rdata[7]</Signal>
-                <Signal>o_rdata[6]</Signal>
-                <Signal>o_rdata[5]</Signal>
-                <Signal>o_rdata[4]</Signal>
-                <Signal>o_rdata[3]</Signal>
-                <Signal>o_rdata[2]</Signal>
-                <Signal>o_rdata[1]</Signal>
-                <Signal>o_rdata[0]</Signal>
+            <Signal capture_enable="true">BA_Newbrain/outputData</Signal>
+            <Bus capture_enable="true" name="BA_Newbrain/COPCTL2[7:0]">
+                <Signal>BA_Newbrain/COPCTL2[7]</Signal>
+                <Signal>BA_Newbrain/COPCTL2[6]</Signal>
+                <Signal>BA_Newbrain/COPCTL2[5]</Signal>
+                <Signal>BA_Newbrain/COPCTL2[4]</Signal>
+                <Signal>BA_Newbrain/COPCTL2[3]</Signal>
+                <Signal>BA_Newbrain/COPCTL2[2]</Signal>
+                <Signal>BA_Newbrain/COPCTL2[1]</Signal>
+                <Signal>BA_Newbrain/COPCTL2[0]</Signal>
             </Bus>
-            <Signal capture_enable="true">i_tx_en</Signal>
-            <Bus capture_enable="true" name="i_waddr[2:0]">
-                <Signal>i_waddr[2]</Signal>
-                <Signal>i_waddr[1]</Signal>
-                <Signal>i_waddr[0]</Signal>
+            <Bus capture_enable="true" name="BA_Newbrain/DATAout[7:0]">
+                <Signal>BA_Newbrain/DATAout[7]</Signal>
+                <Signal>BA_Newbrain/DATAout[6]</Signal>
+                <Signal>BA_Newbrain/DATAout[5]</Signal>
+                <Signal>BA_Newbrain/DATAout[4]</Signal>
+                <Signal>BA_Newbrain/DATAout[3]</Signal>
+                <Signal>BA_Newbrain/DATAout[2]</Signal>
+                <Signal>BA_Newbrain/DATAout[1]</Signal>
+                <Signal>BA_Newbrain/DATAout[0]</Signal>
             </Bus>
-            <Bus capture_enable="true" name="i_wdata[7:0]">
-                <Signal>i_wdata[7]</Signal>
-                <Signal>i_wdata[6]</Signal>
-                <Signal>i_wdata[5]</Signal>
-                <Signal>i_wdata[4]</Signal>
-                <Signal>i_wdata[3]</Signal>
-                <Signal>i_wdata[2]</Signal>
-                <Signal>i_wdata[1]</Signal>
-                <Signal>i_wdata[0]</Signal>
+            <Signal capture_enable="true">BA_Newbrain/FRMint</Signal>
+            <Signal capture_enable="true">BA_Newbrain/FRMinton</Signal>
+            <Signal capture_enable="true">BA_Newbrain/COPint</Signal>
+            <Signal capture_enable="true">BA_Newbrain/CLRCOP</Signal>
+            <Signal capture_enable="true">BA_Newbrain/CLRKBD</Signal>
+            <Bus capture_enable="true" name="BA_Newbrain/KBcount[2:0]">
+                <Signal>BA_Newbrain/KBcount[2]</Signal>
+                <Signal>BA_Newbrain/KBcount[1]</Signal>
+                <Signal>BA_Newbrain/KBcount[0]</Signal>
             </Bus>
-            <Signal capture_enable="true">i_rx_en</Signal>
-            <Bus capture_enable="true" name="i_raddr[2:0]">
-                <Signal>i_raddr[2]</Signal>
-                <Signal>i_raddr[1]</Signal>
-                <Signal>i_raddr[0]</Signal>
+            <Signal capture_enable="true">sPS2_BTRDY</Signal>
+            <Signal capture_enable="true">otsigs.PS2_KEYB_Int</Signal>
+            <Signal capture_enable="true">PS2_DSn</Signal>
+            <Signal capture_enable="true">PS2KeybCtrl/byte_ready</Signal>
+            <Signal capture_enable="true">BA_Newbrain/nIORQin</Signal>
+            <Signal capture_enable="true">BA_Newbrain/nRDin</Signal>
+            <Bus capture_enable="true" name="PS2_DATA_OUT[7:0]">
+                <Signal>PS2_DATA_OUT[7]</Signal>
+                <Signal>PS2_DATA_OUT[6]</Signal>
+                <Signal>PS2_DATA_OUT[5]</Signal>
+                <Signal>PS2_DATA_OUT[4]</Signal>
+                <Signal>PS2_DATA_OUT[3]</Signal>
+                <Signal>PS2_DATA_OUT[2]</Signal>
+                <Signal>PS2_DATA_OUT[1]</Signal>
+                <Signal>PS2_DATA_OUT[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="Z80_DATA_OUT_INT[7:0]">
+                <Signal>Z80_DATA_OUT_INT[7]</Signal>
+                <Signal>Z80_DATA_OUT_INT[6]</Signal>
+                <Signal>Z80_DATA_OUT_INT[5]</Signal>
+                <Signal>Z80_DATA_OUT_INT[4]</Signal>
+                <Signal>Z80_DATA_OUT_INT[3]</Signal>
+                <Signal>Z80_DATA_OUT_INT[2]</Signal>
+                <Signal>Z80_DATA_OUT_INT[1]</Signal>
+                <Signal>Z80_DATA_OUT_INT[0]</Signal>
             </Bus>
         </SignalList>
         <Triggers>
             <Trigger index="0">
                 <SignalList>
-                    <Signal>i_rx_en</Signal>
+                    <Signal>BA_Newbrain/nIORQin</Signal>
+                    <Signal>BA_Newbrain/nRDin</Signal>
+                    <Bus restorename="BA_Newbrain/ADDRin[7:0]">
+                        <Signal>BA_Newbrain/ADDRin[7]</Signal>
+                        <Signal>BA_Newbrain/ADDRin[6]</Signal>
+                        <Signal>BA_Newbrain/ADDRin[5]</Signal>
+                        <Signal>BA_Newbrain/ADDRin[4]</Signal>
+                        <Signal>BA_Newbrain/ADDRin[3]</Signal>
+                        <Signal>BA_Newbrain/ADDRin[2]</Signal>
+                        <Signal>BA_Newbrain/ADDRin[1]</Signal>
+                        <Signal>BA_Newbrain/ADDRin[0]</Signal>
+                    </Bus>
+                    <Signal>PS2_DSn</Signal>
                 </SignalList>
             </Trigger>
             <Trigger index="1"/>
@@ -83,7 +115,7 @@
             <Trigger index="15"/>
         </Triggers>
         <MatchUnits>
-            <MatchUnit index="0" enabled="1" match_type="0" counter_enable="0" counter_width="5" counter="6" countinuous="0" func="0" value0="0" value1="0" trigger="0"/>
+            <MatchUnit index="0" enabled="1" match_type="0" counter_enable="0" counter_width="5" counter="6" countinuous="0" func="0" value0="00000001100" value1="00000000000" trigger="0"/>
             <MatchUnit index="1" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
             <MatchUnit index="2" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
             <MatchUnit index="3" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
@@ -104,5 +136,5 @@
             <Expression>M0</Expression>
         </Expressions>
     </AoCore>
-    <GAO_ID>1011100011010101</GAO_ID>
+    <GAO_ID>0110110011011001</GAO_ID>
 </GAO_CONFIG>

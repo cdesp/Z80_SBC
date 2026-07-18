@@ -180,6 +180,18 @@ architecture structural of Z80_FPGA_SYSTEM is
     signal BADEV1           : std_logic;
     signal BADEV2           : std_logic;
     signal L_BA_WAIT_N      : std_logic;
+    
+    signal master_in  : t_z80_to_system;
+    signal master_out : t_system_to_z80;
+    signal otsigs     : t_ot_sigs_to_system;
+
+    signal sISDout      : std_logic;
+    signal sDataout     : STD_LOGIC_VECTOR(7 DOWNTO 0);
+
+    --System select
+    signal SYS_CSn          : std_logic; -- system select 
+    signal reg_system_sel_n : std_logic; --register for system selection
+    signal system_selection : unsigned(3 downto 0) := (others => '0');
 
 
     -- INTERNAL RAM SIGNALS
@@ -210,7 +222,8 @@ architecture structural of Z80_FPGA_SYSTEM is
     signal L_BUSRQ_N_S         : std_logic; -- Connect this to your physical /BUSRQ pin
 
     -- Signal declarations for PS/2 Keyboard
-    signal PS2_DSn        : std_logic;  --ps/2 keyboard port signal 
+    signal PS2_DSn        : std_logic := '1';  --ps/2 keyboard port signal 
+    signal sPS2_BTRDY      : std_logic ; --ps/2 keyboard has a byte active low
 --    signal wr_n_delayed   : std_logic := '1';
     signal PS2_DATA_OUT   : std_logic_vector(7 downto 0);
     signal sKB_CLOCK      : std_logic := '1'; 
@@ -237,14 +250,8 @@ architecture structural of Z80_FPGA_SYSTEM is
 
     -- signals fro video generation
     -- Internal Video Bus Signals
-    signal video_timing     : video_bus_in;    
-    -- Video Output from Video Systems
-    signal v80_bus_out      : video_bus_out;  --demo
-    signal atlas_bus_out    : video_bus_out;  --atlas video controller
-    signal nb_bus_out       : video_bus_out;  --Newbrain video controller
-    signal zx_bus_out       : video_bus_out;  --ZX Spectrum video controller
-    signal am_bus_out       : video_bus_out;  --Amstrad video controller
-    -- The multiplexed bus sent to the HDMI controller
+    signal video_timing     : video_bus_in;      
+     -- The multiplexed bus sent to the HDMI controller
     signal selected_video   : video_bus_out;
     -- Control Signals
     signal video_selection : unsigned(3 downto 0) := (others => '0');
@@ -256,8 +263,28 @@ architecture structural of Z80_FPGA_SYSTEM is
     -- Internal signals for the state machine FOR WAIT SIGNAL
     signal wait_counter : integer range 0 to 255 := 0;
     signal state        : std_logic := '0'; -- 0: IDLE, 1: WAITING
-
-
+ 
+    --SYSTEMS Signals
+        --Generic
+    signal v80_bus_out      : video_bus_out;  --demo  -- Video Output from Video Systems
+    signal bootld_out       : t_system_to_z80; --Bus Arbiter out signals
+        --Atlas
+    signal atlas_bus_out    : video_bus_out;  --Atlas video controller
+    signal atlas_out        : t_system_to_z80;
+    signal VAT_ADDR_BUS      : std_logic_vector(15 downto 0); -- Address from the Video Controller
+        --Newbrain
+    signal nb_bus_out       : video_bus_out;  --Newbrain video controller
+    signal nb_regs          : t_video_regs;   --Newbrain video registers 
+    signal nb_out           : t_system_to_z80;
+    signal VNB_ADDR_BUS      : std_logic_vector(15 downto 0); -- Address from the Video Controller
+        --Spectrum
+    signal zx_bus_out       : video_bus_out;  --ZX Spectrum video controller
+    signal zx_out           : t_system_to_z80;
+    signal VZX_ADDR_BUS      : std_logic_vector(15 downto 0); -- Address from the Video Controller
+        --Amstrad
+    signal am_bus_out       : video_bus_out;  --Amstrad video controller
+    signal am_out           : t_system_to_z80;
+    signal VAM_ADDR_BUS      : std_logic_vector(15 downto 0); -- Address from the Video Controller
 
 --debug signals
     signal capturedata : std_logic := '0';
@@ -266,8 +293,8 @@ architecture structural of Z80_FPGA_SYSTEM is
     signal wr_strobe_d1, wr_strobe_d2 : std_logic := '1';
     signal z80_strobe_raw : std_logic;
     signal sync_reg1, sync_reg2, sync_reg3 : std_logic := '1';
-signal pulse_timer : integer range 0 to 7 := 0;
-signal event_processed : std_logic := '0';
+    signal pulse_timer : integer range 0 to 7 := 0;
+    signal event_processed : std_logic := '0';
     
 
 
@@ -287,7 +314,7 @@ signal event_processed : std_logic := '0';
        port (
             clkin :in std_logic;
             clkout0 : out std_logic;
-            mdclk : in std_logic; 
+            mdclk : in std_logic 
        );
     end component;
 
@@ -316,34 +343,37 @@ signal event_processed : std_logic := '0';
         );
     end component;
 
-
-
-    component Z80_Bus_Arbiter
+  component Z80_BA_Newbrain
         port (
+            CLK_FPGA          : in  std_logic;
             -- Z80 Side
             CLK               : in  std_logic;
             nRESET            : in  std_logic;
-            Z80_IORQ_N        : in  std_logic;
-            Z80_WR_N          : in  std_logic; -- Z80 Write Strobe
-            Z80_RD_N          : in  std_logic; -- Z80 Read Strobe
-            Z80_ADDR          : in  std_logic_vector(15 downto 0);
-            -- MMU Control Outputs (Generated from I/O Decode)
-            MMU_nMAP_REG_N    : out std_logic; -- nINTMMU
-            MMU_nSET_RO_N     : out std_logic; -- nSET_RO
-            MMU_nSET_RW_N     : out std_logic; -- nSET_RW
-            -- Peripheral Decoding Outputs (74LS138 Inputs)
-            DEV1              : out std_logic;
-            DEV2              : out std_logic;
-            CLK_SEL_RG_N      : out std_logic;
-            UART_CS_N         : out std_logic;
-            PS2_DS_N          : out std_logic;                    -- for PS/2 keyboard  
-            VD_DS_N           : out std_logic;                    -- for Video
-            I2C_CS_N          : out std_logic;
-            -- Wait State Generation
-            Z80_WAIT_N        : out std_logic;
-            -- Interrupt Management
-            INT_REQ_N         : in  std_logic; -- Master Peripheral Interrupt Request
-            Z80_INT_N         : out std_logic
+            -- All Z80 inputs bundled together
+            Z80_In            : in  t_z80_to_system;
+            -- All system outputs bundled together
+            Z80_Out           : out t_system_to_z80;
+            -- Other signals
+            OTSigs_in         : IN t_ot_sigs_to_system;
+            -- Video registers
+            VDRegs_out        : OUT t_video_regs
+        );
+    end component;
+
+    component Z80_Bus_Arbiter
+        port (
+            CLK_FPGA          : in  std_logic;
+            -- Z80 Side
+            CLK               : in  std_logic;
+            nRESET            : in  std_logic;
+            -- All Z80 inputs bundled together
+            Z80_In            : in  t_z80_to_system;
+            -- All system outputs bundled together
+            Z80_Out           : out t_system_to_z80;
+            -- Other signals
+            OTSigs_in         : IN t_ot_sigs_to_system;
+            -- Video registers
+            VDRegs_out        : OUT t_video_regs
         );
     end component;
 
@@ -430,10 +460,11 @@ signal event_processed : std_logic := '0';
             CLK            : in    std_logic;
             nRESET         : in    std_logic;
             PS2_DS_N       : in    std_logic;
+            PS2_BT_RDY     : out    std_logic; 
             Z80_IO_ADDR    : in    std_logic_vector(7 downto 0);
             Z80_RD_N       : in    std_logic;
             Z80_WR_N       : in    std_logic;
-            Z80_DATA_IN    : in   std_logic_vector(7 downto 0);
+            Z80_DATA_IN    : in    std_logic_vector(7 downto 0);
             Z80_DATA_OUT   : out   std_logic_vector(7 downto 0);
             PS2_CLK        : inout std_logic;
             PS2_DATA       : inout std_logic
@@ -507,13 +538,16 @@ signal event_processed : std_logic := '0';
         port (
             V_IN            : in  video_bus_in;
             V_OUT           : out video_bus_out;
+            FPGA_CLK        : in  std_logic;
             Z80_CLK         : in  std_logic;
             Z80_WR_N        : in  std_logic;
             Z80_ADDR        : in  std_logic_vector(3 downto 0);
             Z80_DATA        : in  std_logic_vector(7 downto 0);
             REG_SEL_N       : in  std_logic;
             VRAM_DATA       : in  std_logic_vector(7 downto 0);
-            VRAM_ADDR       : out std_logic_vector(15 downto 0)
+            VRAM_ADDR       : out std_logic_vector(15 downto 0);
+            -- Video registers
+            VDRegs          : in t_video_regs
         );
     end component;
 
@@ -521,13 +555,33 @@ signal event_processed : std_logic := '0';
         port (
             V_IN            : in  video_bus_in;
             V_OUT           : out video_bus_out;
+            FPGA_CLK        : in  std_logic;
             Z80_CLK         : in  std_logic;
             Z80_WR_N        : in  std_logic;
             Z80_ADDR        : in  std_logic_vector(3 downto 0);
             Z80_DATA        : in  std_logic_vector(7 downto 0);
             REG_SEL_N       : in  std_logic;
             VRAM_DATA       : in  std_logic_vector(7 downto 0);
-            VRAM_ADDR       : out std_logic_vector(15 downto 0)
+            VRAM_ADDR       : out std_logic_vector(15 downto 0);
+            -- Video registers
+            VDRegs          : in t_video_regs
+        );
+    end component;
+
+   component NewbrainVideo is
+        port (
+            V_IN            : in  video_bus_in;
+            V_OUT           : out video_bus_out;
+            FPGA_CLK        : in  std_logic;
+            Z80_CLK         : in  std_logic;
+            Z80_WR_N        : in  std_logic;
+            Z80_ADDR        : in  std_logic_vector(3 downto 0);
+            Z80_DATA        : in  std_logic_vector(7 downto 0);
+            REG_SEL_N       : in  std_logic;
+            VRAM_DATA       : in  std_logic_vector(7 downto 0);
+            VRAM_ADDR       : out std_logic_vector(15 downto 0);
+            -- Video registers
+            VDRegs          : in t_video_regs
         );
     end component;
 
@@ -687,32 +741,69 @@ begin
     -- ** Z80 BUS ARBITER INSTANTIATION **
     -- ***************************************************************
 
-    arbiter_inst: Z80_Bus_Arbiter
+    BA_Newbrain: Z80_BA_Newbrain
         port map (
+            CLK_FPGA          => CLK_IN,
             CLK               => CLK_Z80_INT,             -- Z80 Operating Clock
             nRESET            => reset_n_sync2,                -- System Reset (from external logic/button)
-            Z80_IORQ_N        => nIORQ_r,                -- Z80 IORQ signal (Input)
-            Z80_WR_N          => nWR_CPU_r,               -- Z80 Write Strobe (Input)
-            Z80_RD_N          => nRD_CPU_r,                  -- Z80 Write Strobe (Input)
-            Z80_ADDR          => Z80_LA_BUS_INT,          -- Z80 Address Bus (Input)
-            -- MMU Control Outputs
-            MMU_nMAP_REG_N    => nINTMMU,                 -- Output Port 0 (Map Registers)
-            MMU_nSET_RO_N     => nINTMMU_ro,              -- Output Port 1 (Set RO)
-            MMU_nSET_RW_N     => nINTMMU_rw,              -- Output Port 2 (Set RW)
-            -- Peripheral Decoding (74LS138 Inputs)
-            DEV1              => BADEV1,                    -- Output pin DEV1
-            DEV2              => BADEV2,                    -- Output pin DEV2
-            CLK_SEL_RG_N      => nCLK_SEL,             -- CPU Selection Clock Register
-            UART_CS_N         => UART_nCS,                -- RS232 cs  
-            PS2_DS_N          => PS2_DSn,                 -- ps/2 keyb
-            VD_DS_N           => VD_DSn,                  -- video 
-            I2C_CS_N          => I2C_CSn,                  --i2c
-            -- Wait State Generation
-            Z80_WAIT_N        => L_BA_WAIT_N,                -- Output pin L_WAIT_N
-            -- Interrupt Management
-            INT_REQ_N         => nINT_REQ_PERIPH,         -- Master Peripheral Interrupt Request (TBD)
-            Z80_INT_N         => LINT_N                   -- Output pin LINT_N
+            
+            Z80_In            => master_in,
+            Z80_Out           => nb_out,
+            OTSigs_in         => otsigs,
+
+            VDRegs_out        => nb_regs
         );
+
+    BA_Bootld: Z80_Bus_Arbiter
+        port map (
+            CLK_FPGA          => CLK_IN,
+            CLK               => CLK_Z80_INT,             -- Z80 Operating Clock
+            nRESET            => reset_n_sync2,                -- System Reset (from external logic/button)
+            
+            Z80_In            => master_in,
+            Z80_Out           => bootld_out,
+            OTSigs_in         => otsigs,
+
+            VDRegs_out        => open
+        );
+
+        master_in.Z80_DATA    <= Z80_DATA_IN_INT;
+        master_in.Z80_IORQ_N  <= nIORQ_r;
+        master_in.Z80_WR_N    <= nWR_CPU_r;
+        master_in.Z80_RD_N    <= nRD_CPU_r;
+        master_in.Z80_ADDR    <= Z80_LA_BUS_INT;
+        master_in.INT_REQ_N   <= nINT_REQ_PERIPH;
+
+        OTSigs.PS2_KEYB_Int <= sPS2_BTRDY;
+      --  OTSigs.PS2_DATA <= PS2_DATA_OUT;
+        OTSigs.CPU_SPEED    <= clk_reg_out;
+
+        nINTMMU         <= master_out.MMU_nMAP_REG_N;
+        nINTMMU_ro      <= master_out.MMU_nSET_RO_N;
+        nINTMMU_rw      <= master_out.MMU_nSET_RW_N;
+        BADEV1          <= master_out.DEV1;
+        BADEV2          <= master_out.DEV2;
+        nCLK_SEL        <= master_out.CLK_SEL_RG_N;
+        UART_nCS        <= master_out.UART_CS_N;
+        PS2_DSn         <= master_out.PS2_DS_N;
+        VD_DSn          <= master_out.VD_DS_N ;
+        I2C_CSn         <= master_out.I2C_CS_N;
+        SYS_CSn         <= master_out.SYS_CS_N;
+        L_BA_WAIT_N     <= master_out.Z80_WAIT_N;
+        LINT_N          <= master_out.Z80_INT_N; --temp disable
+        sISDout         <= master_out.isDOut;
+        sDataout        <= master_out.DataOut;
+
+        WITH system_selection SELECT
+        master_out <= bootld_out WHEN "0000",
+                      bootld_out WHEN "0001",  
+                      --atlas_out WHEN "0000",
+                      nb_out    WHEN "0010",
+                      zx_out    WHEN "0011",
+                      am_out    WHEN "0100",
+                      bootld_out WHEN OTHERS;
+
+
 
     -- ***************************************************************
     -- ** 4. MMU INSTANTIATION **
@@ -811,9 +902,10 @@ begin
         CLK          => CLK_in,
         nRESET       => nRESET,
         PS2_DS_N     => PS2_DSn,       -- Your decoded signal from top-level
+        PS2_BT_RDY   => sPS2_BTRDY,  -- Active Low  
         Z80_IO_ADDR  => Z80_LA_BUS_INT(7 downto 0),   -- Connect to Z80 address bus
-        Z80_RD_N     => L_RD_N,       -- Connect to Z80 RD signal
-        Z80_WR_N     => LWR_CPU_N,       -- Connect to Z80 WR signal
+        Z80_RD_N     => nRD_CPU_r,       -- Connect to Z80 RD signal
+        Z80_WR_N     => nWR_CPU_r,       -- Connect to Z80 WR signal
         Z80_DATA_IN  => Z80_DATA_IN_INT,
         Z80_DATA_OUT => PS2_DATA_OUT,   -- Connect to Z80 data bus
         PS2_CLK      => sKB_CLOCK,        -- External pin
@@ -825,28 +917,7 @@ begin
 
     --****************************************************************
     -- i2c
-
---    U_I2C : pca9665_wrapper
---    port map(
---        clk   => CLK_in,
---        reset_n => nRESET,        
-        ------------------------------------------------
-      --   Z80 bus
-        ------------------------------------------------
---        cs    => not I2C_CSn,        --Active High
---        rd    => not L_RD_N,        --Active High
---        wr    => not LWR_CPU_N,     --Active High
---        din   => Z80_DATA_IN_INT,
---        addr  => Z80_LA_BUS_INT(1 downto 0),       
---        dout  => i2c_data_out,
-        ------------------------------------------------
-    --     I2C pins
-        ------------------------------------------------
---        SDA  => SDA,
---        SCL  => SCL
---    );
-
-  --------------------------------------------------------------------
+    --------------------------------------------------------------------
     -- IP INSTANCE
     --------------------------------------------------------------------
     U1: I2C_MASTER_Top
@@ -930,56 +1001,97 @@ begin
         port map (
             V_IN       => video_timing,
             V_OUT      => v80_bus_out,
+            FPGA_CLK   => CLK_IN,
             Z80_CLK    => CLK_Z80_INT,
             Z80_WR_N   => nWR_CPU_r,
             Z80_ADDR   => Z80_LA_BUS_INT(3 downto 0),
             Z80_DATA   => Z80_DATA_IN_INT,
             REG_SEL_N  => '1', -- FOR OUT TO VIDEO CIRCUIT TO SET REGISTERS
             VRAM_DATA  => x"AA", -- Placeholder for VRAM connection
-            VRAM_ADDR  => open
+            VRAM_ADDR  => open,
+            VDRegs     => DUMMY_VDREGS
         );
 
     U_PRODUCER_ATLAS : AtlasVideo
         port map(
             V_IN       => video_timing,
             V_OUT      => atlas_bus_out,
+            FPGA_CLK   => CLK_IN,
             Z80_CLK    => CLK_Z80_INT,
             Z80_WR_N   => nWR_CPU_r,
             Z80_ADDR   => Z80_LA_BUS_INT(3 downto 0),
             Z80_DATA   => Z80_DATA_IN_INT,
             REG_SEL_N  => '1', 
             VRAM_DATA  => VRAM_DATA_TO_VCTRL,
-            VRAM_ADDR  => VCTRL_ADDR_BUS
+            VRAM_ADDR  => VAT_ADDR_BUS,
+            VDRegs     => DUMMY_VDREGS  --atlas registers are ram based
+        );
+
+    U_PRODUCER_NBRAIN : NewbrainVideo
+        port map(
+            V_IN       => video_timing,
+            V_OUT      => nb_bus_out,
+            FPGA_CLK   => CLK_IN,
+            Z80_CLK    => CLK_Z80_INT,
+            Z80_WR_N   => nWR_CPU_r,
+            Z80_ADDR   => Z80_LA_BUS_INT(3 downto 0),
+            Z80_DATA   => Z80_DATA_IN_INT,
+            REG_SEL_N  => '1', 
+            VRAM_DATA  => VRAM_DATA_TO_VCTRL,
+            VRAM_ADDR  => VNB_ADDR_BUS,
+            VDRegs     => nb_regs
         );
 
     -- Video handler
+    with system_selection select
+        VCTRL_ADDR_BUS <= VAT_ADDR_BUS  when "0000",
+                          VAT_ADDR_BUS  when "0001",
+                          VNB_ADDR_BUS  when "0010",
+                          VZX_ADDR_BUS  when "0011",
+                          VAM_ADDR_BUS  when "0100",
+
+                          VAT_ADDR_BUS  when others;
+       
 
     -- Video register from z80 is active
     reg_video_sel_n <= '0' when (VD_DSn = '0' and LWR_N = '0') else  '1';
+    reg_system_sel_n <= '0' when (SYS_CSn = '0' and nWR_CPU_r = '0') else  '1';
 
     process(CLK_Z80_INT, nRESET)
     begin
         if nRESET = '0' then
             video_selection <= "0000";
+            system_selection <= "0000";
         elsif rising_edge(CLK_Z80_INT) then
             if reg_video_sel_n = '0' then
                 -- Store lower 4 bits to address 16 potential systems
                 video_selection <= unsigned(Z80_DATA_IN_INT(3 downto 0)); 
             end if;
+         if reg_system_sel_n = '0' then
+                -- Store lower 4 bits to address 16 potential systems
+                system_selection <= unsigned(Z80_DATA_IN_INT(3 downto 0)); 
+            end if;
         end if;
     end process;
 
     --this selects the video system
-    with video_selection select
-        selected_video <= --v80_bus_out when "0000",
-                        atlas_bus_out when "0000",
-                          nb_bus_out when "0001",
-                          zx_bus_out when "0010",
-                          am_bus_out when "0011",
+--    with video_selection select
+--        selected_video <= --v80_bus_out when "0000",
+--                        atlas_bus_out when "0000",
+--                          nb_bus_out when "0001",
+--                          zx_bus_out when "0010",
+--                          am_bus_out when "0011",
+
+--                          v80_bus_out when others;
+
+    with system_selection select
+        selected_video <= atlas_bus_out when "0000",
+                          atlas_bus_out when "0001",
+                          nb_bus_out    when "0010",
+                          zx_bus_out    when "0011",
+                          am_bus_out    when "0100",
 
                           v80_bus_out when others;
-
-
 
 
     -- ***************************************************************
@@ -1006,93 +1118,93 @@ begin
         end if; 
     end process;
 
---L_WAIT_N <= L_BA_WAIT_N AND (OTHER SIGNALS)
+    --L_WAIT_N <= L_BA_WAIT_N AND (OTHER SIGNALS)
 
-process(CLK_IN, reset_n_sync2)
-begin
-    if reset_n_sync2 = '0' then
-        l_wait_n <= '1';
-        wait_counter <= 0;
-        state <= '0';
-    elsif rising_edge(CLK_IN) then
-        case state is
-            when '0' => -- IDLE
-                l_wait_n <= '1';
-                if (SN_DSn = '0' AND LWR_CPU_N = '0') then
-                    l_wait_n <= '0';    -- Trigger Wait State
-                    wait_counter <= 240; -- Set counter (adjust based on your CLK_IN freq)
-                    state <= '1';       -- Move to Wait state
-                end if;
-            
-            when '1' => -- WAITING
-                l_wait_n <= '0';
-                if wait_counter > 0 then
-                    wait_counter <= wait_counter - 1;
-                else
-                    l_wait_n <= '1';    -- Release CPU
-                    state <= '0';       -- Return to Idle
-                end if;
-        end case;
-    end if;
-end process;
+    process(CLK_IN, reset_n_sync2)
+    begin
+        if reset_n_sync2 = '0' then
+            l_wait_n <= '1';
+            wait_counter <= 0;
+            state <= '0';
+        elsif rising_edge(CLK_IN) then
+            case state is
+                when '0' => -- IDLE
+                    l_wait_n <= '1';
+                    if (SN_DSn = '0' AND LWR_CPU_N = '0') then
+                        l_wait_n <= '0';    -- Trigger Wait State
+                        wait_counter <= 240; -- Set counter (adjust based on your CLK_IN freq)
+                        state <= '1';       -- Move to Wait state
+                    end if;
+                
+                when '1' => -- WAITING
+                    l_wait_n <= '0';
+                    if wait_counter > 0 then
+                        wait_counter <= wait_counter - 1;
+                    else
+                        l_wait_n <= '1';    -- Release CPU
+                        state <= '0';       -- Return to Idle
+                    end if;
+            end case;
+        end if;
+    end process;
 
 
     --capturedata <= '1' when BADEV1='1' and BADEV2='1' else '0';
 
 
 
--- 1. Combine the Z80 control signals first
-z80_strobe_raw <= '0' when (BADEV1='1' and BADEV2='1' and nIORQ_r='0' ) else '1'; 
+    -- 1. Combine the Z80 control signals first
+    z80_strobe_raw <= '0' when (BADEV1='1' and BADEV2='1' and nIORQ_r='0' ) else '1'; 
 
-process(CLK_IN)
-begin
-    if rising_edge(CLK_IN) then
-        sync_reg1 <= z80_strobe_raw;
-        sync_reg2 <= sync_reg1;
-        sync_reg3 <= sync_reg2;
-        
-        -- Detect edge
-        if (sync_reg3 = '1' and sync_reg2 = '0') then
-            pulse_timer <= 7; -- Start a timer
-        elsif pulse_timer > 0 then
-            pulse_timer <= pulse_timer - 1;
+    process(CLK_IN)
+    begin
+        if rising_edge(CLK_IN) then
+            sync_reg1 <= z80_strobe_raw;
+            sync_reg2 <= sync_reg1;
+            sync_reg3 <= sync_reg2;
+            
+            -- Detect edge
+            if (sync_reg3 = '1' and sync_reg2 = '0') then
+                pulse_timer <= 7; -- Start a timer
+            elsif pulse_timer > 0 then
+                pulse_timer <= pulse_timer - 1;
+            end if;
+            
+            -- Signal is active as long as the timer is running
+            if pulse_timer > 0 then
+                write_event <= '1';
+            else
+                write_event <= '0';
+            end if;
         end if;
-        
-        -- Signal is active as long as the timer is running
-        if pulse_timer > 0 then
-            write_event <= '1';
-        else
-            write_event <= '0';
-        end if;
-    end if;
-end process;
+    end process;
 
  
 
 
-process(CLK_IN, reset_n_sync2)
-begin
-    if reset_n_sync2 = '0' then
-        write_count <= 0;
-        capturedata <= '0';
-        event_processed <= '0';
-    elsif rising_edge(CLK_IN) then
-        if write_event = '1' then
-            -- Only count if we haven't processed this specific pulse yet
-            if event_processed = '0' then
-                if write_count < 0 then -- Change 2 to 6 to skip 6 writes
-                    write_count <= write_count + 1;
-                    event_processed <= '1'; -- Lock out further counts for this pulse
-                else
-                    capturedata <= '1';
-                end if;
-            end if;
-        else
-            -- Pulse is gone, reset the lockout so we are ready for the next one
+    process(CLK_IN, reset_n_sync2)
+    begin
+        if reset_n_sync2 = '0' then
+            write_count <= 0;
+            capturedata <= '0';
             event_processed <= '0';
+        elsif rising_edge(CLK_IN) then
+            if write_event = '1' then
+                -- Only count if we haven't processed this specific pulse yet
+                if event_processed = '0' then
+                    if write_count < 0 then -- Change 2 to 6 to skip 6 writes
+                        write_count <= write_count + 1;
+                        event_processed <= '1'; -- Lock out further counts for this pulse
+                    else
+                        capturedata <= '1';
+                    end if;
+                end if;
+            else
+                -- Pulse is gone, reset the lockout so we are ready for the next one
+                event_processed <= '0';
+            end if;
         end if;
-    end if;
-end process;
+    end process;
     --i2c_rd_n_s goes low to signal we can read the data
     --i2c_data_out_s to the data bus
       
@@ -1111,6 +1223,7 @@ end process;
                 VRAM_DATA_TO_CPU      when VRAM_CE_CPU_N = '0' and nRD_CPU_r = '0' else   -- VRAM selected
                 clk_reg_out           when nCLK_SEL='0' and nRD_CPU_r = '0' else
                 i2c_data_out          when I2C_CSn ='0' and nRD_CPU_r = '0' else
+                sDataout              when sIsDout ='0' and nRD_CPU_r = '0' else --system specific dataout to z80
                 (others => 'Z');                           -- Default if no device is selected for read
         END IF;
     END PROCESS;
@@ -1118,7 +1231,7 @@ end process;
          
    
     sEnableDataOut <= '1' when flash_prog='0' 
-           else '0' when ( UART_nCS = '0' or PS2_DSn ='0' or VRAM_CE_CPU_N = '0' or nCLK_SEL='0' or I2C_CSn ='0') and nRD_CPU_r = '0'--add i2c when it works
+           else '0' when ( UART_nCS = '0' or PS2_DSn ='0' or VRAM_CE_CPU_N = '0' or nCLK_SEL='0' or I2C_CSn ='0' or sIsDout ='0') and nRD_CPU_r = '0'--add i2c when it works
            else '1';
     LWR_N <= 'Z' when flash_prog='0' else MMU_WR; --FlRam and Sram control
     L_RD_N <= 'Z'; --read only make the signal in

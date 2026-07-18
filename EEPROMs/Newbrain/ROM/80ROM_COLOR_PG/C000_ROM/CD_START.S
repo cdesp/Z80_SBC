@@ -1,0 +1,6 @@
+NAME CD_HELPER_ROM
+	
+	ORG $C000
+
+	DB 00
+	

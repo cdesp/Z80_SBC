@@ -17,9 +17,12 @@
         <File path="src/VD_Atlas_video.vhd" type="file.vhdl" enable="1"/>
         <File path="src/VD_GenericZ80_module.vhd" type="file.vhdl" enable="1"/>
         <File path="src/VD_HDMI_Controller.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/VD_NEWBRAIN.vhd" type="file.vhdl" enable="1"/>
         <File path="src/VD_types_pkg.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/Z80_BA_Newbrain.vhd" type="file.vhdl" enable="1"/>
         <File path="src/Z80_Bus_Arbiter.vhd" type="file.vhdl" enable="1"/>
         <File path="src/Z80_FPGA_SYSTEM.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/clkDiv50.vhd" type="file.vhdl" enable="1"/>
         <File path="src/clock_manager.vhd" type="file.vhdl" enable="1"/>
         <File path="src/defs_pkg.vhd" type="file.vhdl" enable="1"/>
         <File path="src/i2c/i2c_master.vhd" type="file.vhdl" enable="1"/>

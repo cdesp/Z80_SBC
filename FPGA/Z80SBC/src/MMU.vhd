@@ -104,7 +104,7 @@ BEGIN
         IF nRST = '0' THEN
             -- Reset: Όλες οι σελίδες είναι RW ('0')
             Protection_Flags <= (OTHERS => '0');
-        ELSIF falling_edge(nWR_CPU) THEN
+        ELSIF rising_edge(nWR_CPU) THEN --was falling
             -- Εγγραφή σε I/O θύρα προστασίας
             IF nSET_RO = '0' THEN -- OUT (protInt), PgNo -> Θέτει τη σελίδα ως Read-Only ('1')
                 Protection_Flags(Prot_Write_Page_Int) <= '1';

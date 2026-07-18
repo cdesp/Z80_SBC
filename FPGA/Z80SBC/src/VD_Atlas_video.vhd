@@ -2,11 +2,14 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use work.VD_types_pkg.all;
+USE work.defs_pkg.ALL; -- Import constants
 
 entity AtlasVideo is
 port (
     V_IN      : in  video_bus_in;  -- Assuming this brings in 800x600 timing signals
     V_OUT     : out video_bus_out;
+
+    FPGA_CLK  : in  std_logic;
 
     Z80_CLK   : in  std_logic;
     Z80_WR_N  : in  std_logic;
@@ -16,7 +19,10 @@ port (
     Z80_DATA  : in  std_logic_vector(7 downto 0);
 
     VRAM_DATA : in  std_logic_vector(7 downto 0);
-    VRAM_ADDR : out std_logic_vector(15 downto 0)
+    VRAM_ADDR : out std_logic_vector(15 downto 0);
+
+    -- Video registers
+    VDRegs    : in t_video_regs
 );
 end entity;
 
@@ -231,6 +237,12 @@ if rising_edge(V_IN.clk_pixel) then
                 else
                     px_out <= pxlback_r;
                 end if;
+
+            --------------------------------------------------------
+            -- "10" : 640x400 TEXT GRAPHICS
+            --------------------------------------------------------
+            when "11" => 
+                px_out <= pxlfore_r;
 
             when others =>
                 px_out <= pxlfore_r;

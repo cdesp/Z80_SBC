@@ -9,11 +9,12 @@ entity Z80_PS2_Bridge is
         nRESET         : in    std_logic;
 
         PS2_DS_N       : in  std_logic; -- Active Low 
+        PS2_BT_RDY     : out  std_logic; -- Active Low  
         -- Z80 Bus Interface
         Z80_IO_ADDR    : in    std_logic_vector(7 downto 0);
         Z80_RD_N       : in    std_logic;
         Z80_WR_N       : in    std_logic;
-        Z80_DATA_IN    : IN   std_logic_vector(7 downto 0);
+        Z80_DATA_IN    : IN    std_logic_vector(7 downto 0);
         Z80_DATA_OUT   : out   std_logic_vector(7 downto 0);
 
         -- Physical PS/2 Pins
@@ -26,6 +27,7 @@ architecture RTL of Z80_PS2_Bridge is
     signal nWR_sync1, nWR_sync2 : std_logic := '1';    
     signal Z80_DATA_sync1, Z80_DATA_sync2 : std_logic_vector(7 downto 0) := (others => '0');
     signal KB_DATA_OUT : std_logic_vector(7 downto 0) := (others => '0');
+    
     -- Internal signals for the controller
     signal rx_ready    : std_logic;
     signal rx_data     : std_logic_vector(7 downto 0);
@@ -41,6 +43,22 @@ architecture RTL of Z80_PS2_Bridge is
     -- Status and Buffer
     signal byte_reg    : std_logic_vector(7 downto 0);
     signal byte_ready  : std_logic := '0';
+    signal rd_prev : std_logic :='1';
+
+    -- =========================================================
+    -- NEW SIGNALS: For Z80 Read Edge Detection & FIFO
+    -- =========================================================
+    signal z80_read_req  : std_logic;
+    signal z80_rd_sync_1 : std_logic := '0';
+    signal z80_rd_sync_2 : std_logic := '0';
+    signal z80_rd_done   : std_logic;
+
+    type fifo_type is array (0 to 15) of std_logic_vector(7 downto 0);
+    signal fifo        : fifo_type := (others => (others => '0'));
+    signal fifo_wr_ptr : integer range 0 to 15 := 0;
+    signal fifo_rd_ptr : integer range 0 to 15 := 0;
+    signal fifo_count  : integer range 0 to 16 := 0;
+
 begin
 
     -- Instantiate your original controller
@@ -56,17 +74,18 @@ begin
             TX_ACK_ERROR_O => open
         );
 
+    process(CLK) -- 50MHz Clock
+    begin
+        if rising_edge(CLK) then
+            -- Two-stage synchronization
+            nWR_sync1      <= Z80_WR_N;    
+            nWR_sync2      <= nWR_sync1;        
+            Z80_DATA_sync1 <= Z80_DATA_IN; 
+            Z80_DATA_sync2 <= Z80_DATA_sync1;
+        end if;
+    end process;
 
-process(CLK) -- 50MHz Clock
-begin
-    if rising_edge(CLK) then
-        -- Two-stage synchronization
-        nWR_sync1   <= Z80_WR_N;    nWR_sync2   <= nWR_sync1;        
-        Z80_DATA_sync1 <= Z80_DATA_IN; Z80_DATA_sync2 <= Z80_DATA_sync1;
-    end if;
-end process;
-
- process(CLK, nRESET)
+    process(CLK, nRESET)
     begin
         if nRESET = '0' then
             ps2_tx_start <= '0';
@@ -114,21 +133,77 @@ end process;
         end if;
     end process;
 
-    -- Logic for capturing data and Z80 interface
+    -- =========================================================
+    -- NEW LOGIC: Z80 Read Edge Detection (Trailing Edge)
+    -- =========================================================
+    z80_read_req <= '1' when (PS2_DS_N = '0' and Z80_RD_N = '0' and Z80_IO_ADDR(0) = '0') else '0';
+
     process(CLK, nRESET)
     begin
         if nRESET = '0' then
-            byte_ready <= '0';
-            byte_reg   <= (others => '0');
+            z80_rd_sync_1 <= '0';
+            z80_rd_sync_2 <= '0';
         elsif rising_edge(CLK) then
-            -- 1. If controller has new data and we are free, capture it
-            if rx_ready = '1' and byte_ready = '0' then
-                byte_reg   <= rx_data;
-                byte_ready <= '1';
-            -- 2. If Z80 reads data port, clear the flag
-            elsif (PS2_DS_N = '0' and Z80_RD_N = '0' and Z80_IO_ADDR(0) = '0') then
+            z80_rd_sync_1 <= z80_read_req;
+            z80_rd_sync_2 <= z80_rd_sync_1;
+        end if;
+    end process;
+
+    -- Pulses high for exactly 1 clock cycle when the Z80 FINISHES reading
+    z80_rd_done <= '1' when (z80_rd_sync_2 = '1' and z80_rd_sync_1 = '0') else '0';
+
+    -- =========================================================
+    -- NEW LOGIC: 16-Byte FIFO for capturing PS/2 Data
+    -- =========================================================
+    process(CLK, nRESET)
+        variable write_en : boolean;
+        variable read_en  : boolean;
+    begin
+        if nRESET = '0' then
+            fifo_wr_ptr <= 0;
+            fifo_rd_ptr <= 0;
+            fifo_count  <= 0;
+            byte_ready  <= '0';
+            byte_reg    <= (others => '0');
+        elsif rising_edge(CLK) then
+            write_en := false;
+            read_en  := false;
+
+            -- A. Acknowledge that the Z80 took the byte
+            if z80_rd_done = '1' then
                 byte_ready <= '0';
             end if;
+
+            -- B. Incoming PS/2 Data -> Push to FIFO
+            if rx_ready = '1' and fifo_count < 16 then
+                fifo(fifo_wr_ptr) <= rx_data;
+                write_en := true;
+                if fifo_wr_ptr = 15 then
+                    fifo_wr_ptr <= 0;
+                else
+                    fifo_wr_ptr <= fifo_wr_ptr + 1;
+                end if;
+            end if;
+
+            -- C. Load next byte from FIFO to output register
+            if (byte_ready = '0' or z80_rd_done = '1') and fifo_count > 0 then
+                byte_reg <= fifo(fifo_rd_ptr);
+                byte_ready <= '1'; 
+                read_en := true;
+                if fifo_rd_ptr = 15 then
+                    fifo_rd_ptr <= 0;
+                else
+                    fifo_rd_ptr <= fifo_rd_ptr + 1;
+                end if;
+            end if;
+
+            -- D. Safely Update FIFO Count
+            if write_en and not read_en then
+                fifo_count <= fifo_count + 1;
+            elsif read_en and not write_en then
+                fifo_count <= fifo_count - 1;
+            end if;
+
         end if;
     end process;
 
@@ -136,7 +211,7 @@ end process;
     process(Z80_IO_ADDR, PS2_DS_N, Z80_RD_N, byte_reg, byte_ready, tx_busy)
     begin
         Z80_DATA_OUT <= (others => 'Z'); -- Default high-impedance
-        
+        PS2_BT_RDY <= byte_ready;
         if (PS2_DS_N = '0' and Z80_RD_N = '0') then
             if (Z80_IO_ADDR(0) = '0') then
                 Z80_DATA_OUT <= byte_reg;
@@ -145,5 +220,5 @@ end process;
             end if;
         end if;
     end process;
-
+   
 end architecture;

@@ -2,12 +2,15 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use work.VD_types_pkg.all;
+USE work.defs_pkg.ALL; -- Import constants
 
 entity video_system_v80 is
     port (
         -- Timing and Sync inputs from the Master Generator
         V_IN            : in  video_bus_in;
         V_OUT           : out video_bus_out;
+
+        FPGA_CLK        : in  std_logic;
 
         -- Z80 Config Interface
         Z80_CLK         : in  std_logic;
@@ -18,7 +21,10 @@ entity video_system_v80 is
 
         -- VRAM Interface
         VRAM_DATA       : in  std_logic_vector(7 downto 0);
-        VRAM_ADDR       : out std_logic_vector(15 downto 0)
+        VRAM_ADDR       : out std_logic_vector(15 downto 0);
+
+        -- Video registers
+        VDRegs          : IN t_video_regs
     );
 end entity video_system_v80;
 

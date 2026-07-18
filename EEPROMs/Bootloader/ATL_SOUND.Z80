@@ -1,0 +1,681 @@
+;*******************************************************************************
+; Z80 SN76489AN SOUND MODULE
+;
+; This module provides a set of low-level and high-level routines for controlling
+; the Texas Instruments SN76489AN programmable sound generator. It includes
+; functions for initialization, playing individual notes, controlling volume,
+; and a system for playing multi-channel music from a data table.
+;
+; The module relies on a memory-mapped I/O port `DEVSND` for communication
+; with the sound chip.
+;*******************************************************************************
+		
+;Sound module SN76489AN ic
+		
+;DEVSND EQU $38
+		
+		GLOBAL SND_INIT 						; initializes, Params: None
+		GLOBAL SND_OUT 							; Sends a byte to the sound chip. Params: A: The byte to send.
+		GLOBAL SND_NOTE 						; Plays a single note on a specified channel. Params: HL: Note frequency, A: Channel number.
+		GLOBAL SND_SETVOLUME 						; Sets the volume for a specified channel. Params: A: Channel number, C: Volume level.
+		GLOBAL SND_PLAYMUSIC 						; Plays the next note for all four music channels. Params: None.
+		GLOBAL SND_MUTEALL 						; Mutes all four sound channels. Params: None.
+		GLOBAL SND_ENABLE 						; Enables a specific channel. Params: A: The channel number.
+		GLOBAL SND_DISABLE 						; Disables a specific channel. Params: A: The channel number.
+		GLOBAL SND_DOBEEP 						; Plays a pre-defined note as a short beep. Params: HL: Note frequency.
+		GLOBAL SND_BEEP 						; Plays a short G4 note beep. Params: None.
+		GLOBAL SND_BEEP2 						; Plays a short D6 note beep. Params: None.
+		
+		@SNDVOLHI EQU 0
+		@SNDVOLM1 EQU 1
+		@SNDVOLM2 EQU 2
+		@SNDVOLLO EQU 3
+		@SNDMUTE EQU 4
+		
+		@DEFCHN EQU 2 							;DEFAULT CHANNEL FOR SYSTEM USE BEEPS
+
+
+; Duration Equates
+@VST	EQU 1	;VERY SHORT
+@STC     EQU 2   ; Short Staccato note
+@LNG     EQU 4   ; Longer note / hold		
+;NOTES - FREQUENCES FOR 2,0MHz CLOCK
+; HEX  #    NOTE
+NOTES:		
+        @nD2E2   EQU $0324                             ; D#2 / Eb2
+        @nE2     EQU $02F6                             ; E2
+        @nF2     EQU $02CC                             ; F2
+        @nF2G2   EQU $02A4                             ; F#2 / Gb2
+        @nG2     EQU $027E                             ; G2
+        @nG2A2   EQU $025A                             ; G#2 / Ab2
+        @nA2     EQU $0238                             ; A2
+        @nA2B2   EQU $0218                             ; A#2 / Bb2
+        @nB2     EQU $01FA                             ; B2
+        @nC3     EQU $01DE                             ; C3
+        @nC3D3   EQU $01C3                             ; C#3 / Db3
+        @nD3     EQU $01AA                             ; D3
+        @nD3E3   EQU $0192                             ; D#3 / Eb3
+        @nE3     EQU $017B                             ; E3
+        @nF3     EQU $0166                             ; F3
+        @nF3G3   EQU $0152                             ; F#3 / Gb3
+        @nG3     EQU $013F                             ; G3
+        @nG3A3   EQU $012D                             ; G#3 / Ab3
+        @nA3     EQU $011C                             ; A3
+        @nA3B3   EQU $010C                             ; A#3 / Bb3
+        @nB3     EQU $00FD                             ; B3
+        @nC4     EQU $00EF                             ; C4 (Middle C)
+        @nC4D4   EQU $00E1                             ; C#4 / Db4
+        @nD4     EQU $00D5                             ; D4
+        @nD4E4   EQU $00C9                             ; D#4 / Eb4
+        @nE4     EQU $00BE                             ; E4
+        @nF4     EQU $00B3                             ; F4
+        @nF4G4   EQU $00A9                             ; F#4 / Gb4
+        @nG4     EQU $009F                             ; G4
+        @nG4A4   EQU $0096                             ; G#4 / Ab4
+        @nA4     EQU $008E                             ; A4 (Concert A)
+        @nA4B4   EQU $0086                             ; A#4 / Bb4
+        @nB4     EQU $007F                             ; B4
+        @nC5     EQU $0077                             ; C5
+        @nC5D5   EQU $0071                             ; C#5 / Db5
+        @nD5     EQU $006A                             ; D5
+        @nD5E5   EQU $0064                             ; D#5 / Eb5
+        @nE5     EQU $005F                             ; E5
+        @nF5     EQU $0059                             ; F5
+        @nF5G5   EQU $0054                             ; F#5 / Gb5
+        @nG5     EQU $0050                             ; G5
+        @nG5A5   EQU $004B                             ; G#5 / Ab5
+        @nA5     EQU $0047                             ; A5
+        @nA5B5   EQU $0043                             ; A#5 / Bb5
+        @nB5     EQU $003F                             ; B5
+        @nC6     EQU $003C                             ; C6
+        @nC6D6   EQU $0038                             ; C#6 / Db6
+        @nD6     EQU $0035                             ; D6
+        @nD6E6   EQU $0032                             ; D#6 / Eb6
+        @nE6     EQU $002F                             ; E6
+        @nF6     EQU $002D                             ; F6
+        @nF6G6   EQU $002A                             ; F#6 / Gb6
+        @nG6     EQU $0028                             ; G6
+        @nG6A6   EQU $0026                             ; G#6 / Ab6
+        @nA6     EQU $0024                             ; A6
+        @nA6B6   EQU $0022                             ; A#6 / Bb6
+        @nB6     EQU $0020                             ; B6
+        @nC7     EQU $001E                             ; C7
+        @nC7D7   EQU $001C                             ; C#7 / Db7
+        @nD7     EQU $001B                             ; D7
+        @nD7E7   EQU $0019                             ; D#7 / Eb7
+        @nE7     EQU $0018                             ; E7
+        @nF7     EQU $0016                             ; F7
+        @nF7G7   EQU $0015                             ; F#7 / Gb7
+        @nG7     EQU $0014                             ; G7
+        @nG7A7   EQU $0013                             ; G#7 / Ab7
+        @nA7     EQU $0012                             ; A7
+        @nA7B7   EQU $0011                             ; A#7 / Bb7
+        @nB7     EQU $0010                             ; B7
+        @nC8     EQU $000F                             ; C8
+        @nC8D8   EQU $000E                             ; C#8 / Db8
+        @nD8     EQU $000D                             ; D8
+	@nPAUSE	 EQU $0908			       ;NO NOTE JUST PAUSE
+        @nEND    EQU $0909                             ; Signals eT nd of song
+		
+		
+;-------------------------------------------------------------------------------
+; DELAYABIT: Creates a short, hard-coded delay.
+;
+; This routine is a busy-wait loop that uses `NEG` instructions to consume a
+; specific number of clock cycles. It is used to ensure the sound chip has
+; enough time to process a command before the next one is sent.
+;
+; Parameters:
+;   None.
+;
+; Registers Preserved:
+;   None. The A register is modified.
+;
+; Memory Accessed:
+;   None.
+;-------------------------------------------------------------------------------
+DELAYABIT:	NEG 								;8 CLOCK CYCLES
+		NEG
+		NEG
+		NEG
+		NEG
+		NEG
+		NEG
+		NEG
+		RET
+		
+;Sends a byte to the sound chip
+;-------------------------------------------------------------------------------
+; SND_OUT: Sends a single byte to the sound chip's I/O port.
+;
+; This routine writes the byte in register A to the `DEVSND` I/O port and then
+; waits for a short duration by calling `DELAYABIT` to satisfy the sound chip's
+; timing requirements between commands.
+;
+; Parameters:
+;   A: The byte to be sent to the sound chip.
+;
+; Registers Preserved:
+;   None. All registers are modified by the routine and the `DELAYABIT` call.
+;
+; Memory Accessed:
+;   I/O Ports: Writes to the `DEVSND` port.
+;-------------------------------------------------------------------------------
+SND_OUT:	OUT (DEVSND), A 						;SEND TO SOUND
+		
+;OUTPUT BYTES SENT TO CHIP TO SERIAL
+; PUSH AF
+; PUSH HL
+; PUSH DE
+; PUSH BC
+; LD HL,SOUT1
+; CALL STRFHEX
+; LD HL,SOUT1
+; CALL RS_TXT
+; POP BC
+; POP DE
+; POP HL
+; POP AF
+		
+		CALL DELAYABIT
+		RET
+		
+;-------------------------------------------------------------------------------
+; SND_MUTEALL: Mutes all four sound channels (Tone 0, 1, 2 and Noise).
+;
+; This routine sends the appropriate volume control commands to the sound chip
+; to set the volume of all four channels to a muted state ($F).
+;
+; Parameters:
+;   None.
+;
+; Registers Preserved:
+;   None. All registers are modified by the routine and `SND_OUT` calls.
+;
+; Memory Accessed:
+;   I/O Ports: Communicates with the sound chip via four calls to `SND_OUT`.
+;-------------------------------------------------------------------------------
+SND_MUTEALL:	LD A, $9F 							;MUTE CHANNEL 0
+		CALL SND_OUT
+		LD A, $BF 							;MUTE CHANNEL 1
+		CALL SND_OUT
+		LD A, $DF 							;MUTE CHANNEL 2
+		CALL SND_OUT
+		LD A, $FF 							;MUTE CHANNEL NOISE
+		CALL SND_OUT
+		RET
+;-------------------------------------------------------------------------------
+; SND_INIT: Initializes the sound module and all channels.
+;
+; This routine performs a full initialization, starting by muting all channels
+; with a call to `SND_MUTEALL`. It then clears the channel status byte (`CHANST`)
+; and zeroes out the `CHANDATA` memory area, which stores pointers to the
+; music data for each channel.
+;
+; Parameters:
+;   None.
+;
+; Registers Preserved:
+;   None. All registers are modified.
+;
+; Memory Accessed:
+;   I/O Ports: Communicates with the sound chip via `SND_MUTEALL`.
+;   RAM: Writes to `CHANST` and `CHANDATA` memory locations.
+;-------------------------------------------------------------------------------
+SND_INIT:	CALL SND_MUTEALL
+		XOR A
+		LD (CHANST), A
+SND_CLRDAT:	XOR A
+		LD HL, CHANDATA
+		LD (HL), A
+		LD D, H
+		LD E, L
+		INC DE
+		LD BC, 11
+		LDIR
+		RET
+		
+;-------------------------------------------------------------------------------
+; SND_NOTE: Plays a single note on a specified channel.
+;
+; This routine takes a note's frequency value (in HL) and a channel number (in A)
+; and sends the two-byte frequency command to the sound chip. It handles
+; inserting the correct channel bits into the command byte.
+;
+; Parameters:
+;   HL: The 16-bit note frequency value.
+;   A: The channel number (0, 1, 2, or 3 for Noise).
+;
+; Registers Preserved:
+;   HL: The HL register pair is preserved.
+;
+; Memory Accessed:
+;   I/O Ports: Communicates with the sound chip via two calls to `SND_OUT`.
+;-------------------------------------------------------------------------------
+;-------------------------------------------------------------------------------
+; SND_NOTE: Plays a single note on a specified channel.
+;
+; Parameters:
+;   HL: Clean 10-bit pitch value (0 - 1023)
+;   A:  Channel number (0, 1, or 2)
+;-------------------------------------------------------------------------------
+SND_NOTE:   PUSH AF
+            PUSH BC
+            PUSH HL             
+
+            ; 1. Isolate channel, shift to bits 6 & 5, and set Bit 7 command flag
+            AND $03             ; Keep channel 0-3
+            RLCA
+            RLCA
+            RLCA
+            RLCA
+            RLCA                ; Channel is now at bits 6 and 5
+            OR $80              ; Force Bit 7 to 1 (SN76489 Latch Command)
+            LD B, A             ; Save this base command byte in B
+
+            ; 2. Extract the 4 LSBs from HL for the first byte
+            LD A, L
+            AND $0F             ; Keep lowest 4 bits
+            OR B                ; Merge with channel and Latch command flag
+            CALL SND_OUT        ; Send 1st Byte (1 C1 C0 0 D3 D2 D1 D0)
+
+            ; 3. Extract the 6 MSBs from HL for the second byte
+            ; We need to shift the 10-bit value right by 4 bits
+            POP HL              ; Retrieve HL to read original value
+            PUSH HL             ; Keep it pushed to satisfy "Preserved" constraint
+            
+            SRL H               ; Shift HL right by 4 bits
+            RR L
+            SRL H
+            RR L
+            SRL H
+            RR L
+            SRL H
+            RR L                ; L now holds the upper 6 bits in its lower 6 slots
+
+            LD A, L
+            AND $3F             ; Ensure bits 6 and 7 are 0 (Bit 7 must be 0)
+            CALL SND_OUT        ; Send 2nd Byte (0 0 D9 D8 D7 D6 D5 D4)
+
+            POP HL
+            POP BC
+            POP AF
+            RET
+		
+;-------------------------------------------------------------------------------
+; SND_DOBEEP: Plays a pre-defined note as a short beep.
+;
+; This routine plays the note provided in HL on the default system channel
+; (@DEFCHN) with a high volume, delays for a specific duration (160ms), and then
+; mutes the channel. It relies on external routines for the delay.
+;
+; Parameters:
+;   HL: The 16-bit note frequency value to be played.
+;   B: THE DELAY
+;
+; Registers Preserved:
+;   A: The A register is preserved.
+;
+; Memory Accessed:
+;   I/O Ports: Communicates with the sound chip via `SND_SETVOLUME` and `SND_NOTE`.
+;-------------------------------------------------------------------------------
+SND_DOBEEP:	PUSH AF
+        PUSH BC
+		LD A, DEFCHN
+		LD C, SNDVOLHI
+		CALL SND_SETVOLUME
+		LD A, DEFCHN
+		CALL SND_NOTE
+		POP BC
+		CALL DELAYMILI
+		LD A, DEFCHN
+		LD C, SNDMUTE
+		CALL SND_SETVOLUME
+		POP AF
+		RET
+		
+;-------------------------------------------------------------------------------
+; SND_BEEP: A helper routine that plays a G4 note beep.
+;
+; This routine loads the G4 note frequency into HL and calls `SND_DOBEEP` to
+; execute the beep sound.
+;
+; Parameters:
+;   None.
+;
+; Registers Preserved:
+;   None.
+;
+; Memory Accessed:
+;   I/O Ports: Communicates with the sound chip via `SND_DOBEEP`.
+;-------------------------------------------------------------------------------
+SND_BEEP:	LD HL, nG4 							;NOTE G4 ON CHANNEL2
+        LD B, 160
+		CALL SND_DOBEEP
+		RET
+		
+;-------------------------------------------------------------------------------
+; SND_BEEP2: A helper routine that plays a D6 note beep.
+;
+; This routine loads the D6 note frequency into HL and calls `SND_DOBEEP` to
+; execute the beep sound.
+;
+; Parameters:
+;   None.
+;
+; Registers Preserved:
+;   None.
+;
+; Memory Accessed:
+;   I/O Ports: Communicates with the sound chip via `SND_DOBEEP`.
+;-------------------------------------------------------------------------------
+SND_BEEP2:	LD HL, nD6 							;NOTE D6 ON CHANNEL2
+        LD B, 60
+		CALL SND_DOBEEP
+		RET
+		
+		
+;-------------------------------------------------------------------------------
+; SND_SETVOLUME: Sets the volume for a specific channel.
+;
+; This routine takes a channel number (A) and a volume level (C) and sends
+; the appropriate command to the sound chip. It correctly formats the command
+; byte, including the channel and volume bits. A special case handles muting.
+;
+; Parameters:
+;   A: The channel number (0, 1, 2, or 3 for Noise).
+;   C: The volume level (0-3, where 0 is loud, 3 is quiet, and 4 is mute).
+;
+; Registers Preserved:
+;   None. The B, DE, A, and C registers are modified.
+;
+; Memory Accessed:
+;   I/O Ports: Communicates with the sound chip via `SND_OUT`.
+;-------------------------------------------------------------------------------
+SND_SETVOLUME:	PUSH AF
+		PUSH BC
+		PUSH DE
+		RLCA 								;DOUBLE CHANNEL 0-3 --> 0,2,4,6
+		INC A 								;E=A+1
+		LD E, A 							;SAVE CHANNEL INFO
+		LD A, C
+		CP SNDMUTE
+		LD A, $F
+		JR Z, SV_DOIT 							;SNDMUTE=4 MEANS NO VOLUME = MUTE
+		LD A, 1 							;VOLUME 0-3 --> 1,2,4,8 SET THE CORRESPONDING BIT 0-3
+		INC C
+SV_AGN:		DEC C
+		JR Z, SV_DOIT
+		RLCA
+		JR SV_AGN
+SV_DOIT:	LD D, A 							;D THE VOLUME , E THE CHANNEL 1&CCC&VVVV
+		LD A, $80
+		RLC E
+		RLC E
+		RLC E
+		RLC E
+		OR D
+		OR E
+		CALL SND_OUT 
+		POP DE	
+		POP BC						;SET THE VOLUME
+		POP AF
+		RET
+		
+;-------------------------------------------------------------------------------
+; SND_DISABLE: Disables a specific channel.
+;
+; This routine "pauses" a channel by setting its volume to mute and updating
+; the channel's status byte in memory. This prevents the channel's song data
+; from being processed by `SND_PLAYCH`.
+;
+; Parameters:
+;   A: The channel number (0, 1, 2, or 3 for Noise).
+;
+; Registers Preserved:
+;   None. A, B, and C are modified.
+;
+; Memory Accessed:
+;   I/O Ports: Communicates with the sound chip via `SND_SETVOLUME`.
+;   RAM: Reads/writes the `CHANST` memory location.
+;-------------------------------------------------------------------------------
+SND_DISABLE:	PUSH AF
+		CALL SND_GETCHMASK
+		LD B, A
+		LD A, (CHANST)
+		OR B
+		LD (CHANST), A
+		POP AF
+		LD C, SNDMUTE
+		CALL SND_SETVOLUME
+		RET
+		
+;-------------------------------------------------------------------------------
+; SND_ENABLE: Enables a specific channel.
+;
+; This routine "unpauses" a channel by setting its volume back to high
+; and clearing its bit in the `CHANST` memory location. This allows the channel's
+; song data to be processed again.
+;
+; Parameters:
+;   A: The channel number (0, 1, 2, or 3 for Noise).
+;
+; Registers Preserved:
+;   None. A, B, and C are modified.
+;
+; Memory Accessed:
+;   I/O Ports: Communicates with the sound chip via `SND_SETVOLUME`.
+;   RAM: Reads/writes the `CHANST` memory location.
+;-------------------------------------------------------------------------------
+SND_ENABLE:	PUSH AF
+		CALL SND_GETCHMASK
+		NEG
+		DEC A
+		LD B, A
+		LD A, (CHANST)
+		AND B
+		LD (CHANST), A
+		POP AF
+		LD C, SNDVOLHI 							;TODO: KEEP RECORD OF THE VOLUME IN EACH CHANNEL
+		CALL SND_SETVOLUME
+		RET
+		
+;-------------------------------------------------------------------------------
+; SND_GETCHMASK: Returns a bitmask for a given channel.
+;
+; This routine calculates and returns a single-bit mask (1, 2, 4, or 8) in the
+; A register based on the input channel number (0, 1, 2, or 3).
+;
+; Parameters:
+;   A: The channel number (0-3).
+;
+; Registers Preserved:
+;   B, C: The B and C registers are modified during the calculation but are not
+;         part of the calling convention.
+;
+; Memory Accessed:
+;   None.
+;-------------------------------------------------------------------------------
+SND_GETCHMASK:	INC A
+		LD C, A
+		XOR A
+		INC A
+GMCAGN:		DEC C
+		RET Z
+		RLCA
+		JR GMCAGN
+		
+	
+;-------------------------------------------------------------------------------
+; SND_PLAYMUSIC: Plays the next note for all four music channels.
+;
+; This routine is the main music player loop. It iterates through all four
+; channels (0-3) and calls `SND_DOCHAN` for each one. This routine is typically
+; called in a main program loop. It sets the Zero Flag if all channels
+; have finished their songs.
+;
+; Parameters:
+;   None.
+;
+; Registers Preserved:
+;   None. A, B, and C are modified.
+;
+; Returns:
+;   ZF: The Zero Flag is set if all channels have ended their songs.
+;
+; Memory Accessed:
+;   RAM: Accesses `CHANDEL` and other music data via `SND_DOCHAN`.
+;-------------------------------------------------------------------------------
+SND_PLAYMUSIC:
+    LD IY, CHANDATA     ; IY points to current data address array
+    LD IX, CHANDEL      ; IX points to duration array
+    LD C, 0             ; Start with Channel 0
+    LD B, 0
+PLAYER_LOOP:
+    PUSH BC
+    
+    LD L, (IY+0)
+    LD H, (IY+1)
+    
+    LD A, H
+    OR L
+    JR Z, NEXT_CHANNEL
+
+    CALL PROCESS_CHANNEL
+    POP BC
+    INC B
+    PUSH BC
+
+NEXT_CHANNEL:
+    POP BC
+    INC IY
+    INC IY              ; Advance CHANDATA by 2
+    INC IX              ; Advance CHANDEL by 1
+    INC C
+    LD A, C
+    CP 4
+    JR NZ, PLAYER_LOOP
+    LD A,B
+    OR A		;ZF IF NO CHANNEL IS PLAYING CHECK TO STOP
+    RET
+
+
+
+;===============================================================================
+; PROCESS_CHANNEL: Handles logic for channel C using address HL and duration IX
+;===============================================================================
+PROCESS_CHANNEL:
+    LD A, (IX+0)        
+    OR A
+    JR Z, FETCH_NEXT
+    DEC A               
+    LD (IX+0), A        
+    RET NZ              ; Return immediately if note is still sustaining. 
+                        ; Since HL didn't change, we don't save anything!
+
+FETCH_NEXT:
+    LD A, (HL)
+    CP $09              
+    JR Z, HANDLE_COMMAND
+
+    ; --- It's a normal frequency byte! ---
+    LD E, A             
+    INC HL
+    PUSH HL
+    LD H, (HL)          
+    LD L, E            
+
+    LD E,C	
+    LD A, C ;CHANNEL NO
+    LD C, SNDVOLHI		; TODO SAVE LAST VOLUME OF EACH CHANNEL
+    CALL SND_SETVOLUME 
+    LD C,E
+     
+
+    PUSH IY             ; Protect IY array pointer from hardware corruption
+    PUSH IX             ; Protect IX duration pointer from hardware corruption
+    CALL SND_NOTE       
+    POP IX
+    POP IY
+    
+    POP HL 
+    INC HL    
+    
+    LD A, (HL)
+    LD (IX+0), A        
+    INC HL
+
+    ; SAVE HL IMMEDIATELY HERE WHILE IY IS GUARANTEED TO BE SAFE
+    LD (IY+0), L
+    LD (IY+1), H
+    RET
+
+; --- Handle Command Prefixes ($09xx) ---
+HANDLE_COMMAND:
+    INC HL
+    LD A, (HL)          
+    INC HL
+
+    CP $09              ; nEND
+    JR Z, CMD_END
+    CP $08              ; nPAUSE
+    JR Z, CMD_PAUSE
+    CP $07              ; nVOLUME
+    JR Z, CMD_VOLUME
+    RET                 
+
+CMD_END:
+    LD HL, 0
+    LD (IY+0), L        ; Save the deactivated state immediately
+    LD (IY+1), H
+    LD A, C
+    CALL APPL_MUTE
+    RET
+
+CMD_PAUSE:
+    LD A, C
+    CALL APPL_MUTE
+    LD A, (HL)
+    LD (IX+0), A
+    INC HL
+    
+    ; Save updated pointer post-pause
+    LD (IY+0), L
+    LD (IY+1), H
+    RET
+
+CMD_VOLUME:
+    LD A, (HL)          
+    INC HL
+    
+    PUSH HL
+    LD B, A             
+    LD A, C             
+    RLCA
+    RLCA
+    RLCA
+    RLCA
+    RLCA                
+    AND 01100000b       
+    OR B                
+    PUSH IY
+    PUSH IX
+    CALL SND_OUT        
+    POP IX
+    POP IY
+    POP HL
+    
+    JR FETCH_NEXT
+
+;===============================================================================
+; APPL_MUTE: Sends complete attenuation mute command to Channel A
+;===============================================================================
+APPL_MUTE:
+    RLCA
+    RLCA
+    RLCA
+    RLCA
+    RLCA                ; Shift channel index into bits 6 & 5
+    AND 01100000b
+    OR SNDMUTE          ; Combine with attenuation mute bit pattern (%1xx11111)
+    JP SND_OUT          ; Deliver packet directly to hardware register

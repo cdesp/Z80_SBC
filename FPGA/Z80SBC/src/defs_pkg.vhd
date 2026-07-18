@@ -51,6 +51,69 @@ PACKAGE defs_pkg IS
     constant BR_CLK_DIV : integer := 14; -- Integer divisor for 50MHz clock 
     -- Actual Baud Rate: (50,000,000 / 27) / 16 ~= 115,740.74 bps (0.47% error, which is acceptable)
 
+-- Signals coming FROM the Z80 / Arbiter TO the system cores
+    TYPE t_z80_to_system IS RECORD      
+        -- Z80 Side    
+        Z80_Data    : STD_LOGIC_VECTOR(7 DOWNTO 0);
+        Z80_IORQ_N  : STD_LOGIC;
+        Z80_WR_N    : STD_LOGIC;
+        Z80_RD_N    : STD_LOGIC;
+        Z80_ADDR    : STD_LOGIC_VECTOR(15 DOWNTO 0);
+        INT_REQ_N   : STD_LOGIC;                     -- Master Peripheral Interrupt Request (Active Low)
+    END RECORD;
+
+    -- Signals coming OUT of each system core BACK to the Z80 / Arbiter
+    TYPE t_system_to_z80 IS RECORD
+        -- MMU Control Outputs (Generated from I/O Decode)
+        MMU_nMAP_REG_N      : STD_LOGIC;                    -- MMU Map Reg Port (OUT (00h), PageNo)
+        MMU_nSET_RO_N       : STD_LOGIC;                    -- MMU Set Read-Only Port (OUT (01h), PageNo)
+        MMU_nSET_RW_N       : STD_LOGIC;                    -- MMU Set Read/Write Port (OUT (02h), PageNo)
+        
+        -- Peripheral Decoding Outputs (Configurable for Emulation)
+        DEV1                : STD_LOGIC;                    -- 74LS139 Input A (L/S Bit)
+        DEV2                : STD_LOGIC;                    -- 74LS139 Input B (M/S Bit)
+        -- LS138_nCS_N and LAY_SEL are removed, as the 74LS138 is assumed to be permanently enabled,
+        -- and AY control logic is derived from 74LS138 outputs and Z80 address lines.
+        CLK_SEL_RG_N        : std_logic;                    -- for clock selection
+        UART_CS_N           : std_logic;                    -- for UART RS232 Selection
+        PS2_DS_N            : std_logic;                    -- for PS/2 Keyboard Device communication
+        VD_DS_N             : std_logic;                    -- for Video Device Communication
+        I2C_CS_N            : std_logic;                    -- for i2c Communication
+        SYS_CS_N            : std_logic;                    -- for system selection 
+        -- Wait State Generation
+        Z80_WAIT_N          : STD_LOGIC;                    -- Z80 Wait Request (Active Low)
+        -- Interrupt Management
+        Z80_INT_N           : STD_LOGIC;                     -- Z80 Interrupt Pin (Active Low)
+        -- Data to z80
+        DataOut             : STD_LOGIC_VECTOR(7 DOWNTO 0);
+        isDOut              : std_logic;    
+    END RECORD;
+
+
+   TYPE t_ot_sigs_to_system IS RECORD      
+        --Main system 
+        PS2_KEYB_Int : STD_LOGIC;
+   --     PS2_DATA : : std_logic_vector(7 downto 0);
+        CPU_SPEED : std_logic_vector(7 downto 0); --as a number
+    END RECORD;
+
+   TYPE t_video_regs IS RECORD      
+        --video system 
+        Reg1 : std_logic_vector(7 downto 0); --generic video register
+        Reg2 : std_logic_vector(7 downto 0); --generic video register
+        Reg3 : std_logic_vector(7 downto 0); --generic video register
+        Reg4 : std_logic_vector(7 downto 0); --generic video register
+        Reg5 : std_logic_vector(7 downto 0); --generic video register
+    END RECORD;
+
+    constant DUMMY_VDREGS : t_video_regs := (
+        Reg1 => (others => '0'),
+        Reg2 => (others => '0'),
+        Reg3 => (others => '0'),
+        Reg4 => (others => '0'),
+        Reg5 => (others => '0')
+    );
+
 END defs_pkg;
 
 -- Package Body 

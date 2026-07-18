@@ -1,0 +1,5 @@
+copy .\80ROM_COLOR_PG\BOOTLD_8000.BIN "G:\_Programming\NB Emulator\Emulation\Runtime\roms\MOD_80ROMPG.ROM"
+copy .\80ROM_COLOR_PG\C000_ROM\C000_ROMPG.BIN "G:\_Programming\NB Emulator\Emulation\Runtime\roms\MOD_CDROMPG.ROM"
+copy /b .\ABROM\ABROM.BIN+.\ABROM\CHARSET.BIN "G:\_Programming\NB Emulator\Emulation\Runtime\roms\MOD_ABROM.ROM"
+copy .\CDROM\CDROM.BIN "G:\_Programming\NB Emulator\Emulation\Runtime\roms\MOD_CDROM.ROM"
+copy .\EFROM\EFROM.BIN "G:\_Programming\NB Emulator\Emulation\Runtime\roms\MOD_EFROM.ROM"

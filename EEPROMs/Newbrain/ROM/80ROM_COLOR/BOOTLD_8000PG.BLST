@@ -1,0 +1,2925 @@
+  9)   007A 00          		 @SERERR DEFS 1       ;SERERR NOT USED BY SERIAL USED BY NBSETLCD	;SERERR NOT USED BY SERIAL USED BY NBSETLCD
+ 13)   007B 00          		 @LCDCX DEFS 1        ;DISPLAY X POS (0..F  FOR 1..16)	;DISPLAY X POS (0..F  FOR 1..16)
+ 14)   007C 00          		 @LCDCY DEFS 1        ;DISPLAY Y POS (0 OR 1 FOR LINE 1 AND 2)	;DISPLAY Y POS (0 OR 1 FOR LINE 1 AND 2)
+ 15)   007D 00          		 @LCD_DSPCTRL DEFS 1       ;LCD I2C 16X2	;LCD I2C 16X2
+ 16)   007E 00          		 @LCD_DSPMODE DEFS 1       ;LCD I2C 16X2	;LCD I2C 16X2
+ 17)   007F 00          		 @LCD_STSMASK DEFS 1       ;LCD I2C 16X2  	;LCD I2C 16X2
+ 19)   0080 00          		 @KEYCTR DEFS 1        ;IN NB SYSTEM VARS	;IN NB SYSTEM VARS
+ 20)   0081 00          		 @LASTKEY DEFS 1  ;LAST KEY PRESSED	;LAST KEY PRESSED
+ 22)   0082 00 00 00 00 		 @BANKS DEFS 8        ;8 PAGES FOR THE 8 BANKS 0..7	;8 PAGES FOR THE 8 BANKS 0..7
+ 22)   0086 00 00 00 00 		 @BANKS DEFS 8        ;8 PAGES FOR THE 8 BANKS 0..7	;8 PAGES FOR THE 8 BANKS 0..7
+ 24)   008A 00          		 @STRG_STAT DEFS 1       ;STORAGE_NEW STAUS BIT 0=0 NOT CONNECTED,1=CONNECTED,BIT 7 DEVICE EXISTS	;STORAGE_NEW STAUS BIT 0=0 NOT CONNECTED, 1=CONNECTED, BIT 7 DEVICE EXISTS
+ 25)   008B 00 00 00 00 		 @USBBUF DEFS 30       ;CH376 USB BUFFER=20BYTES	;CH376 USB BUFFER=20BYTES
+ 25)   008F 00 00 00 00 		 @USBBUF DEFS 30       ;CH376 USB BUFFER=20BYTES	;CH376 USB BUFFER=20BYTES
+ 25)   0093 00 00 00 00 		 @USBBUF DEFS 30       ;CH376 USB BUFFER=20BYTES	;CH376 USB BUFFER=20BYTES
+ 25)   0097 00 00 00 00 		 @USBBUF DEFS 30       ;CH376 USB BUFFER=20BYTES	;CH376 USB BUFFER=20BYTES
+ 25)   009B 00 00 00 00 		 @USBBUF DEFS 30       ;CH376 USB BUFFER=20BYTES	;CH376 USB BUFFER=20BYTES
+ 25)   009F 00 00 00 00 		 @USBBUF DEFS 30       ;CH376 USB BUFFER=20BYTES	;CH376 USB BUFFER=20BYTES
+ 25)   00A3 00 00 00 00 		 @USBBUF DEFS 30       ;CH376 USB BUFFER=20BYTES	;CH376 USB BUFFER=20BYTES
+ 25)   00A7 00 00       		 @USBBUF DEFS 30       ;CH376 USB BUFFER=20BYTES	;CH376 USB BUFFER=20BYTES
+ 30)   00A9 00 00       		 @PRGEX DEFS 2        ;ONLY FOR BOOTL	;ONLY FOR BOOTL
+ 31)   00AB 00          		 @TVSTAT DEFS 1	;
+ 32)   00AC 00 00       		 @LINESTR DEFS 2       ;ADDRESS OF LINEBUF FOR PRINTING ON STRING	;ADDRESS OF LINEBUF FOR PRINTING ON STRING
+ 33)   00AE 00          		 @LINEPOS DEFS 1	;
+ 34)   00AF 00 00 00 00 		 @MYNUM DEFS 13        ;10CHARS MESSAGE FOR NUMBER AND 3 TERMINATED	;10CHARS MESSAGE FOR NUMBER AND 3 TERMINATED
+ 34)   00B3 00 00 00 00 		 @MYNUM DEFS 13        ;10CHARS MESSAGE FOR NUMBER AND 3 TERMINATED	;10CHARS MESSAGE FOR NUMBER AND 3 TERMINATED
+ 34)   00B7 00 00 00 00 		 @MYNUM DEFS 13        ;10CHARS MESSAGE FOR NUMBER AND 3 TERMINATED	;10CHARS MESSAGE FOR NUMBER AND 3 TERMINATED
+ 34)   00BB 00          		 @MYNUM DEFS 13        ;10CHARS MESSAGE FOR NUMBER AND 3 TERMINATED	;10CHARS MESSAGE FOR NUMBER AND 3 TERMINATED
+ 35)   00BC 00 00 00 00 		 @NUMBUF DEFS 7    	;
+ 35)   00C0 00 00 00    		 @NUMBUF DEFS 7    	;
+ 36)   00C3 00 00 00 00 		 @B2DINV DEFS 8        ;BINARY NUMBER TO BE CONVERTED	;BINARY NUMBER TO BE CONVERTED
+ 36)   00C7 00 00 00 00 		 @B2DINV DEFS 8        ;BINARY NUMBER TO BE CONVERTED	;BINARY NUMBER TO BE CONVERTED
+ 37)   00CB 00 00 00 00 		 @B2DBUF DEFS 20       ;ASCCI STRING OF THE NUMBER	;ASCCI STRING OF THE NUMBER
+ 37)   00CF 00 00 00 00 		 @B2DBUF DEFS 20       ;ASCCI STRING OF THE NUMBER	;ASCCI STRING OF THE NUMBER
+ 37)   00D3 00 00 00 00 		 @B2DBUF DEFS 20       ;ASCCI STRING OF THE NUMBER	;ASCCI STRING OF THE NUMBER
+ 37)   00D7 00 00 00 00 		 @B2DBUF DEFS 20       ;ASCCI STRING OF THE NUMBER	;ASCCI STRING OF THE NUMBER
+ 37)   00DB 00 00 00 00 		 @B2DBUF DEFS 20       ;ASCCI STRING OF THE NUMBER	;ASCCI STRING OF THE NUMBER
+ 38)   00DF 00          		 @B2DEND DEFS 1        ;0 FOR TERMINATE THE STRING        	;0 FOR TERMINATE THE STRING
+ 43)   00E0 00 00       		@CHANDATA:     DEFS 2	;
+ 44)   00E2 00 00       		               DEFS 2	;
+ 45)   00E4 00 00       		               DEFS 2	;
+ 46)   00E6 00 00       		               DEFS 2	;
+ 48)   00E8 00 00       		@CHANDEL:      DEFS 2	;
+ 49)   00EA 00 00       		               DEFS 2	;
+ 50)   00EC 00 00       		               DEFS 2	;
+ 51)   00EE 00 00       		               DEFS 2	;
+ 53)   00F0 00          		@CHANCN:       DEFS 1	;
+ 54)   00F1 00          		               DEFS 1	;
+ 55)   00F2 00          		               DEFS 1	;
+ 56)   00F3 00          		               DEFS 1	;
+ 57)   00F4 00          		@CHANST:       DEFS 1    ;CHANNEL STATUS  BITS 0-3 SET MEANS DISABLED     	;CHANNEL STATUS  BITS 0-3 SET MEANS DISABLED
+ 12)   8000 2F          		 CPL         ;ROM IS HERE	;ROM IS HERE
+ 13)   8001 C3 D1 81    		 JP START	;
+ 14)   8004 C3 5F 80    		 JP GETKEY        ;CALL HERE FROM NB ROM TO FIND THE GTNBKEY  $8004	;CALL HERE FROM NB ROM TO FIND THE GTNBKEY  $8004
+ 15)   8007 C3 8F 80    		 JP RSTX        ; CALL HERE FROM NB TO FIND SERIAL TRASMIT  $8007	; CALL HERE FROM NB TO FIND SERIAL TRASMIT  $8007
+ 16)   800A C3 93 80    		 JP RSRX        ; CALL HERE FROM NB TO FIND SERIAL RECEIVE  $800A	; CALL HERE FROM NB TO FIND SERIAL RECEIVE  $800A
+ 17)   800D C3 A9 80    		 JP NBSTLCD        ;CALL HERE FROM NB TO FIND THE NBSETLCD $800D	;CALL HERE FROM NB TO FIND THE NBSETLCD $800D
+ 18)   8010 C3 2D 82    		 JP MENU        ;$8010	;$8010
+ 19)   8013 C3 4F 80    		 JP CHKKEY       ;CALL HERE FROM NB TO FIND THE CHKKEY $8013 RET NZ FOR KEY AVAIL	;CALL HERE FROM NB TO FIND THE CHKKEY $8013 RET NZ FOR KEY AVAIL
+ 24)   8016 CD 51 C0    		@OS_PRINTCHAR: CALL RS_TX	;
+ 25)   8019 C9          		 RET	;
+ 29)   801A 7E          		@OS_PRINTTEXT: LD A, (HL)	;
+ 30)   801B FE 00       		 CP 0	;
+ 31)   801D C8          		 RET Z	;
+ 32)   801E E5          		 PUSH HL	;
+ 33)   801F CD 16 80    		 CALL OS_PRINTCHAR	;
+ 34)   8022 E1          		 POP HL	;
+ 35)   8023 23          		 INC HL	;
+ 36)   8024 18 F4       		 JR OS_PRINTTEXT	;
+ 39)   8026 E1          		@OS_PRINTMSG: POP HL	;
+ 40)   8027 CD 1A 80    		 CALL OS_PRINTTEXT	;
+ 41)   802A 23          		 INC HL	;
+ 42)   802B E5          		 PUSH HL        ;CONTINUE AFTER THE MESG	;CONTINUE AFTER THE MESG
+ 43)   802C C9          		 RET	;
+ 49)   802D DF 3C       		@OS_PRCHSCR: DEFW WPTCHAR	;
+ 50)   802F C9          		 RET	;
+ 54)   8030 7E          		@OS_PRMESSCR:  LD A,(HL)	;
+ 55)   8031 B7          		 OR A	;
+ 56)   8032 C8          		 RET Z	;
+ 57)   8033 DF 3C       		 DEFW WPTCHAR	;
+ 58)   8035 23          		 INC HL	;
+ 59)   8036 18 F8       		 JR OS_PRMESSCR	;
+ 61)   8038 7E          		@OS_PRMESSCRSFE: LD A,(HL)	;
+ 62)   8039 B7          		 OR A	;
+ 63)   803A C8          		 RET Z	;
+ 64)   803B FE 0A       		 CP $0A	;
+ 65)   803D 28 04       		 JR Z,PMS_PRN	;
+ 66)   803F FE 1F       		 CP 31 	;
+ 67)   8041 38 04       		 JR C,PMS_SKP	;
+ 68)   8043 DF 3C       		PMS_PRN: DEFW WPTCHAR	;
+ 69)   8045 18 05       		 JR PMS_CNT	;
+ 70)   8047 E5          		PMS_SKP:       PUSH HL	;
+ 71)   8048 CD 01 81    		 CALL SOUTAS	;
+ 72)   804B E1          		 POP HL	;
+ 73)   804C 23          		PMS_CNT: INC HL	;
+ 74)   804D 18 E9       		 JR OS_PRMESSCRSFE	;
+ 78)   804F 47          		CHKKEY: LD B,A	;
+ 79)   8050 CD B8 C0    		 CALL RS_KEYRD 	;
+ 80)   8053 20 04       		 JR NZ, CK_EX       ;ZF SET IF NO KEY ON SERIAL	;ZF SET IF NO KEY ON SERIAL
+ 81)   8055 DB 06       		 IN A,(6)	;
+ 82)   8057 CB 5F       		 BIT 3,A        ;CHECK IF REAL KBD HAS AVAIL KEY, ZF SET IF NO KEY ON REAL KBD	;CHECK IF REAL KBD HAS AVAIL KEY, ZF SET IF NO KEY ON REAL KBD
+ 83)   8059 78          		CK_EX: LD A,B	;
+ 84)   805A 16 A0       		 LD D,$A0        ;DISPCOM 	;DISPCOM
+ 85)   805C CB B6       		 RES 6,(HL)       ;KDATA= BIT 6 	;KDATA= BIT 6
+ 86)   805E C9          		 RET	;
+ 88)   805F D5          		GETKEY: PUSH DE	;
+ 89)   8060 C5          		 PUSH BC	;
+ 90)   8061 DD E5       		 PUSH IX	;
+ 91)   8063 E5          		 PUSH HL	;
+ 93)   8064 CD 6E 8A    		 CALL PS2KEYAVAIL       ;ZF=0 IF WE HAVE A KEY ELSE 1	;ZF=0 IF WE HAVE A KEY ELSE 1
+ 94)   8067 20 05       		 JR NZ, KEYAVAIL       ;CHECK FOR SERIAL INPUT	;CHECK FOR SERIAL INPUT
+ 95)   8069 CD 73 8A    		 CALL READKBCHAR       ;READ KEY FROM PS/2	;READ KEY FROM PS/2
+ 96)   806C 18 10       		 JR RGT        ;NB TRANSLATION AND EXIT	;NB TRANSLATION AND EXIT
+ 98)   806E CD 88 C0    		KEYAVAIL: CALL RS_RX       ;GET A CHAR FROM RS232 OR PS2_KEYB	;GET A CHAR FROM RS232 OR PS2_KEYB
+ 99)   8071 FE FE       		 CP 254        ;BREAK KEY	;BREAK KEY
+100)   8073 20 09       		 JR NZ,RGT	;
+106)   8075 21 3C 00    		 LD HL,COPST	;
+107)   8078 36 66       		 LD (HL),102  ;SIMULATE BREAK	;SIMULATE BREAK
+108)   807A 3E 19       		 LD A,$19 	;
+109)   807C 18 03       		 JR KAEXIT	;
+110)   807E CD B8 88    		RGT: CALL GTNBKEY        ;KEY PRESSED TRANSLATE FOR NB	;KEY PRESSED TRANSLATE FOR NB
+119)   8081 E1          		KAEXIT: POP HL  	;
+120)   8082 DD E1       		 POP IX	;
+121)   8084 C1          		 POP BC	;
+122)   8085 D1          		 POP DE 	;
+123)   8086 FE 00       		 CP 0         ;CHECK IF INVALID KEY	;CHECK IF INVALID KEY
+124)   8088 C0          		 RET NZ	;
+125)   8089 CB B6       		 RES KDATA,(HL)        ; KEY INVALID RESET KDATA TEST BIT	; KEY INVALID RESET KDATA TEST BIT
+126)   808B 23          		 INC HL         ;GET TO THE LAST VALID KEY	;GET TO THE LAST VALID KEY
+127)   808C 7E          		 LD A, (HL)	;
+128)   808D 2B          		 DEC HL   	;
+129)   808E C9          		 RET	;
+131)   808F CD 51 C0    		RSTX: CALL RS_TX	;
+132)   8092 C9          		 RET	;
+134)   8093 CD 88 C0    		RSRX: CALL RS_RX	;
+135)   8096 C9          		 RET	;
+138)   8097 E5          		LCD16SETCURS:  PUSH HL	;
+139)   8098 C5          		 PUSH BC	;
+140)   8099 CD 6B C9    		 CALL LCD16_SETCURS       ;SET LCD TO LCDCX,LCDCY	;SET LCD TO LCDCX,LCDCY
+141)   809C C1          		 POP BC	;
+142)   809D E1          		 POP HL	;
+143)   809E C9          		 RET	;
+145)   809F E5          		LCD16PRCHR: PUSH HL     ;OUTPUT CHAR TO LCD	;OUTPUT CHAR TO LCD
+146)   80A0 C5          		 PUSH BC	;
+147)   80A1 D5          		 PUSH DE	;
+148)   80A2 CD 5A C9    		 CALL LCD16_PRCHR	;
+149)   80A5 D1          		 POP DE	;
+150)   80A6 C1          		 POP BC	;
+151)   80A7 E1          		 POP HL	;
+152)   80A8 C9          		 RET	;
+158)   80A9 D5          		NBSTLCD: PUSH DE	;
+159)   80AA F5          		 PUSH AF	;
+160)   80AB C5          		 PUSH BC	;
+161)   80AC E5          		 PUSH HL	;
+162)   80AD 21 7A 00    		 LD HL,SERERR	;
+163)   80B0 35          		 DEC (HL)	;
+164)   80B1 7E          		 LD A,(HL)	;
+165)   80B2 B7          		 OR A	;
+166)   80B3 28 14       		 JR Z, NBLSEND	;
+167)   80B5 E1          		NBLEXIT:       POP HL	;
+168)   80B6 C1          		 POP BC	;
+169)   80B7 F1          		 POP AF	;
+170)   80B8 D1          		 POP DE 	;
+171)   80B9 2B          		 DEC HL	;
+172)   80BA 2B          		 DEC HL	;
+174)   80BB 42          		 LD B,D	;
+175)   80BC ED A3       		 OUTLP OUTI ;WRITE 1 BYTE EVERY 20 MUSECS	;WRITE 1 BYTE EVERY 20 MUSECS
+176)   80BE DD E5       		 PUSH IX	;
+177)   80C0 DD E1       		 POP IX	;
+178)   80C2 00          		 NOP	;
+179)   80C3 00          		 NOP	;
+180)   80C4 7E          		 LD A,(HL)	;
+181)   80C5 7E          		 LD A,(HL)	;
+182)   80C6 20 F4       		 JR NZ OUTLP   	;
+183)   80C8 C9          		 RET	;
+185)   80C9 36 03       		NBLSEND: LD (HL),3         ;EVERY 5 TIMES SEND DATA TO LCD  	;EVERY 5 TIMES SEND DATA TO LCD
+186)   80CB E1          		 POP HL	;
+187)   80CC E5          		 PUSH HL	;
+188)   80CD 42          		 LD B, D        ;TOTAL CHARS	;TOTAL CHARS
+189)   80CE 05          		 DEC B	;
+190)   80CF 05          		 DEC B         ;SKIP 2	;SKIP 2
+191)   80D0 11 0F 00    		 LD DE, 15        ;START FROM THE END	;START FROM THE END
+192)   80D3 19          		 ADD HL, DE	;
+193)   80D4 AF          		 XOR A	;
+194)   80D5 11 7B 00    		 LD DE, LCDCX        ;LCD POSITION	;LCD POSITION
+195)   80D8 12          		 LD (DE), A	;
+196)   80D9 13          		 INC DE	;
+197)   80DA 12          		 LD (DE), A	;
+199)   80DB D5          		 PUSH DE	;
+200)   80DC 57          		 LD D, A	;
+201)   80DD 5F          		 LD E, A	;
+202)   80DE CD 97 80    		 CALL LCD16SETCURS       ;SET LCD TO LCDCX,LCDCY	;SET LCD TO LCDCX,LCDCY
+203)   80E1 D1          		 POP DE	;
+204)   80E2 1B          		 DEC DE         ;POSITION ON LCDCX	;POSITION ON LCDCX
+205)   80E3 0E 00       		 LD C, 0        ;LCD POSITION COUNT	;LCD POSITION COUNT
+206)   80E5 7E          		NBSETLP: LD A, (HL)	;
+207)   80E6 CB 7F       		 BIT 7, A        ;CHECK IF CURSOR HERE	;CHECK IF CURSOR HERE
+208)   80E8 28 06       		 JR Z, NBNXT	;
+209)   80EA F5          		 PUSH AF	;
+210)   80EB 79          		 LD A, C	;
+211)   80EC 12          		 LD (DE), A        ;POSITION CURSOR	;POSITION CURSOR
+212)   80ED F1          		 POP AF	;
+213)   80EE CB BF       		 RES 7, A        ;CLEAR CHAR FROM CURSOR INFO	;CLEAR CHAR FROM CURSOR INFO
+214)   80F0 CD 9F 80    		NBNXT: CALL LCD16PRCHR       ;OUTPUT CHAR TO LCD	;OUTPUT CHAR TO LCD
+215)   80F3 2B          		 DEC HL	;
+216)   80F4 0C          		 INC C	;
+217)   80F5 10 EE       		 DJNZ NBSETLP        ;LOOP NEXT CHAR	;LOOP NEXT CHAR
+218)   80F7 1A          		 LD A,(DE)	;
+219)   80F8 57          		 LD D, A	;
+220)   80F9 1E 00       		 LD E, 0	;
+221)   80FB CD 6B C9    		 CALL LCD16_SETCURS       ;POSITION CURSOR	;POSITION CURSOR
+222)   80FE C3 B5 80    		 JP NBLEXIT	;
+226)   8101 F5          		SOUTAS: PUSH AF        ;SERIAL PRINT ASCII IN DECIMAL	;SERIAL PRINT ASCII IN DECIMAL
+227)   8102 26 00       		 LD H, 0	;
+228)   8104 6F          		 LD L, A	;
+229)   8105 11 AF 00    		 LD DE, MYNUM	;
+230)   8108 CD E9 CF    		 CALL OUTASC	;
+232)   810B 3E 0A       		 LD A, 10	;
+233)   810D 12          		 LD (DE), A	;
+234)   810E 13          		 INC DE	;
+235)   810F 3E 0D       		 LD A, 13	;
+236)   8111 12          		 LD (DE), A	;
+237)   8112 13          		 INC DE	;
+238)   8113 AF          		 XOR A	;
+239)   8114 12          		 LD (DE), A	;
+241)   8115 21 AF 00    		 LD HL, MYNUM	;
+242)   8118 CD 60 C0    		 CALL RS_TXT	;
+243)   811B F1          		 POP AF	;
+244)   811C C9          		 RET	;
+247)   811D E5          		TVON: PUSH HL	;
+248)   811E 21 AB 00    		 LD HL, TVSTAT	;
+249)   8121 CB D6       		 SET 2, (HL)	;
+250)   8123 21 24 00    		 LD HL, 36	;
+251)   8126 CB D6       		 SET 2, (HL)	;
+252)   8128 E1          		 POP HL	;
+253)   8129 18 12       		 JR RESTV	;
+256)   812B E5          		TVOFF: PUSH HL	;
+257)   812C 21 AB 00    		 LD HL, TVSTAT	;
+258)   812F CB 96       		 RES 2, (HL)	;
+259)   8131 21 24 00    		 LD HL, 36	;
+260)   8134 CB 96       		 RES 2, (HL)	;
+261)   8136 E1          		 POP HL	;
+262)   8137 18 04       		 JR RESTV	;
+265)   8139 AF          		TVOFTM: XOR A         ;TV OFF	;TV OFF
+266)   813A D3 07       		 OUT (7), A	;
+267)   813C C9          		 RET	;
+269)   813D E5          		RESTV: PUSH HL	;
+270)   813E 21 AB 00    		 LD HL, TVSTAT	;
+271)   8141 7E          		 LD A, (HL)	;
+272)   8142 D3 07       		 OUT (7), A	;
+273)   8144 3E 05       		 LD A, 5	;
+274)   8146 D3 09       		 OUT (9), A        ; SET DISPLAY ADDRESS	; SET DISPLAY ADDRESS
+275)   8148 E1          		 POP HL	;
+276)   8149 C9          		 RET	;
+279)   814A 5C 43 48 53 		FONTNAME1 DEFM "\CHSET4.CHR"	;
+279)   814E 45 54 34 2E 		FONTNAME1 DEFM "\CHSET4.CHR"	;
+279)   8152 43 48 52    		FONTNAME1 DEFM "\CHSET4.CHR"	;
+280)   8155 00          		 DB 0	;
+281)   8156 5C 43 48 53 		FONTNAME2 DEFM "\CHSET2.CHR"	;
+281)   815A 45 54 32 2E 		FONTNAME2 DEFM "\CHSET2.CHR"	;
+281)   815E 43 48 52    		FONTNAME2 DEFM "\CHSET2.CHR"	;
+282)   8161 00          		 DB 0	;
+284)   8162 06 02       		LOADFONTS: LD B,2  ;BANK2	;BANK2
+285)   8164 3E 08       		 LD A,8   ;VIDEO PAGE FOR FONTS   	;VIDEO PAGE FOR FONTS
+286)   8166 CD 0D C0    		 CALL PUTPGINBANK  	;
+287)   8169 21 4A 81    		 LD HL,FONTNAME1	;
+288)   816C 01 B8 0B    		 LD BC,3000  ;MAX FILE SIZE	;MAX FILE SIZE
+289)   816F 11 00 40    		 LD DE,$4000  ;0000 ON PAGE 8	;0000 ON PAGE 8
+290)   8172 CD EC C3    		 CALL STRG_LOADFILE	;
+291)   8175 30 01       		 JR NC, LFFILOK	;
+292)   8177 76          		 HALT   ;STOP EXEC	;STOP EXEC
+293)   8178 21 56 81    		LFFILOK: LD HL,FONTNAME2	;
+294)   817B 01 B8 0B    		 LD BC,3000  ;MAX FILE SIZE	;MAX FILE SIZE
+295)   817E 11 00 50    		 LD DE,$5000  ;1000h ON PAGE 8	;1000h ON PAGE 8
+296)   8181 CD EC C3    		 CALL STRG_LOADFILE  	;
+297)   8184 30 01       		 JR NC, LFFILOK2	;
+298)   8186 76          		 HALT   ;STOP EXEC	;STOP EXEC
+299)   8187 3E 0E       		LFFILOK2: LD A,14  ;BANK 2 ON NBRAIN RESTORE PAGE 14	;BANK 2 ON NBRAIN RESTORE PAGE 14
+300)   8189 06 02       		 LD B,2	;
+301)   818B CD 0D C0    		 CALL PUTPGINBANK	;
+302)   818E C9          		 RET 	;
+305)   818F 15 02 00 18 		SCRDATA DB        $15,$02,$00,$18,$18,$28,$40,$20	;
+305)   8193 18 28 40 20 		SCRDATA DB        $15,$02,$00,$18,$18,$28,$40,$20	;
+306)   8197 00 02 00 00 		 DB $00,$02,$00,$00,$00,$00,$0A,$00,$00,$00,$FF,$00,$AB,$00,$00,$00	;
+306)   819B 00 00 0A 00 		 DB $00,$02,$00,$00,$00,$00,$0A,$00,$00,$00,$FF,$00,$AB,$00,$00,$00	;
+306)   819F 00 00 FF 00 		 DB $00,$02,$00,$00,$00,$00,$0A,$00,$00,$00,$FF,$00,$AB,$00,$00,$00	;
+306)   81A3 AB 00 00 00 		 DB $00,$02,$00,$00,$00,$00,$0A,$00,$00,$00,$FF,$00,$AB,$00,$00,$00	;
+307)   81A7 00 B1       		 DB $00,$B1	;
+309)   81A9 21 8F 81    		SETSCRDATA: LD HL,SCRDATA	;
+310)   81AC 11 68 02    		 LD DE,$268	;
+311)   81AF 01 1A 00    		 LD BC,26	;
+312)   81B2 ED B0       		 LDIR	;
+313)   81B4 21 5C 00    		 LD HL,$5C	;
+314)   81B7 36 68       		 LD (HL),$68  ;VIDEO START	;VIDEO START
+315)   81B9 23          		 INC HL	;
+316)   81BA 36 02       		 LD (HL),$02	;
+317)   81BC C9          		 RET	;
+321)   81BD E5          		BLPRNMES:   PUSH HL	;
+322)   81BE CD 60 C0    		 CALL RS_TXT	;
+323)   81C1 E1          		 POP HL	;
+324)   81C2 11 F4 00    		 LD DE,CHANST	;
+325)   81C5 1A          		 LD A,(DE)	;
+326)   81C6 D5          		 PUSH DE	;
+327)   81C7 CD EF 84    		 CALL SCPRN	;
+328)   81CA CD 3D 81    		 CALL RESTV    ;ONLY NEEDED FOR EMULATOR & REAL NB	;ONLY NEEDED FOR EMULATOR & REAL NB
+329)   81CD D1          		 POP DE	;
+330)   81CE EB          		 EX DE,HL	;
+331)   81CF 34          		 INC (HL)  	;
+332)   81D0 C9          		 RET	;
+336)   81D1 F3          		START: DI	;
+338)   81D2 CD 2B 81    		 CALL TVOFF	;
+343)   81D5 CD 62 81    		 CALL LOADFONTS       ;LOAD NEWBRAIN FONTS TO VIDEO RAM	;LOAD NEWBRAIN FONTS TO VIDEO RAM
+344)   81D8 CD A9 81    		 CALL SETSCRDATA	;
+345)   81DB CD AF 84    		 CALL SCCLS        ;CLEAR SCREEN BUFFER  	;CLEAR SCREEN BUFFER
+346)   81DE 21 F4 00    		 LD HL,CHANST       ;LINE TO PRINT NEXT	;LINE TO PRINT NEXT
+347)   81E1 36 00       		 LD (HL),0  	;
+348)   81E3 21 8F 83    		 LD HL, STR02	;
+349)   81E6 AF          		 XOR A	;
+350)   81E7 CD BD 81    		 CALL BLPRNMES        ;PRINT WAITING AT SCREEN BUFFER	;PRINT WAITING AT SCREEN BUFFER
+352)   81EA CD 1D 81    		 CALL TVON  	;
+355)   81ED 3E 01       		 LD A, 1        ;1=115200 BPS	;1=115200 BPS
+356)   81EF CD 38 C0    		 CALL RS_INI        ;RS232 INITIALIZE	;RS232 INITIALIZE
+357)   81F2 21 D8 83    		 LD HL, STR_CRIGHT1	;
+358)   81F5 CD BD 81    		 CALL BLPRNMES    	;
+359)   81F8 21 60 84    		 LD HL, STR_SERIAL	;
+360)   81FB CD BD 81    		 CALL BLPRNMES  	;
+362)   81FE CD 68 8A    		 CALL PS2KBINIT  	;
+363)   8201 21 6D 84    		 LD HL, STR_KEYB	;
+364)   8204 CD BD 81    		 CALL BLPRNMES  	;
+366)   8207 CD 95 C7    		 CALL I2C_INIT	;
+367)   820A CD 76 CA    		 CALL DS1307_INIT       ;	;
+368)   820D 21 7A 84    		 LD HL, STR_I2C	;
+369)   8210 CD BD 81    		 CALL BLPRNMES  	;
+371)   8213 CD DC C8    		 CALL LCD16_INIT       ;LCD 16x2 Initialized	;LCD 16x2 Initialized
+372)   8216 21 7F 83    		 LD HL, STR0	;
+373)   8219 CD 50 C9    		 CALL LCD16_PRINT	;
+374)   821C 21 8E 84    		 LD HL, STR_LCD16	;
+375)   821F CD BD 81    		 CALL BLPRNMES  	;
+385)   8222 CD 9F 8A    		 CALL PATCHCMDS       ;PATCH CD ROM TO IMPLEMENT OUR OWN COMMANDS	;PATCH CD ROM TO IMPLEMENT OUR OWN COMMANDS
+386)   8225 CD 85 88    		 CALL STNEWD        ;SET NEWDRIVERS AND DEFSTORE DEVICE	;SET NEWDRIVERS AND DEFSTORE DEVICE
+388)   8228 21 7A 00    		 LD HL,SERERR       ;SERERR NOT USED BY SERIAL	;SERERR NOT USED BY SERIAL
+389)   822B 36 05       		 LD (HL),5       ;INIT EVERY 5 TIMES TO PRINT TO LCD	;INIT EVERY 5 TIMES TO PRINT TO LCD
+392)   822D 21 07 84    		 LD HL, STRMN	;
+393)   8230 CD 60 C0    		 CALL RS_TXT        ;OUTPUT MENU COMMANDS AT RS232	;OUTPUT MENU COMMANDS AT RS232
+394)   8233 21 50 84    		 LD HL, STR01	;
+395)   8236 CD 60 C0    		 CALL RS_TXT        ;OUTPUT WAITING AT RS232	;OUTPUT WAITING AT RS232
+397)   8239 CD 47 C9    		 CALL LCD16_CLR	;
+399)   823C 21 8F 83    		 LD HL, STR02	;
+400)   823F CD 50 C9    		 CALL LCD16_PRINT	;
+402)   8242 21 60 83    		 LD HL, SMENU	;
+403)   8245 3E 0A       		 LD A, 10	;
+404)   8247 CD BD 81    		 CALL BLPRNMES	;
+406)   824A CD 69 82    		 CALL GET_KBCHAR       ;TAKE A CHAR FROM RS232 OR PS2 KEYB	;TAKE A CHAR FROM RS232 OR PS2 KEYB
+409)   824D FE 55       		 CP 'U'         ;UPLOAD PROGRAM	;UPLOAD PROGRAM
+410)   824F CC D6 82    		 CALL Z, UPLOD	;
+411)   8252 FE 58       		 CP 'X'	;
+412)   8254 CA B9 82    		 JP Z, EXEC	;
+413)   8257 FE 53       		 CP 'S'	;
+414)   8259 CC 37 83    		 CALL Z, TXTSCR	;
+415)   825C FE 4E       		 CP 'N'	;
+416)   825E CA 90 82    		 JP Z, GONB        ;$E090	;$E090
+417)   8261 FE 44       		 CP 'D'	;
+418)   8263 CC 1C 83    		 CALL Z, DNLOD	;
+420)   8266 C3 2D 82    		 JP MENU	;
+423)   8269 AF          		GET_KBCHAR: XOR A	;
+426)   826A CD B8 C0    		 CALL RS_KEYRD        ;CHAR IN RS232?	;CHAR IN RS232?
+427)   826D 28 04       		 JR Z, GT_TST2	;
+429)   826F CD 88 C0    		 CALL RS_RX        ; GET THAT CHAR	; GET THAT CHAR
+430)   8272 C9          		 RET	;
+432)   8273 CD 6E 8A    		GT_TST2: CALL PS2KEYAVAIL      ;ZF=0 IF WE HAVE A KEY ELSE 1	;ZF=0 IF WE HAVE A KEY ELSE 1
+433)   8276 20 F1       		 JR NZ, GET_KBCHAR       ;RECHECK	;RECHECK
+434)   8278 CD 73 8A    		 CALL READKBCHAR	;
+435)   827B B7          		 OR A	;
+436)   827C CA 69 82    		 JP Z,GET_KBCHAR	;
+445)   827F C9          		 RET	;
+447)   8280 16 00       		LCDLN1: LD D, 0	;
+448)   8282 1E 00       		 LD E, 0	;
+449)   8284 CD 6B C9    		 CALL LCD16_SETCURS  ; D HAS THE COLUMN E HAS THE ROW	; D HAS THE COLUMN E HAS THE ROW
+450)   8287 C9          		 RET	;
+452)   8288 16 00       		LCDLN2: LD D, 0	;
+453)   828A 1E 01       		 LD E, 1	;
+454)   828C CD 6B C9    		 CALL LCD16_SETCURS ; D HAS THE COLUMN E HAS THE ROW	; D HAS THE COLUMN E HAS THE ROW
+455)   828F C9          		 RET	;
+459)   8290 21 E0 00    		GONB: LD HL,DIRNM	;
+460)   8293 3E 2F       		 LD A,'/'	;
+461)   8295 77          		 LD (HL),A	;
+462)   8296 23          		 INC HL	;
+463)   8297 36 00       		 LD (HL),0	;
+464)   8299 23          		 INC HL	;
+465)   829A 36 00       		 LD (HL),0	;
+466)   829C CD 88 82    		 CALL LCDLN2	;
+467)   829F 21 4F 83    		 LD HL, DSPMES	;
+468)   82A2 CD 50 C9    		 CALL LCD16_PRINT	;
+470)   82A5 CD 88 C9    		 CALL LCD16_CURSON       ;CURSOR On	;CURSOR On
+471)   82A8 CD A4 C9    		 CALL LCD16_BLINKON       ;BLINK ON	;BLINK ON
+473)   82AB 21 06 00    		 LD HL,6	;
+474)   82AE 36 FE       		 LD (HL),254	;
+475)   82B0 23          		 INC HL	;
+476)   82B1 36 7F       		 LD (HL),127	;
+477)   82B3 AF          		 XOR A	;
+478)   82B4 D3 E0       		 OUT (INTENB),A       ;ENABLE INTERRUPTS ON NB	;ENABLE INTERRUPTS ON NB
+479)   82B6 C3 15 A0    		 JP $A015	;
+484)   82B9 CD 47 C9    		EXEC: CALL LCD16_CLR	;
+485)   82BC CD 88 82    		 CALL LCDLN2	;
+486)   82BF 21 B6 83    		 LD HL, SPRGX	;
+487)   82C2 CD 50 C9    		 CALL LCD16_PRINT	;
+488)   82C5 CD 80 82    		 CALL LCDLN1	;
+490)   82C8 3E 05       		 LD A, 5	;
+491)   82CA CD EF 84    		 CALL SCPRN	;
+493)   82CD 11 A9 00    		 LD DE, PRGEX	;
+494)   82D0 1A          		 LD A, (DE)	;
+495)   82D1 6F          		 LD L, A	;
+496)   82D2 13          		 INC DE	;
+497)   82D3 1A          		 LD A, (DE)	;
+498)   82D4 67          		 LD H, A	;
+499)   82D5 E9          		 JP (HL)	;
+502)   82D6 21 A9 83    		UPLOD: LD HL, DATST	;
+503)   82D9 CD 88 82    		 CALL LCDLN2	;
+504)   82DC CD 50 C9    		 CALL LCD16_PRINT	;
+506)   82DF CD 88 C0    		 CALL RS_RX        ;HL HAS RAM ADDRESS	;HL HAS RAM ADDRESS
+507)   82E2 6F          		 LD L, A	;
+508)   82E3 CD 88 C0    		 CALL RS_RX	;
+509)   82E6 67          		 LD H, A	;
+510)   82E7 CD 88 C0    		 CALL RS_RX        ;BC HAS TOTAL DATA TO BE SEND	;BC HAS TOTAL DATA TO BE SEND
+511)   82EA 4F          		 LD C, A	;
+512)   82EB CD 88 C0    		 CALL RS_RX	;
+513)   82EE 47          		 LD B, A	;
+515)   82EF 11 A9 00    		 LD DE, PRGEX        ;SAVE TO PRGEX THE PROG EXEC ADDR=HL	;SAVE TO PRGEX THE PROG EXEC ADDR=HL
+516)   82F2 7D          		 LD A, L	;
+517)   82F3 12          		 LD (DE), A	;
+518)   82F4 13          		 INC DE	;
+519)   82F5 7C          		 LD A, H	;
+520)   82F6 12          		 LD (DE), A	;
+522)   82F7 FE 80       		 CP $80	;
+523)   82F9 28 02       		 JR Z, ROMWR	;
+524)   82FB 38 02       		 JR C, NORWR	;
+526)   82FD D3 7C       		ROMWR: OUT (124), A       ;SET ROM WRITABLE = '0'     	;SET ROM WRITABLE = '0'
+528)   82FF E5          		NORWR: PUSH HL	;
+529)   8300 CD 88 C0    		NXB: CALL RS_RX	;
+530)   8303 77          		 LD (HL), A	;
+531)   8304 23          		 INC HL	;
+532)   8305 0B          		 DEC BC	;
+533)   8306 78          		 LD A, B	;
+534)   8307 B1          		 OR C	;
+535)   8308 20 F6       		 JR NZ, NXB        ;LOOP ALL BYTES	;LOOP ALL BYTES
+537)   830A D3 7D       		 OUT (125), A        ;SET ROM NON WRITABLE ='1'	;SET ROM NON WRITABLE ='1'
+539)   830C 21 9A 83    		 LD HL, DATTR	;
+540)   830F CD 47 C9    		 CALL LCD16_CLR	;
+541)   8312 CD 50 C9    		 CALL LCD16_PRINT	;
+542)   8315 3E 05       		 LD A, 5	;
+543)   8317 CD EF 84    		 CALL SCPRN	;
+547)   831A E1          		 POP HL	;
+549)   831B C9          		 RET	;
+556)   831C CD 88 C0    		DNLOD: CALL RS_RX        ;HL HAS RAM ADDRESS	;HL HAS RAM ADDRESS
+557)   831F 6F          		 LD L, A	;
+558)   8320 CD 88 C0    		 CALL RS_RX	;
+559)   8323 67          		 LD H, A	;
+560)   8324 CD 88 C0    		 CALL RS_RX        ;BC HAS TOTAL DATA TO BE SEND	;BC HAS TOTAL DATA TO BE SEND
+561)   8327 4F          		 LD C, A	;
+562)   8328 CD 88 C0    		 CALL RS_RX	;
+563)   832B 47          		 LD B, A	;
+565)   832C 7E          		NXB3: LD A, (HL)	;
+566)   832D CD 51 C0    		 CALL RS_TX        ;SEND BYTE	;SEND BYTE
+567)   8330 23          		 INC HL	;
+568)   8331 0B          		 DEC BC	;
+569)   8332 78          		 LD A, B	;
+570)   8333 B1          		 OR C	;
+571)   8334 20 F6       		 JR NZ, NXB3        ;LOOP ALL BYTES   	;LOOP ALL BYTES
+572)   8336 C9          		 RET	;
+575)   8337 21 C2 83    		TXTSCR: LD HL, TXTMES        ;SCREEN START	;SCREEN START
+576)   833A 11 82 02    		 LD DE, TXTRAM	;
+577)   833D 01 15 00    		 LD BC, 21	;
+578)   8340 ED B0       		 LDIR	;
+580)   8342 21 C2 83    		 LD HL, TXTMES	;
+581)   8345 11 C2 02    		 LD DE, TXTRAM + 64       ;SCREEN START+64 40chars screen +24 excess	;SCREEN START+64 40chars screen +24 excess
+582)   8348 01 15 00    		 LD BC, 21	;
+583)   834B ED B0       		 LDIR	;
+585)   834D AF          		 XOR A	;
+586)   834E C9          		 RET	;
+589)   834F 3C 43 44 45 		DSPMES: DEFM "<CDESP 2022-24> "	;
+589)   8353 53 50 20 32 		DSPMES: DEFM "<CDESP 2022-24> "	;
+589)   8357 30 32 32 2D 		DSPMES: DEFM "<CDESP 2022-24> "	;
+589)   835B 32 34 3E 20 		DSPMES: DEFM "<CDESP 2022-24> "	;
+590)   835F 00          		 DB 0  	;
+592)   8360 55 3A 55 50 		SMENU: DEFM "U:UP,X:RUN,S:DISP,N:NBROM,D:DN"	;
+592)   8364 2C 58 3A 52 		SMENU: DEFM "U:UP,X:RUN,S:DISP,N:NBROM,D:DN"	;
+592)   8368 55 4E 2C 53 		SMENU: DEFM "U:UP,X:RUN,S:DISP,N:NBROM,D:DN"	;
+592)   836C 3A 44 49 53 		SMENU: DEFM "U:UP,X:RUN,S:DISP,N:NBROM,D:DN"	;
+592)   8370 50 2C 4E 3A 		SMENU: DEFM "U:UP,X:RUN,S:DISP,N:NBROM,D:DN"	;
+592)   8374 4E 42 52 4F 		SMENU: DEFM "U:UP,X:RUN,S:DISP,N:NBROM,D:DN"	;
+592)   8378 4D 2C 44 3A 		SMENU: DEFM "U:UP,X:RUN,S:DISP,N:NBROM,D:DN"	;
+592)   837C 44 4E       		SMENU: DEFM "U:UP,X:RUN,S:DISP,N:NBROM,D:DN"	;
+593)   837E 00          		 DB 0 	;
+595)   837F 4C 43 44 20 		STR0: DEFM "LCD INITIALIZED"	;
+595)   8383 49 4E 49 54 		STR0: DEFM "LCD INITIALIZED"	;
+595)   8387 49 41 4C 49 		STR0: DEFM "LCD INITIALIZED"	;
+595)   838B 5A 45 44    		STR0: DEFM "LCD INITIALIZED"	;
+596)   838E 00          		 DB 0	;
+598)   838F 57 41 49 54 		STR02: DEFM "WAITING..."	;
+598)   8393 49 4E 47 2E 		STR02: DEFM "WAITING..."	;
+598)   8397 2E 2E       		STR02: DEFM "WAITING..."	;
+599)   8399 00          		 DB 0	;
+601)   839A 50 52 47 20 		DATTR: DEFM "PRG TRANSFERED"	;
+601)   839E 54 52 41 4E 		DATTR: DEFM "PRG TRANSFERED"	;
+601)   83A2 53 46 45 52 		DATTR: DEFM "PRG TRANSFERED"	;
+601)   83A6 45 44       		DATTR: DEFM "PRG TRANSFERED"	;
+602)   83A8 00          		 DB 0	;
+604)   83A9 52 45 43 45 		DATST: DEFM "RECEIVING..."	;
+604)   83AD 49 56 49 4E 		DATST: DEFM "RECEIVING..."	;
+604)   83B1 47 2E 2E 2E 		DATST: DEFM "RECEIVING..."	;
+605)   83B5 00          		 DB 0	;
+607)   83B6 50 52 47 20 		SPRGX: DEFM "PRG EXECUTE"	;
+607)   83BA 45 58 45 43 		SPRGX: DEFM "PRG EXECUTE"	;
+607)   83BE 55 54 45    		SPRGX: DEFM "PRG EXECUTE"	;
+608)   83C1 00          		 DB 0	;
+610)   83C2 4E 45 57 42 		TXTMES: DEFM "NEWBRAIN SCREEN READY"	;
+610)   83C6 52 41 49 4E 		TXTMES: DEFM "NEWBRAIN SCREEN READY"	;
+610)   83CA 20 53 43 52 		TXTMES: DEFM "NEWBRAIN SCREEN READY"	;
+610)   83CE 45 45 4E 20 		TXTMES: DEFM "NEWBRAIN SCREEN READY"	;
+610)   83D2 52 45 41 44 		TXTMES: DEFM "NEWBRAIN SCREEN READY"	;
+610)   83D6 59          		TXTMES: DEFM "NEWBRAIN SCREEN READY"	;
+611)   83D7 00          		 DB 0	;
+613)   83D8 4E 45 57 42 		STR_CRIGHT1 DEFM "NEWBRAIN HARDWARE EMULATOR"	;
+613)   83DC 52 41 49 4E 		STR_CRIGHT1 DEFM "NEWBRAIN HARDWARE EMULATOR"	;
+613)   83E0 20 48 41 52 		STR_CRIGHT1 DEFM "NEWBRAIN HARDWARE EMULATOR"	;
+613)   83E4 44 57 41 52 		STR_CRIGHT1 DEFM "NEWBRAIN HARDWARE EMULATOR"	;
+613)   83E8 45 20 45 4D 		STR_CRIGHT1 DEFM "NEWBRAIN HARDWARE EMULATOR"	;
+613)   83EC 55 4C 41 54 		STR_CRIGHT1 DEFM "NEWBRAIN HARDWARE EMULATOR"	;
+613)   83F0 4F 52       		STR_CRIGHT1 DEFM "NEWBRAIN HARDWARE EMULATOR"	;
+614)   83F2 0A 0D 00    		 DB 10,13,0	;
+616)   83F5 43 44 65 73 		STR_CRIGHT2 DEFM "CDesp 2022-2024"	;
+616)   83F9 70 20 32 30 		STR_CRIGHT2 DEFM "CDesp 2022-2024"	;
+616)   83FD 32 32 2D 32 		STR_CRIGHT2 DEFM "CDesp 2022-2024"	;
+616)   8401 30 32 34    		STR_CRIGHT2 DEFM "CDesp 2022-2024"	;
+617)   8404 0A 0D 00    		 DB 10,13,0	;
+619)   8407 55 3A 55 50 		STRMN: DEFM "U:UP,X:RUN,S:DISP,N:NBROM,D:DN"	;
+619)   840B 2C 58 3A 52 		STRMN: DEFM "U:UP,X:RUN,S:DISP,N:NBROM,D:DN"	;
+619)   840F 55 4E 2C 53 		STRMN: DEFM "U:UP,X:RUN,S:DISP,N:NBROM,D:DN"	;
+619)   8413 3A 44 49 53 		STRMN: DEFM "U:UP,X:RUN,S:DISP,N:NBROM,D:DN"	;
+619)   8417 50 2C 4E 3A 		STRMN: DEFM "U:UP,X:RUN,S:DISP,N:NBROM,D:DN"	;
+619)   841B 4E 42 52 4F 		STRMN: DEFM "U:UP,X:RUN,S:DISP,N:NBROM,D:DN"	;
+619)   841F 4D 2C 44 3A 		STRMN: DEFM "U:UP,X:RUN,S:DISP,N:NBROM,D:DN"	;
+619)   8423 44 4E       		STRMN: DEFM "U:UP,X:RUN,S:DISP,N:NBROM,D:DN"	;
+620)   8425 0A 0D 00    		 DB 10,13,0	;
+622)   8428 4E 45 57 42 		STRBT: DEFM "NEWBRAIN BOOTED OK"	;
+622)   842C 52 41 49 4E 		STRBT: DEFM "NEWBRAIN BOOTED OK"	;
+622)   8430 20 42 4F 4F 		STRBT: DEFM "NEWBRAIN BOOTED OK"	;
+622)   8434 54 45 44 20 		STRBT: DEFM "NEWBRAIN BOOTED OK"	;
+622)   8438 4F 4B       		STRBT: DEFM "NEWBRAIN BOOTED OK"	;
+623)   843A 0A 0D 00    		 DB 10,13,0	;
+625)   843D 43 4C 45 41 		STRSCR: DEFM "CLEARING SCREEN."	;
+625)   8441 52 49 4E 47 		STRSCR: DEFM "CLEARING SCREEN."	;
+625)   8445 20 53 43 52 		STRSCR: DEFM "CLEARING SCREEN."	;
+625)   8449 45 45 4E 2E 		STRSCR: DEFM "CLEARING SCREEN."	;
+626)   844D 0A 0D 00    		 DB 10,13,0	;
+629)   8450 0A 0D       		STR01: DB 10,13	;
+630)   8452 57 41 49 54 		 DEFM "WAITING..."	;
+630)   8456 49 4E 47 2E 		 DEFM "WAITING..."	;
+630)   845A 2E 2E       		 DEFM "WAITING..."	;
+631)   845C 0A 0D 00    		 DB 10,13,0	;
+632)   845F 00          		 DB 0	;
+634)   8460 0A 0D       		STR_SERIAL: DB 10,13	;
+635)   8462 52 53 32 33 		 DEFM "RS232 OK"	;
+635)   8466 32 20 4F 4B 		 DEFM "RS232 OK"	;
+636)   846A 0A 0D 00    		 DB 10,13,0	;
+638)   846D 4B 45 59 42 		STR_KEYB DEFM "KEYBORD OK"	;
+638)   8471 4F 52 44 20 		STR_KEYB DEFM "KEYBORD OK"	;
+638)   8475 4F 4B       		STR_KEYB DEFM "KEYBORD OK"	;
+639)   8477 0A 0D 00    		 DB 10,13,0   	;
+641)   847A 49 32 43 20 		STR_I2C DEFM "I2C OK"	;
+641)   847E 4F 4B       		STR_I2C DEFM "I2C OK"	;
+642)   8480 0A 0D 00    		 DB 10,13,0   	;
+644)   8483 53 4F 55 4E 		STR_SND DEFM "SOUND OK"	;
+644)   8487 44 20 4F 4B 		STR_SND DEFM "SOUND OK"	;
+645)   848B 0A 0D 00    		 DB 10,13,0   	;
+646)   848E 4C 43 44 20 		STR_LCD16 DEFM "LCD 16x2 OK"	;
+646)   8492 31 36 78 32 		STR_LCD16 DEFM "LCD 16x2 OK"	;
+646)   8496 20 4F 4B    		STR_LCD16 DEFM "LCD 16x2 OK"	;
+647)   8499 0A 0D 00    		 DB 10,13,0   	;
+ 14)   849C E5          		SCCLL: PUSH HL	;
+ 15)   849D F5          		 PUSH AF	;
+ 16)   849E 21 10 85    		 LD HL, STCL4        ;40 LINE CLEAR	;40 LINE CLEAR
+ 17)   84A1 CD F2 84    		 CALL SCPRN1	;
+ 18)   84A4 F1          		 POP AF	;
+ 19)   84A5 E1          		 POP HL	;
+ 20)   84A6 C9          		 RET	;
+ 23)   84A7 AF          		 XOR A         ;LINE 0	;LINE 0
+ 24)   84A8 21 1D 86    		 LD HL, SCRDY	;
+ 25)   84AB CD EF 84    		 CALL SCPRN	;
+ 26)   84AE C9          		 RET	;
+ 30)   84AF 06 19       		SCCLS: LD B, 25	;
+ 31)   84B1 AF          		 XOR A         ;; PRINT STR0 AT LINE 1	;; PRINT STR0 AT LINE 1
+ 32)   84B2 C5          		TSTLP1: PUSH BC	;
+ 33)   84B3 CD 9C 84    		 CALL SCCLL	;
+ 34)   84B6 3C          		 INC A         ; NEXT LINE	; NEXT LINE
+ 35)   84B7 C1          		 POP BC	;
+ 36)   84B8 10 F8       		 DJNZ TSTLP1	;
+ 37)   84BA CD A7 84    		 CALL SCMSG1	;
+ 38)   84BD C9          		 RET	;
+ 43)   84BE F5          		PRNRGA: PUSH AF	;
+ 44)   84BF 06 08       		 LD B, 8	;
+ 45)   84C1 CB 07       		LPN5: RLC A         ; BIT 7 FIRST	; BIT 7 FIRST
+ 46)   84C3 F5          		 PUSH AF	;
+ 47)   84C4 3E 00       		 LD A, 0	;
+ 48)   84C6 30 02       		 JR NC, SKP5	;
+ 49)   84C8 3E 01       		 LD A, 1	;
+ 50)   84CA C6 30       		SKP5:  ADD A, 48	;
+ 51)   84CC CD D5 84    		 CALL PRNCL        ; PRINT A AT COL,LINE	; PRINT A AT COL,LINE
+ 52)   84CF 1C          		 INC E	;
+ 53)   84D0 F1          		 POP AF	;
+ 54)   84D1 10 EE       		 DJNZ LPN5	;
+ 55)   84D3 F1          		 POP AF	;
+ 56)   84D4 C9          		 RET	;
+ 59)   84D5 E5          		PRNCL: PUSH HL	;
+ 60)   84D6 D5          		 PUSH DE	;
+ 61)   84D7 F5          		 PUSH AF	;
+ 62)   84D8 C5          		 PUSH BC	;
+ 63)   84D9 21 82 02    		 LD HL, TXTRAM	;
+ 64)   84DC 42          		 LD B, D        ; D HAS THE LINE	; D HAS THE LINE
+ 65)   84DD D5          		 PUSH DE	;
+ 66)   84DE 11 40 00    		 LD DE, 40 + 24        ; FOR 40 COLUMN SCREEN	; FOR 40 COLUMN SCREEN
+ 67)   84E1 19          		LPN2: ADD HL, DE	;
+ 68)   84E2 10 FD       		 DJNZ LPN2	;
+ 69)   84E4 D1          		 POP DE	;
+ 70)   84E5 43          		 LD B, E        ; E HAS THE COLUMN	; E HAS THE COLUMN
+ 71)   84E6 23          		LPN3: INC HL	;
+ 72)   84E7 10 FD       		 DJNZ LPN3	;
+ 73)   84E9 77          		 LD (HL), A        ; A HAS THE CHAR TO PRINT	; A HAS THE CHAR TO PRINT
+ 74)   84EA C1          		 POP BC	;
+ 75)   84EB F1          		 POP AF	;
+ 76)   84EC D1          		 POP DE	;
+ 77)   84ED E1          		 POP HL	;
+ 78)   84EE C9          		 RET	;
+ 81)   84EF CD 9C 84    		SCPRN: CALL SCCLL        ; CLEAR THE LINE	; CLEAR THE LINE
+ 82)   84F2 E5          		SCPRN1: PUSH HL	;
+ 83)   84F3 21 82 02    		 LD HL, TXTRAM	;
+ 84)   84F6 B7          		 OR A	;
+ 85)   84F7 28 07       		 JR Z, SCSKIP        ;SKIP FOR LINE 0	;SKIP FOR LINE 0
+ 86)   84F9 47          		 LD B, A	;
+ 87)   84FA 11 40 00    		 LD DE, 40 + 24        ; FOR 40 COLUMN SCREEN	; FOR 40 COLUMN SCREEN
+ 88)   84FD 19          		LPN1: ADD HL, DE	;
+ 89)   84FE 10 FD       		 DJNZ LPN1	;
+ 90)   8500 EB          		SCSKIP: EX DE, HL	;
+ 91)   8501 E1          		 POP HL	;
+ 92)   8502 7E          		SCLP: LD A, (HL)	;
+ 93)   8503 B7          		 OR A	;
+ 94)   8504 28 09       		 JR Z, SCEXT	;
+ 95)   8506 FE 1F       		 CP 31	;
+ 96)   8508 38 02       		 JR C,SCLPSKIP	;
+ 97)   850A 12          		 LD (DE), A	;
+ 98)   850B 13          		 INC DE	;
+ 99)   850C 23          		SCLPSKIP: INC HL	;
+100)   850D 18 F3       		 JR SCLP	;
+101)   850F C9          		SCEXT: RET	;
+103)   8510 20 20 20 20 		STCL4: DEFM "                                                                                         "	;
+103)   8514 20 20 20 20 		STCL4: DEFM "                                                                                         "	;
+103)   8518 20 20 20 20 		STCL4: DEFM "                                                                                         "	;
+103)   851C 20 20 20 20 		STCL4: DEFM "                                                                                         "	;
+103)   8520 20 20 20 20 		STCL4: DEFM "                                                                                         "	;
+103)   8524 20 20 20 20 		STCL4: DEFM "                                                                                         "	;
+103)   8528 20 20 20 20 		STCL4: DEFM "                                                                                         "	;
+103)   852C 20 20 20 20 		STCL4: DEFM "                                                                                         "	;
+103)   8530 20 20 20 20 		STCL4: DEFM "                                                                                         "	;
+103)   8534 20 20 20 20 		STCL4: DEFM "                                                                                         "	;
+103)   8538 20 20 20 20 		STCL4: DEFM "                                                                                         "	;
+103)   853C 20 20 20 20 		STCL4: DEFM "                                                                                         "	;
+103)   8540 20 20 20 20 		STCL4: DEFM "                                                                                         "	;
+103)   8544 20 20 20 20 		STCL4: DEFM "                                                                                         "	;
+103)   8548 20 20 20 20 		STCL4: DEFM "                                                                                         "	;
+103)   854C 20 20 20 20 		STCL4: DEFM "                                                                                         "	;
+103)   8550 20 20 20 20 		STCL4: DEFM "                                                                                         "	;
+103)   8554 20 20 20 20 		STCL4: DEFM "                                                                                         "	;
+103)   8558 20 20 20 20 		STCL4: DEFM "                                                                                         "	;
+103)   855C 20 20 20 20 		STCL4: DEFM "                                                                                         "	;
+103)   8560 20 20 20 20 		STCL4: DEFM "                                                                                         "	;
+103)   8564 20 20 20 20 		STCL4: DEFM "                                                                                         "	;
+103)   8568 20          		STCL4: DEFM "                                                                                         "	;
+104)   8569 00          		 DB 0	;
+106)   856A 20 20 20 20 		STCL8: DEFM "                                                                                         "	;
+106)   856E 20 20 20 20 		STCL8: DEFM "                                                                                         "	;
+106)   8572 20 20 20 20 		STCL8: DEFM "                                                                                         "	;
+106)   8576 20 20 20 20 		STCL8: DEFM "                                                                                         "	;
+106)   857A 20 20 20 20 		STCL8: DEFM "                                                                                         "	;
+106)   857E 20 20 20 20 		STCL8: DEFM "                                                                                         "	;
+106)   8582 20 20 20 20 		STCL8: DEFM "                                                                                         "	;
+106)   8586 20 20 20 20 		STCL8: DEFM "                                                                                         "	;
+106)   858A 20 20 20 20 		STCL8: DEFM "                                                                                         "	;
+106)   858E 20 20 20 20 		STCL8: DEFM "                                                                                         "	;
+106)   8592 20 20 20 20 		STCL8: DEFM "                                                                                         "	;
+106)   8596 20 20 20 20 		STCL8: DEFM "                                                                                         "	;
+106)   859A 20 20 20 20 		STCL8: DEFM "                                                                                         "	;
+106)   859E 20 20 20 20 		STCL8: DEFM "                                                                                         "	;
+106)   85A2 20 20 20 20 		STCL8: DEFM "                                                                                         "	;
+106)   85A6 20 20 20 20 		STCL8: DEFM "                                                                                         "	;
+106)   85AA 20 20 20 20 		STCL8: DEFM "                                                                                         "	;
+106)   85AE 20 20 20 20 		STCL8: DEFM "                                                                                         "	;
+106)   85B2 20 20 20 20 		STCL8: DEFM "                                                                                         "	;
+106)   85B6 20 20 20 20 		STCL8: DEFM "                                                                                         "	;
+106)   85BA 20 20 20 20 		STCL8: DEFM "                                                                                         "	;
+106)   85BE 20 20 20 20 		STCL8: DEFM "                                                                                         "	;
+106)   85C2 20          		STCL8: DEFM "                                                                                         "	;
+107)   85C3 20 20 20 20 		 DEFM "                                                                                         "	;
+107)   85C7 20 20 20 20 		 DEFM "                                                                                         "	;
+107)   85CB 20 20 20 20 		 DEFM "                                                                                         "	;
+107)   85CF 20 20 20 20 		 DEFM "                                                                                         "	;
+107)   85D3 20 20 20 20 		 DEFM "                                                                                         "	;
+107)   85D7 20 20 20 20 		 DEFM "                                                                                         "	;
+107)   85DB 20 20 20 20 		 DEFM "                                                                                         "	;
+107)   85DF 20 20 20 20 		 DEFM "                                                                                         "	;
+107)   85E3 20 20 20 20 		 DEFM "                                                                                         "	;
+107)   85E7 20 20 20 20 		 DEFM "                                                                                         "	;
+107)   85EB 20 20 20 20 		 DEFM "                                                                                         "	;
+107)   85EF 20 20 20 20 		 DEFM "                                                                                         "	;
+107)   85F3 20 20 20 20 		 DEFM "                                                                                         "	;
+107)   85F7 20 20 20 20 		 DEFM "                                                                                         "	;
+107)   85FB 20 20 20 20 		 DEFM "                                                                                         "	;
+107)   85FF 20 20 20 20 		 DEFM "                                                                                         "	;
+107)   8603 20 20 20 20 		 DEFM "                                                                                         "	;
+107)   8607 20 20 20 20 		 DEFM "                                                                                         "	;
+107)   860B 20 20 20 20 		 DEFM "                                                                                         "	;
+107)   860F 20 20 20 20 		 DEFM "                                                                                         "	;
+107)   8613 20 20 20 20 		 DEFM "                                                                                         "	;
+107)   8617 20 20 20 20 		 DEFM "                                                                                         "	;
+107)   861B 20          		 DEFM "                                                                                         "	;
+108)   861C 00          		 DB 0	;
+110)   861D 53 43 52 45 		SCRDY: DEFM "SCREEN READY!!!"	;
+110)   8621 45 4E 20 52 		SCRDY: DEFM "SCREEN READY!!!"	;
+110)   8625 45 41 44 59 		SCRDY: DEFM "SCREEN READY!!!"	;
+110)   8629 21 21 21    		SCRDY: DEFM "SCREEN READY!!!"	;
+111)   862C 00          		 DB 0	;
+ 34)   862D 04          		 DEFB 4	;
+ 35)   862E 05          		 DEFB RS2OIN-$        ;OPEN IN	;OPEN IN
+ 36)   862F 04          		 DEFB RS2OOT-$        ;OPEN OUT	;OPEN OUT
+ 37)   8630 10          		 DEFB RS2INP-$        ;INPUT BYTE	;INPUT BYTE
+ 38)   8631 2A          		 DEFB RS2OTP-$        ;OUTPUT BYTE	;OUTPUT BYTE
+ 39)   8632 0A          		 DEFB RS2CLS-$        ;CLOSE	;CLOSE
+ 51)   8633 C5          		RS2OOT: PUSH BC        ;OPENOUT	;OPENOUT
+ 52)   8634 01 01 00    		 LD BC, 1        ;NO OF BYTES REQUIRED	;NO OF BYTES REQUIRED
+ 53)   8637 E7 37       		 DEFW ZMKBUFF        ;	;
+ 54)   8639 C1          		 POP BC         ;	;
+ 55)   863A D8          		 RET C         ;	;
+ 57)   863B 72          		 LD (HL), D        ;PORT NUMBER	;PORT NUMBER
+ 58)   863C AF          		RS2CLS: XOR A         ; CLOSE STREAM	; CLOSE STREAM
+ 59)   863D 47          		 LD B A         ;	;
+ 60)   863E 4F          		 LD C A         ;	;
+ 61)   863F C9          		 RET         ;	;
+ 71)   8640 F3          		RS2INP: DI         ;	;
+ 72)   8641 21 24 00    		 LD HL ENREGMAP        ;	;
+ 73)   8644 CB 86       		 RES VIDEO, (HL)       ; NO VIDEO	; NO VIDEO
+ 74)   8646 7E          		 LD A, (HL)	;
+ 75)   8647 D3 07       		 OUT (ENREG) A        ;	;
+ 76)   8649 3E 01       		 LD A, 1	;
+ 77)   864B D3 24       		 OUT (MCR), A	;
+ 78)   864D CD 6B 86    		 CALL MWAIT        ;	;
+ 79)   8650 AF          		 XOR A         ;NOT ready to receive SIGNAL DSR 0	;NOT ready to receive SIGNAL DSR 0
+ 80)   8651 D3 24       		 OUT (MCR), A	;
+ 81)   8653 DB 20       		 IN A, (RBR)        ;GET THE CHAR	;GET THE CHAR
+ 82)   8655 CD 48 E5    		 CALL STOPTV        ;	;
+ 83)   8658 FB          		 EI         ;	;
+ 84)   8659 B7          		 OR A         ;	;
+ 85)   865A C9          		 RET	;
+ 88)   865B 4F          		RS2OTP: LD C, A        ;	;
+ 94)   865C F3          		 DI         ;	;
+ 95)   865D CD 1C E2    		 CALL $E21C        ;NOVID ;	;NOVID ;
+ 96)   8660 79          		 LD A, C	;
+ 97)   8661 CD 07 80    		 CALL $8007        ;RSTX   ;SEND CHAR IN A	;RSTX   ;SEND CHAR IN A
+ 98)   8664 CD 48 E5    		 CALL STOPTV        ;	;
+ 99)   8667 FB          		 EI         ;	;
+100)   8668 2B          		 DEC HL         ;	;
+101)   8669 B7          		 OR A         ;	;
+102)   866A C9          		 RET         ;	;
+105)   866B 21 00 64    		MWAIT: LD HL 25600	;
+107)   866E DB 25       		MWAIT2: IN A, (LSR)	;
+108)   8670 1F          		 RRA         ;check d0 ('DATA')	;check d0 ('DATA')
+109)   8671 D8          		 RET C	;
+110)   8672 10 FA       		 DJNZ MWAIT2	;
+111)   8674 DB 25       		 IN A, (LSR)	;
+112)   8676 1F          		 RRA         ;check d0 ('DATA')	;check d0 ('DATA')
+113)   8677 D8          		 RET C	;
+114)   8678 2D          		 DEC L	;
+115)   8679 DB 25       		 IN A, (LSR)	;
+116)   867B 1F          		 RRA         ;check d0 ('DATA')	;check d0 ('DATA')
+117)   867C D8          		 RET C	;
+118)   867D C2 6E 86    		 JP NZ MWAIT2	;
+119)   8680 DB 25       		 IN A, (LSR)	;
+120)   8682 1F          		 RRA         ;check d0 ('DATA')	;check d0 ('DATA')
+121)   8683 D8          		 RET C	;
+122)   8684 25          		 DEC H	;
+123)   8685 DB 25       		 IN A, (LSR)	;
+124)   8687 1F          		 RRA	;
+125)   8688 D8          		 RET C	;
+126)   8689 C2 6E 86    		 JP NZ, MWAIT2	;
+127)   868C F1          		 POP AF         ;POP LAST RETURN ADDRESS FROM STACK	;POP LAST RETURN ADDRESS FROM STACK
+128)   868D 3E C8       		 LD A, 200        ;TIMEOUT ERROR	;TIMEOUT ERROR
+129)   868F 37          		 SCF	;
+130)   8690 C9          		 RET         ;RETURN TO BASIC WITH ERROR TIMEOUT	;RETURN TO BASIC WITH ERROR TIMEOUT
+ 26)   8691 04          		 DEFB 4                                                          ;COUNT OF DISPLACEMENTS-1	;COUNT OF DISPLACEMENTS-1
+ 27)   8692 18          		 DEFB SG2OIN-$        ;OPEN IN	;OPEN IN
+ 28)   8693 1B          		 DEFB SG2OOT-$        ;OPEN OUT	;OPEN OUT
+ 29)   8694 87          		 DEFB SG2INP-$        ;INPUT BYTE	;INPUT BYTE
+ 30)   8695 F3          		 DEFB SG2OTP-$        ;OUTPUT BYTE	;OUTPUT BYTE
+ 31)   8696 6A          		 DEFB SG2CLS-$        ;CLOSE	;CLOSE
+ 34)   8697 11 F0 00    		CPYFNAME:      LD DE,STRGBUFF	;
+ 35)   869A ED B0       		               LDIR	;
+ 36)   869C C9          		               RET	;
+ 40)   869D E5          		MKCAPS:        PUSH HL	;
+ 41)   869E 7E          		MC_NXT:        LD A,(HL)	;
+ 42)   869F B7          		               OR A	;
+ 43)   86A0 28 06       		               JR Z,MC_EXIT	;
+ 44)   86A2 E7 2F       		               DEFW ZTTCAPS	;
+ 45)   86A4 77          		               LD (HL),A	;
+ 46)   86A5 23          		               INC HL	;
+ 47)   86A6 18 F6       		               JR MC_NXT	;
+ 48)   86A8 E1          		MC_EXIT:       POP HL	;
+ 49)   86A9 C9          		               RET	;
+ 76)   86AA 3E 00       		SG2OIN: LD A,0        ;OPENIN	;OPENIN
+ 77)   86AC 18 02       		               JR SG2OPN	;
+ 80)   86AE 3E 01       		SG2OOT: LD A,1	;
+ 81)   86B0 E5          		SG2OPN:        PUSH HL	;
+ 82)   86B1 C5          		               PUSH BC        ;OPENOUT	;OPENOUT
+ 83)   86B2 F5          		               PUSH AF	;
+ 84)   86B3 01 10 02    		 LD BC, SPCNEED        ;NO OF BYTES REQUIRED	;NO OF BYTES REQUIRED
+ 85)   86B6 E7 37       		 DEFW ZMKBUFF        ;	;
+ 86)   86B8 D1          		               POP DE	;
+ 87)   86B9 C1          		 POP BC                                 	;
+ 88)   86BA 38 41       		 JR C, ERREXIT                	;
+ 89)   86BC E5          		               PUSH HL                                                         ;SAVE START OF STRUCT	;SAVE START OF STRUCT
+ 90)   86BD 7A          		               LD A,D	;
+ 92)   86BE 77          		 LD (HL), A        ;OPEN TYPE	;OPEN TYPE
+ 93)   86BF 23          		               INC HL	;
+ 94)   86C0 36 00       		               LD (HL),0                                                       ;FILE POS ZERO	;FILE POS ZERO
+ 95)   86C2 23          		               INC HL	;
+ 96)   86C3 36 00       		               LD (HL),0	;
+ 97)   86C5 23          		               INC HL	;
+ 98)   86C6 36 00       		               LD (HL),0                                                     ;BUF POS 0 	;BUF POS 0
+ 99)   86C8 23          		               INC HL	;
+100)   86C9 36 00       		               LD (HL),0	;
+101)   86CB 23          		               INC HL	;
+102)   86CC E5          		               PUSH HL	;
+103)   86CD C5          		               PUSH BC	;
+104)   86CE 01 14 00    		               LD BC,BYTREAD-FNAMEIX                                           ;SKIP FILENAME	;SKIP FILENAME
+105)   86D1 09          		               ADD HL,BC	;
+106)   86D2 C1          		               POP BC	;
+107)   86D3 36 00       		               LD (HL),0                                                       ;BYTES READ TO 0 	;BYTES READ TO 0
+108)   86D5 23          		               INC HL	;
+109)   86D6 36 00       		               LD (HL),0                                                     	;
+110)   86D8 D1          		               POP DE                                                          ;DE AT FNAMEIX       	;DE AT FNAMEIX
+111)   86D9 DD E1       		               POP IX                                                          ;IX THE START OF STRUCT                	;IX THE START OF STRUCT
+112)   86DB E1          		               POP HL                                                          ;HL THE FILE NAME	;HL THE FILE NAME
+113)   86DC D5          		               PUSH DE                                                         ;SAVE THE START OF FILENAME        	;SAVE THE START OF FILENAME
+114)   86DD ED B0       		               LDIR                                                            ;TRANSFER THE FNAME TO OUR STRUCT        	;TRANSFER THE FNAME TO OUR STRUCT
+115)   86DF AF          		               XOR A	;
+116)   86E0 12          		               LD (DE),A                                                       ;NULL TERMINATED STRING	;NULL TERMINATED STRING
+117)   86E1 E1          		               POP HL                                                          ;START OF FNAME                	;START OF FNAME
+118)   86E2 CD 9D 86    		               CALL MKCAPS                                                     ;make hl filename caps  	;make hl filename caps
+119)   86E5 DD 7E 00    		               LD A,(IX)	;
+120)   86E8 FE 00       		               CP 0	;
+121)   86EA 20 0F       		               JR NZ,SG2EX                                                      ;IF FILE OPEN OUT EXIT	;IF FILE OPEN OUT EXIT
+123)   86EC 01 00 00    		               LD BC,0	;
+124)   86EF 13          		               INC DE	;
+125)   86F0 F3          		               DI	;
+126)   86F1 CD 8F C1    		               CALL STRG_OPENCDIR ;OPEN UP TO CURRENT DIR  	;OPEN UP TO CURRENT DIR
+127)   86F4 CD EC C3    		               CALL STRG_LOADFILE	;
+128)   86F7 FB          		               EI	;
+129)   86F8 3E 96       		               LD A,ERROPF                                                     ;ERROR NO IF FILE ERROR	;ERROR NO IF FILE ERROR
+130)   86FA D8          		               RET C	;
+131)   86FB AF          		SG2EX:         XOR A	;
+132)   86FC C9          		               RET	;
+135)   86FD E1          		ERREXIT:       POP HL	;
+136)   86FE 37          		               SCF	;
+137)   86FF C9          		               RET	;
+139)   8700 7E          		SG2CLS: LD A,(HL)	;
+140)   8701 FE 01       		               CP 1                                                            ;CHECK IF OPENOUT	;CHECK IF OPENOUT
+141)   8703 20 12       		               JR NZ,SCL_EX	;
+148)   8705 DD E5       		               PUSH IX	;
+149)   8707 E5          		               PUSH HL	;
+150)   8708 DD E1       		               POP IX	;
+151)   870A 01 05 00    		               LD BC,FNAMEIX	;
+152)   870D 09          		               ADD HL,BC	;
+153)   870E DD 4E 03    		               LD C,(IX+BUFFOFS)	;
+154)   8711 DD 46 04    		               LD B,(IX+BUFFOFS+1)	;
+155)   8714 CD B7 87    		               CALL SO_STFILE	;
+156)   8717 AF          		SCL_EX:        XOR A         ; CLOSE STREAM	; CLOSE STREAM
+157)   8718 47          		 LD B A         ;	;
+158)   8719 4F          		 LD C A         ;	;
+159)   871A C9          		 RET         ;	;
+166)   871B DD E5       		SG2INP:        PUSH IX	;
+167)   871D CD 23 87    		               CALL SG2INP2	;
+168)   8720 DD E1       		               POP IX	;
+169)   8722 C9          		               RET	;
+171)   8723 7E          		SG2INP2:       LD A,(HL)	;
+172)   8724 FE 00       		               CP 0	;
+173)   8726 3E 9B       		               LD A,ERRTRA	;
+174)   8728 37          		               SCF	;
+175)   8729 C0          		               RET NZ                                                          ;IF NOT INPUT THEN ERROR                	;IF NOT INPUT THEN ERROR
+176)   872A CD E2 87    		               CALL SGCHKEOF                                                   ;TEST EOF	;TEST EOF
+177)   872D 23          		               INC HL                	;
+178)   872E E5          		               PUSH HL                                                         ;SAVE OFFSET POS	;SAVE OFFSET POS
+179)   872F 4E          		               LD C,(HL)	;
+180)   8730 23          		               INC HL	;
+181)   8731 46          		               LD B,(HL)                                                       ;BC THE FILE OFFS	;BC THE FILE OFFS
+182)   8732 23          		               INC HL	;
+183)   8733 5E          		               LD E,(HL)	;
+184)   8734 23          		               INC HL	;
+185)   8735 56          		               LD D,(HL)                                                       ;DE THE BUFFER OFFS	;DE THE BUFFER OFFS
+186)   8736 23          		               INC HL                                                          ;NOW ON FILENAME OFFS	;NOW ON FILENAME OFFS
+188)   8737 3E 97       		               LD A,ERREOF	;
+189)   8739 DA FD 86    		               JP C,ERREXIT                                                    ;ON C EOF REACHED                	;ON C EOF REACHED
+190)   873C 28 0E       		               JR Z,RDFMFILE                                                   ;ON Z=EOB READ FROM FILE	;ON Z=EOB READ FROM FILE
+199)   873E 01 16 00    		RDFMBUFF:      LD BC,FBUFFIX-FNAMEIX                                           ;500 BYTES BUFFER OFFSET	;500 BYTES BUFFER OFFSET
+200)   8741 09          		               ADD HL,BC                                                       ;HL ON BUFFER        	;HL ON BUFFER
+201)   8742 19          		               ADD HL,DE                                                       ;HL ON NXT BYTE INSIDE BUFFER	;HL ON NXT BYTE INSIDE BUFFER
+203)   8743 7E          		               LD A,(HL)                                                       ;READ BYTE TO A                	;READ BYTE TO A
+204)   8744 E1          		               POP HL                                                          ;HL AT THE FILE OFFSET	;HL AT THE FILE OFFSET
+205)   8745 23          		               INC HL	;
+206)   8746 23          		               INC HL                                                          ;AT THE BUFFER OFFSET	;AT THE BUFFER OFFSET
+207)   8747 13          		               INC DE                                                          ;POINT TO NEXT BYTE	;POINT TO NEXT BYTE
+208)   8748 73          		               LD (HL),E                                                       ;SAVE 	;SAVE
+209)   8749 23          		               INC HL	;
+210)   874A 72          		               LD (HL),D	;
+211)   874B C9          		               RET	;
+212)   874C E5          		RDFMFILE:      PUSH HL                                                         ;HL FILENAME        	;HL FILENAME
+213)   874D D1          		               POP DE                                                          ;DE FILENAME	;DE FILENAME
+214)   874E EB          		               EX DE,HL	;
+215)   874F C5          		               PUSH BC	;
+216)   8750 01 16 00    		               LD BC,FBUFFIX-FNAMEIX                                           ;500 BYTES BUFFER OFFSET	;500 BYTES BUFFER OFFSET
+217)   8753 09          		               ADD HL,BC	;
+218)   8754 C1          		               POP BC	;
+219)   8755 EB          		               EX DE,HL                                                        ;HL TO FNAME OFFSET, DE TO BUFFER OFFSET	;HL TO FNAME OFFSET, DE TO BUFFER OFFSET
+222)   8756 D5          		               PUSH DE                                                         ;BC THE FILE OFFSET TO READ FROM	;BC THE FILE OFFSET TO READ FROM
+225)   8757 F3          		               DI                                                                	;
+226)   8758 CD 8F C1    		               CALL STRG_OPENCDIR ;OPEN UP TO CURRENT DIR                                                                                	;OPEN UP TO CURRENT DIR
+227)   875B CD 6C C4    		               CALL STRG_READBUFR                                              ;READ 500 BYTES FROM FILE TO BUFFER BC= BYTES READ	;READ 500 BYTES FROM FILE TO BUFFER BC= BYTES READ
+228)   875E FB          		               EI	;
+229)   875F D1          		               POP DE                                                          ;THE BUFFER TO READ THE BYTE	;THE BUFFER TO READ THE BYTE
+230)   8760 3E 98       		               LD A,ERRRDF                                                     ;ERROR CODE CAN'T READ FROM FILE	;ERROR CODE CAN'T READ FROM FILE
+231)   8762 DA FD 86    		               JP C,ERREXIT	;
+233)   8765 E1          		               POP HL                                                          ;GET FILE OFFSET POS ADDR	;GET FILE OFFSET POS ADDR
+234)   8766 D5          		               PUSH DE                                                         ;SAVE START OF BUFFER	;SAVE START OF BUFFER
+235)   8767 EB          		               EX DE,HL                                                        ;DE THE OFFSET ADDR	;DE THE OFFSET ADDR
+236)   8768 1A          		               LD A,(DE)                                                       ;OFFSET OF FILE 	;OFFSET OF FILE
+237)   8769 6F          		               LD L,A	;
+238)   876A 13          		               INC DE	;
+239)   876B 1A          		               LD A,(DE)	;
+240)   876C 67          		               LD H,A	;
+241)   876D 09          		               ADD HL,BC                                                       ;ADD NEW READ BYTES TO PREVIOUS OFFSET	;ADD NEW READ BYTES TO PREVIOUS OFFSET
+242)   876E EB          		               EX DE,HL                                                        ;HL THE OFFSET ADDR, DE THE NEW OFFSET	;HL THE OFFSET ADDR, DE THE NEW OFFSET
+243)   876F 72          		               LD (HL),D                                                       ;SAVE BACK	;SAVE BACK
+244)   8770 2B          		               DEC HL	;
+245)   8771 73          		               LD (HL),E	;
+246)   8772 23          		               INC HL	;
+247)   8773 23          		               INC HL                                                          ;TO THE BUF OFFSET 	;TO THE BUF OFFSET
+248)   8774 3E 01       		               LD A,1	;
+249)   8776 77          		               LD (HL),A                                                       ;SET THE BUF OFFS TO 1	;SET THE BUF OFFS TO 1
+250)   8777 23          		               INC HL	;
+251)   8778 AF          		               XOR A	;
+252)   8779 77          		               LD (HL),A     	;
+253)   877A 23          		               INC HL                                                  	;
+256)   877B C5          		               PUSH BC	;
+257)   877C 01 14 00    		               LD BC,20	;
+258)   877F 09          		               ADD HL,BC                                                       ;NOW AT BYTREAD	;NOW AT BYTREAD
+259)   8780 C1          		               POP BC	;
+260)   8781 71          		               LD (HL),C                                                       ;SAVE BYTES READ FROM FILE	;SAVE BYTES READ FROM FILE
+261)   8782 23          		               INC HL	;
+262)   8783 70          		               LD (HL),B	;
+263)   8784 D1          		               POP DE                                                          ;GET START OF BUFFER	;GET START OF BUFFER
+264)   8785 AF          		               XOR A                                                           ;CLEAR CARRY FLAG	;CLEAR CARRY FLAG
+265)   8786 1A          		               LD A,(DE)                                                       ;READ THE 1ST BYTE TO A	;READ THE 1ST BYTE TO A
+266)   8787 C9          		               RET	;
+275)   8788 DD E5       		SG2OTP:        PUSH IX	;
+276)   878A E5          		               PUSH HL	;
+277)   878B DD E1       		               POP IX	;
+278)   878D 57          		               LD D,A                                                          ;SAVE BYTE TO BE WRITTEN	;SAVE BYTE TO BE WRITTEN
+279)   878E 7E          		               LD A,(HL)	;
+280)   878F FE 00       		               CP 0	;
+281)   8791 3E 9B       		               LD A,ERRTRA	;
+282)   8793 37          		               SCF	;
+283)   8794 28 47       		               JR Z,SO_EX	;
+284)   8796 7A          		               LD A,D                                                          ;RESTORE A BYTE TO WRITE	;RESTORE A BYTE TO WRITE
+285)   8797 01 05 00    		               LD BC,FNAMEIX	;
+286)   879A 09          		               ADD HL,BC                	;
+287)   879B DD E5       		               PUSH IX	;
+288)   879D D1          		               POP DE	;
+289)   879E EB          		               EX DE,HL	;
+290)   879F 01 1B 00    		               LD BC,FBUFFIX	;
+291)   87A2 09          		               ADD HL,BC                	;
+292)   87A3 DD 4E 03    		               LD C,(IX+BUFFOFS)	;
+293)   87A6 DD 46 04    		               LD B,(IX+BUFFOFS+1)	;
+294)   87A9 09          		               ADD HL,BC	;
+295)   87AA EB          		               EX DE,HL                                	;
+296)   87AB 12          		               LD (DE),A	;
+298)   87AC 79          		               LD A,C	;
+299)   87AD FE F3       		               CP $F3                                                          ;499 WE START AT 0  	;499 WE START AT 0
+300)   87AF 20 25       		               JR NZ,SO_BUFFNXT	;
+301)   87B1 78          		               LD A,B	;
+302)   87B2 FE 01       		               CP $01	;
+303)   87B4 20 20       		               JR NZ,SO_BUFFNXT	;
+304)   87B6 03          		               INC BC                                                          ;500	;500
+312)   87B7 EB          		 SO_STFILE:    EX DE,HL	;
+313)   87B8 DD E5       		               PUSH IX	;
+314)   87BA E1          		               POP HL	;
+315)   87BB C5          		               PUSH BC	;
+316)   87BC 01 1B 00    		               LD BC,FBUFFIX	;
+317)   87BF 09          		               ADD HL,BC	;
+318)   87C0 C1          		               POP BC	;
+319)   87C1 EB          		               EX DE,HL	;
+322)   87C2 CD 8F C1    		               CALL STRG_OPENCDIR ;OPEN UP TO CURRENT DIR	;OPEN UP TO CURRENT DIR
+323)   87C5 CD C6 C5    		               CALL STRG_WRITEBUFR                             ;WRITES 500 BYTES FROM BUFFER DE TO THE END OF THE FILE	;WRITES 500 BYTES FROM BUFFER DE TO THE END OF THE FILE
+324)   87C8 3E 96       		               LD A,ERROPF	;
+325)   87CA 38 06       		               JR C,SO_ERROUT	;
+326)   87CC 3E 99       		               LD A,ERRWTF	;
+327)   87CE 37          		               SCF	;
+328)   87CF 20 01       		               JR NZ,SO_ERROUT	;
+329)   87D1 AF          		               XOR A	;
+330)   87D2 01 00 00    		SO_ERROUT:     LD BC,0                                         ;ZERO BUFFER OFFSET	;ZERO BUFFER OFFSET
+331)   87D5 16          		               DB $16                                          ;SKIP INC BC LD D,NN	;SKIP INC BC LD D,NN
+332)   87D6 03          		SO_BUFFNXT:    INC BC                                          	;
+333)   87D7 DD 71 03    		               LD (IX+BUFFOFS),C	;
+334)   87DA DD 70 04    		               LD (IX+BUFFOFS+1),B	;
+335)   87DD DD E1       		SO_EX          POP IX	;
+336)   87DF FE 00       		               CP 0	;
+337)   87E1 C9          		               RET	;
+344)   87E2 DD E5       		SGCHKEOF:      PUSH IX	;
+345)   87E4 D5          		               PUSH DE	;
+346)   87E5 C5          		               PUSH BC	;
+348)   87E6 E5          		               PUSH HL	;
+349)   87E7 DD E1       		               POP IX	;
+350)   87E9 DD 5E 03    		               LD E,(IX+BUFFOFS)	;
+351)   87EC DD 56 04    		               LD D,(IX+BUFFOFS+1)	;
+352)   87EF DD 4E 19    		               LD C,(IX+BYTREAD)	;
+353)   87F2 DD 46 1A    		               LD B,(IX+BYTREAD+1)	;
+355)   87F5 78          		               LD A,B	;
+356)   87F6 B1          		               OR C	;
+357)   87F7 3E 03       		               LD A,3	;
+358)   87F9 28 1C       		               JR Z, SGEFEXIT                                                  ;Z=EOB	;Z=EOB
+359)   87FB EB          		               EX DE,HL                                                        ;SAVE HL SET HL=DE	;SAVE HL SET HL=DE
+360)   87FC B7          		               OR A	;
+361)   87FD ED 42       		               SBC HL,BC	;
+362)   87FF 7C          		               LD A,H	;
+363)   8800 B5          		               OR L	;
+364)   8801 EB          		               EX DE,HL                                                        ;RESTORE HL	;RESTORE HL
+365)   8802 3E 01       		               LD A,1                                                          ;NO EOF NO EOB = NZ	;NO EOF NO EOB = NZ
+366)   8804 20 11       		               JR NZ,SGEFEXIT	;
+368)   8806 78          		               LD A,B	;
+369)   8807 D6 01       		               SUB $01	;
+370)   8809 20 09       		               JR NZ, SGDOEOF	;
+371)   880B 79          		               LD A,C	;
+372)   880C D6 F4       		               SUB $F4	;
+373)   880E 20 04       		               JR NZ, SGDOEOF	;
+374)   8810 3E 02       		               LD A,2                                                          ;Z MEANS EOB END OF BUFFER                	;Z MEANS EOB END OF BUFFER
+375)   8812 18 03       		               JR  SGEFEXIT	;
+377)   8814 3E 97       		SGDOEOF:       LD A,ERREOF                                                           ;RETURN 0 ON EOF	;RETURN 0 ON EOF
+378)   8816 37          		               SCF         	;
+379)   8817 C1          		SGEFEXIT:      POP BC	;
+380)   8818 D1          		               POP DE	;
+381)   8819 DD E1       		               POP IX	;
+382)   881B C9          		               RET	;
+385)   881C E5          		PRNHL:         PUSH HL	;
+386)   881D C5          		               PUSH BC	;
+387)   881E D5          		               PUSH DE	;
+388)   881F CD 83 D0    		 CALL B2D16	;
+389)   8822 21 CB 00    		 LD HL,B2DBUF	;
+390)   8825 CD 17 D1    		 CALL SKIPSPC	;
+391)   8828 CD 60 C0    		 CALL RS_TXT	;
+392)   882B D1          		               POP DE	;
+393)   882C C1          		               POP BC	;
+394)   882D E1          		               POP HL	;
+395)   882E C9          		               RET	;
+397)   882F E5          		PRINTDBG:      PUSH HL	;
+398)   8830 C5          		               PUSH BC	;
+399)   8831 D5          		               PUSH DE	;
+400)   8832 F5          		               PUSH AF	;
+402)   8833 CD 1C 88    		               CALL PRNHL	;
+403)   8836 D5          		               PUSH DE	;
+404)   8837 C5          		               PUSH BC	;
+405)   8838 CD 26 80    		 CALL OS_PRINTMSG	;
+406)   883B 20 48 4C    		 DEFM " HL"	;
+407)   883E 0A 0D 00    		 DB 10,13,0	;
+408)   8841 C1          		               POP BC	;
+409)   8842 D1          		               POP DE	;
+411)   8843 D5          		               PUSH DE	;
+412)   8844 E1          		               POP HL	;
+413)   8845 CD 1C 88    		               CALL PRNHL	;
+414)   8848 D5          		               PUSH DE	;
+415)   8849 C5          		               PUSH BC	;
+416)   884A CD 26 80    		 CALL OS_PRINTMSG	;
+417)   884D 20 44 45    		 DEFM " DE"	;
+418)   8850 0A 0D 00    		 DB 10,13,0	;
+419)   8853 C1          		               POP BC	;
+420)   8854 D1          		               POP DE	;
+422)   8855 C5          		               PUSH BC	;
+423)   8856 E1          		               POP HL	;
+424)   8857 CD 1C 88    		               CALL PRNHL	;
+425)   885A D5          		               PUSH DE	;
+426)   885B C5          		               PUSH BC	;
+427)   885C CD 26 80    		 CALL OS_PRINTMSG	;
+428)   885F 20 42 43    		 DEFM " BC"	;
+429)   8862 0A 0D 00    		 DB 10,13,0	;
+430)   8865 C1          		               POP BC	;
+431)   8866 D1          		               POP DE	;
+434)   8867 F1          		               POP AF	;
+435)   8868 D1          		               POP DE	;
+436)   8869 C1          		               POP BC	;
+437)   886A E1          		               POP HL	;
+438)   886B C9          		               RET	;
+442)   886C F5          		CLRBUFR:       PUSH AF	;
+443)   886D E5          		               PUSH HL	;
+444)   886E D5          		               PUSH DE	;
+445)   886F C5          		               PUSH BC	;
+446)   8870 AF          		               XOR A	;
+447)   8871 12          		               LD (DE),A	;
+448)   8872 D5          		               PUSH DE	;
+449)   8873 E1          		               POP HL	;
+450)   8874 13          		               INC DE	;
+451)   8875 01 F3 01    		               LD BC,499	;
+452)   8878 ED B0       		               LDIR        	;
+453)   887A C1          		               POP BC	;
+454)   887B D1          		               POP DE	;
+455)   887C E1          		               POP HL	;
+456)   887D F1          		               POP AF	;
+457)   887E C9          		               RET	;
+462)   887F 04          		 DEFB 4                                                          ;COUNT OF DISPLACEMENTS-1	;COUNT OF DISPLACEMENTS-1
+463)   8880 2A          		 DEFB SG2OIN-$        ;OPEN IN	;OPEN IN
+464)   8881 2D          		 DEFB SG2OOT-$        ;OPEN OUT	;OPEN OUT
+465)   8882 99          		 DEFB SG2INP-$        ;INPUT BYTE	;INPUT BYTE
+466)   8883 05          		 DEFB SG2OTP-$        ;OUTPUT BYTE	;OUTPUT BYTE
+467)   8884 7C          		 DEFB SG2CLS-$        ;CLOSE	;CLOSE
+ 21)   8885 21 58 00    		STNEWD: LD HL, $58        ;DEVTAB	;DEVTAB
+ 22)   8888 11 95 88    		 LD DE, DEVTAB        ; NEW TABLE SET	; NEW TABLE SET
+ 23)   888B 73          		 LD (HL), E	;
+ 24)   888C 23          		 INC HL	;
+ 25)   888D 72          		 LD (HL), D	;
+ 26)   888E 21 13 00    		 LD HL, DEFSTOR	;
+ 27)   8891 3E 01       		 LD A, USESTORDEV        ;DEFAULT STORE DEVICE IS 12 NB STORAGE MODULE	;DEFAULT STORE DEVICE IS 12 NB STORAGE MODULE
+ 28)   8893 77          		 LD (HL), A	;
+ 29)   8894 C9          		 RET	;
+ 33)   8895 11          		DEVTAB: DEFB 17        ;number of entries ;number of entries	;number of entries ;number of entries
+ 34)   8896 83 E6       		 DEFW TVIO        ;	;
+ 35)   8898 EE ED       		 DEFW TP1IO        ;	;
+ 36)   889A F4 ED       		 DEFW TP2IO        ;	;
+ 37)   889C 50 E6       		 DEFW LIIO        ;	;
+ 38)   889E 75 E6       		 DEFW TLIO        ;	;
+ 39)   88A0 36 A1       		 DEFW NKBWIO        ;	;
+ 40)   88A2 1A A1       		 DEFW NKBIIO        ;	;
+ 41)   88A4 1F E4       		 DEFW UPIO        ;	;
+ 42)   88A6 3C E4       		 DEFW LPIO        ;	;
+ 43)   88A8 2F E4       		 DEFW JGIO        ;	;
+ 44)   88AA 19 E4       		 DEFW DUMMY        ;	;
+ 45)   88AC 96 A5       		 DEFW GRAPH        ;  	;
+ 46)   88AE 91 86       		               DEFW SG2IO        ;MY STORAGE DEVICE 13 BDISCIO BINARY SERIAL	;MY STORAGE DEVICE 13 BDISCIO BINARY SERIAL
+ 47)   88B0 91 86       		               DEFW SG2IO                                                      ;MY STORAGE DEVICE 14 TDISCIO SAME AS 13 FOR ME	;MY STORAGE DEVICE 14 TDISCIO SAME AS 13 FOR ME
+ 48)   88B2 91 86       		               DEFW SG2IO                                                      ;MY STORAGE DEVICE 15 RDISCIO RANDOM ACCESS	;MY STORAGE DEVICE 15 RDISCIO RANDOM ACCESS
+ 49)   88B4 91 86       		               DEFW SG2IO                                                      ;MY STORAGE DEVICE 16 SDISCIO DIR COMMANDS	;MY STORAGE DEVICE 16 SDISCIO DIR COMMANDS
+ 50)   88B6 2D 86       		               DEFW RS2IO        ;MY SERIAL DEVICE 17	;MY SERIAL DEVICE 17
+  6)   88B8 FE 00       		 CP 0	;
+  7)   88BA C8          		 RET Z	;
+  8)   88BB CD 5F 89    		 CALL NBLOOKASC	;
+  9)   88BE C9          		 RET	;
+ 12)   88BF 21 DD 88    		NBLOOK: LD HL, NBTAB	;
+ 13)   88C2 06 00       		 LD B, 0	;
+ 14)   88C4 4F          		 LD C, A	;
+ 15)   88C5 09          		 ADD HL, BC	;
+ 16)   88C6 7E          		 LD A, (HL)	;
+ 17)   88C7 FE 00       		 CP 0	;
+ 18)   88C9 C8          		 RET Z	;
+ 19)   88CA 21 80 00    		 LD HL, KEYCTR        ;BIT 6=SHIFT BIT 7=CTRL  BIT 6+7=GRPH	;BIT 6=SHIFT BIT 7=CTRL  BIT 6+7=GRPH
+ 20)   88CD CB 6E       		 BIT 5, (HL)	;
+ 21)   88CF 28 04       		 JR Z, NOGRPH	;
+ 22)   88D1 06 C0       		 LD B, 192        ;SET BIT 6 AND 7	;SET BIT 6 AND 7
+ 23)   88D3 18 06       		 JR NBLKEX	;
+ 24)   88D5 4F          		NOGRPH: LD C, A	;
+ 25)   88D6 7E          		 LD A, (HL)	;
+ 26)   88D7 E6 C0       		 AND 11000000	;
+ 27)   88D9 47          		 LD B, A	;
+ 28)   88DA 79          		 LD A, C	;
+ 29)   88DB B0          		NBLKEX: OR B	;
+ 30)   88DC C9          		 RET	;
+ 32)   88DD 00 00 00 00 		NBTAB: DB 0,0,0,0,0,0,0,0,0,0       ;  0-  9	;  0-  9
+ 32)   88E1 00 00 00 00 		NBTAB: DB 0,0,0,0,0,0,0,0,0,0       ;  0-  9	;  0-  9
+ 32)   88E5 00 00       		NBTAB: DB 0,0,0,0,0,0,0,0,0,0       ;  0-  9	;  0-  9
+ 33)   88E7 00 00 00 A4 		 DB 0,0,0,36+128,0,0,0,0,0,0      ; 10- 19 0,0,0,TAB	; 10- 19 0,0,0,TAB
+ 33)   88EB 00 00 00 00 		 DB 0,0,0,36+128,0,0,0,0,0,0      ; 10- 19 0,0,0,TAB	; 10- 19 0,0,0,TAB
+ 33)   88EF 00 00       		 DB 0,0,0,36+128,0,0,0,0,0,0      ; 10- 19 0,0,0,TAB	; 10- 19 0,0,0,TAB
+ 34)   88F1 00 0E 09 00 		 DB 0,14,9,0,0,0,60,45,46,13      ; 20- 29	; 20- 29
+ 34)   88F5 00 00 3C 2D 		 DB 0,14,9,0,0,0,60,45,46,13      ; 20- 29	; 20- 29
+ 34)   88F9 2E 0D       		 DB 0,14,9,0,0,0,60,45,46,13      ; 20- 29	; 20- 29
+ 35)   88FB 08 00 00 3A 		 DB 8,0,0,58,59,44,12,6,7,0      ; 30- 39	; 30- 39
+ 35)   88FF 3B 2C 0C 06 		 DB 8,0,0,58,59,44,12,6,7,0      ; 30- 39	; 30- 39
+ 35)   8903 07 00       		 DB 8,0,0,58,59,44,12,6,7,0      ; 30- 39	; 30- 39
+ 36)   8905 00 0F 39 2B 		 DB 0,15,57,43,10,11,5,0,0,52      ; 40- 49	; 40- 49
+ 36)   8909 0A 0B 05 00 		 DB 0,15,57,43,10,11,5,0,0,52      ; 40- 49	; 40- 49
+ 36)   890D 00 34       		 DB 0,15,57,43,10,11,5,0,0,52      ; 40- 49	; 40- 49
+ 37)   890F 38 29 2A 25 		 DB 56,41,42,37,4,0,0,0,53,51      ; 50- 59	; 50- 59
+ 37)   8913 04 00 00 00 		 DB 56,41,42,37,4,0,0,0,53,51      ; 50- 59	; 50- 59
+ 37)   8917 35 33       		 DB 56,41,42,37,4,0,0,0,53,51      ; 50- 59	; 50- 59
+ 38)   8919 23 03 13 00 		 DB 35,3,19,0,0,54,62,36,38,21      ; 60- 69	; 60- 69
+ 38)   891D 00 36 3E 24 		 DB 35,3,19,0,0,54,62,36,38,21      ; 60- 69	; 60- 69
+ 38)   8921 26 15       		 DB 35,3,19,0,0,54,62,36,38,21      ; 60- 69	; 60- 69
+ 39)   8923 14 00 00 37 		 DB 20,0,0,55,47,39,40,26,28,0      ; 70- 79	; 70- 79
+ 39)   8927 2F 27 28 1A 		 DB 20,0,0,55,47,39,40,26,28,0      ; 70- 79	; 70- 79
+ 39)   892B 1C 00       		 DB 20,0,0,55,47,39,40,26,28,0      ; 70- 79	; 70- 79
+ 40)   892D 00 00 43 00 		 DB 0,0,67,0,86,27,0,0,0,0      ; 80- 89	; 80- 89
+ 40)   8931 56 1B 00 00 		 DB 0,0,67,0,86,27,0,0,0,0      ; 80- 89	; 80- 89
+ 40)   8935 00 00       		 DB 0,0,67,0,86,27,0,0,0,0      ; 80- 89	; 80- 89
+ 41)   8937 1E 00 00 00 		 DB 30,0,0,0,0,0,0,0,0,0      ; 90- 99	; 90- 99
+ 41)   893B 00 00 00 00 		 DB 30,0,0,0,0,0,0,0,0,0      ; 90- 99	; 90- 99
+ 41)   893F 00 00       		 DB 30,0,0,0,0,0,0,0,0,0      ; 90- 99	; 90- 99
+ 42)   8941 00 00 40 00 		 DB 0,0,64,0,0,26+128,0,2,63,0      ;100-109  0,0,64,0,0,END	;100-109  0,0,64,0,0,END
+ 42)   8945 00 9A 00 02 		 DB 0,0,64,0,0,26+128,0,2,63,0      ;100-109  0,0,64,0,0,END	;100-109  0,0,64,0,0,END
+ 42)   8949 3F 00       		 DB 0,0,64,0,0,26+128,0,2,63,0      ;100-109  0,0,64,0,0,END	;100-109  0,0,64,0,0,END
+ 43)   894B 00 00 3D A5 		 DB 0,0,61,37+128,34,0,18,50,31,25     ;110-119  0,0,INS,DEL	;110-119  0,0,INS,DEL
+ 43)   894F 22 00 12 32 		 DB 0,0,61,37+128,34,0,18,50,31,25     ;110-119  0,0,INS,DEL	;110-119  0,0,INS,DEL
+ 43)   8953 1F 19       		 DB 0,0,61,37+128,34,0,18,50,31,25     ;110-119  0,0,INS,DEL	;110-119  0,0,INS,DEL
+ 44)   8955 00 1D 07 1C 		 DB 0,29,7,28,24,20,0,0,0,0      ;120-129	;120-129
+ 44)   8959 18 14 00 00 		 DB 0,29,7,28,24,20,0,0,0,0      ;120-129	;120-129
+ 44)   895D 00 00       		 DB 0,29,7,28,24,20,0,0,0,0      ;120-129	;120-129
+ 47)   895F 21 68 89    		NBLOOKASC:     LD HL, NBRSTAB	;
+ 48)   8962 06 00       		 LD B, 0	;
+ 49)   8964 4F          		 LD C, A	;
+ 50)   8965 09          		 ADD HL, BC	;
+ 51)   8966 7E          		 LD A, (HL)	;
+ 52)   8967 C9          		 RET	;
+ 55)   8968 00 3D 52 12 		NBRSTAB:      DB 0,61,18+64,18,2,0,64,0,64,27+128    ;  0-  9	;  0-  9
+ 55)   896C 02 00 40 00 		NBRSTAB:      DB 0,61,18+64,18,2,0,64,0,64,27+128    ;  0-  9	;  0-  9
+ 55)   8970 40 9B       		NBRSTAB:      DB 0,61,18+64,18,2,0,64,0,64,27+128    ;  0-  9	;  0-  9
+ 56)   8972 22 32 00 1E 		 DB 34,50,0,30,0,0,0,0,0,0     ; 10- 19 	; 10- 19
+ 56)   8976 00 00 00 00 		 DB 34,50,0,30,0,0,0,0,0,0     ; 10- 19 	; 10- 19
+ 56)   897A 00 00       		 DB 34,50,0,30,0,0,0,0,0,0     ; 10- 19 	; 10- 19
+ 57)   897C 00 00 00 00 		 DB 0,0,0,0,0,0,0,31,28+128,29+128    ; 20- 29	; 20- 29
+ 57)   8980 00 00 00 1F 		 DB 0,0,0,0,0,0,0,31,28+128,29+128    ; 20- 29	; 20- 29
+ 57)   8984 9C 9D       		 DB 0,0,0,0,0,0,0,31,28+128,29+128    ; 20- 29	; 20- 29
+ 58)   8986 00 00 0F 49 		 DB 0,0,15,9+64,8+64,7+64,6+64,5+64,0,3+64          ; 30- 39  	; 30- 39
+ 58)   898A 48 47 46 45 		 DB 0,0,15,9+64,8+64,7+64,6+64,5+64,0,3+64          ; 30- 39  	; 30- 39
+ 58)   898E 00 43       		 DB 0,0,15,9+64,8+64,7+64,6+64,5+64,0,3+64          ; 30- 39  	; 30- 39
+ 59)   8990 16 17 18 1D 		 DB 22,23,24,29,54,28,55,47,21,9     ; 40- 49	; 40- 49
+ 59)   8994 36 1C 37 2F 		 DB 22,23,24,29,54,28,55,47,21,9     ; 40- 49	; 40- 49
+ 59)   8998 15 09       		 DB 22,23,24,29,54,28,55,47,21,9     ; 40- 49	; 40- 49
+ 60)   899A 08 07 06 05 		 DB 8,7,6,5,4,3,19,20,40+64,40             ; 50- 59	; 50- 59
+ 60)   899E 04 03 13 14 		 DB 8,7,6,5,4,3,19,20,40+64,40             ; 50- 59	; 50- 59
+ 60)   89A2 68 28       		 DB 8,7,6,5,4,3,19,20,40+64,40             ; 50- 59	; 50- 59
+ 61)   89A4 76 1B 77 6F 		 DB 54+64,27,55+64,47+64,0,46+64,56+64,58+64,44+64,12+64  ; 60- 69	; 60- 69
+ 61)   89A8 00 6E 78 7A 		 DB 54+64,27,55+64,47+64,0,46+64,56+64,58+64,44+64,12+64  ; 60- 69	; 60- 69
+ 61)   89AC 6C 4C       		 DB 54+64,27,55+64,47+64,0,46+64,56+64,58+64,44+64,12+64  ; 60- 69	; 60- 69
+ 62)   89AE 6B 6A 69 64 		 DB 43+64,42+64,41+64,36+64,51+64,62+64,39+64,53+64,52+64,38+64 ; 70- 79	; 70- 79
+ 62)   89B2 73 7E 67 75 		 DB 43+64,42+64,41+64,36+64,51+64,62+64,39+64,53+64,52+64,38+64 ; 70- 79	; 70- 79
+ 62)   89B6 74 66       		 DB 43+64,42+64,41+64,36+64,51+64,62+64,39+64,53+64,52+64,38+64 ; 70- 79	; 70- 79
+ 63)   89B8 5A 4E 4B 6D 		 DB 26+64,14+64,11+64,45+64,10+64,35+64,57+64,13+64,59+64,37+64 ; 80- 89	; 80- 89
+ 63)   89BC 4A 63 79 4D 		 DB 26+64,14+64,11+64,45+64,10+64,35+64,57+64,13+64,59+64,37+64 ; 80- 89	; 80- 89
+ 63)   89C0 7B 65       		 DB 26+64,14+64,11+64,45+64,10+64,35+64,57+64,13+64,59+64,37+64 ; 80- 89	; 80- 89
+ 64)   89C2 7C 56 5C 57 		 DB 60+64,22+64,92,23+64,29+64,0,0,46,56,58   ; 90- 99	; 90- 99
+ 64)   89C6 5D 00 00 2E 		 DB 60+64,22+64,92,23+64,29+64,0,0,46,56,58   ; 90- 99	; 90- 99
+ 64)   89CA 38 3A       		 DB 60+64,22+64,92,23+64,29+64,0,0,46,56,58   ; 90- 99	; 90- 99
+ 65)   89CC 2C 0C 2B 2A 		 DB 44,12,43,42,41,36,51,62,39,53    ;100-109  	;100-109
+ 65)   89D0 29 24 33 3E 		 DB 44,12,43,42,41,36,51,62,39,53    ;100-109  	;100-109
+ 65)   89D4 27 35       		 DB 44,12,43,42,41,36,51,62,39,53    ;100-109  	;100-109
+ 66)   89D6 34 26 1A 0E 		 DB 52,38,26,14,11,45,10,35,57,13           ;110-119  	;110-119
+ 66)   89DA 0B 2D 0A 23 		 DB 52,38,26,14,11,45,10,35,57,13           ;110-119  	;110-119
+ 66)   89DE 39 0D       		 DB 52,38,26,14,11,45,10,35,57,13           ;110-119  	;110-119
+ 67)   89E0 3B 25 3C 00 		 DB 59,37,60,0,0,0,0,0,0,0       ;120-129	;120-129
+ 67)   89E4 00 00 00 00 		 DB 59,37,60,0,0,0,0,0,0,0       ;120-129	;120-129
+ 67)   89E8 00 00       		 DB 59,37,60,0,0,0,0,0,0,0       ;120-129	;120-129
+ 68)   89EA 00 00 00 00 		               DB 0,0,0,0,0,0,0,0,0,0       ;130-  9	;130-  9
+ 68)   89EE 00 00 00 00 		               DB 0,0,0,0,0,0,0,0,0,0       ;130-  9	;130-  9
+ 68)   89F2 00 00       		               DB 0,0,0,0,0,0,0,0,0,0       ;130-  9	;130-  9
+ 69)   89F4 00 00 00 00 		               DB 0,0,0,0,0,0,0,0,0,0       ;140-  9	;140-  9
+ 69)   89F8 00 00 00 00 		               DB 0,0,0,0,0,0,0,0,0,0       ;140-  9	;140-  9
+ 69)   89FC 00 00       		               DB 0,0,0,0,0,0,0,0,0,0       ;140-  9	;140-  9
+ 70)   89FE 00 00 00 00 		               DB 0,0,0,0,0,0,0,0,0,0       ;150-  9	;150-  9
+ 70)   8A02 00 00 00 00 		               DB 0,0,0,0,0,0,0,0,0,0       ;150-  9	;150-  9
+ 70)   8A06 00 00       		               DB 0,0,0,0,0,0,0,0,0,0       ;150-  9	;150-  9
+ 71)   8A08 00 00 00 00 		               DB 0,0,0,0,0,0,0,0,0,0       ;160-  9	;160-  9
+ 71)   8A0C 00 00 00 00 		               DB 0,0,0,0,0,0,0,0,0,0       ;160-  9	;160-  9
+ 71)   8A10 00 00       		               DB 0,0,0,0,0,0,0,0,0,0       ;160-  9	;160-  9
+ 72)   8A12 00 00 00 00 		               DB 0,0,0,0,0,0,0,0,0,0       ;170-  9	;170-  9
+ 72)   8A16 00 00 00 00 		               DB 0,0,0,0,0,0,0,0,0,0       ;170-  9	;170-  9
+ 72)   8A1A 00 00       		               DB 0,0,0,0,0,0,0,0,0,0       ;170-  9	;170-  9
+ 73)   8A1C 00 00 00 00 		               DB 0,0,0,0,0,0,0,0,0,0       ;180-  9	;180-  9
+ 73)   8A20 00 00 00 00 		               DB 0,0,0,0,0,0,0,0,0,0       ;180-  9	;180-  9
+ 73)   8A24 00 00       		               DB 0,0,0,0,0,0,0,0,0,0       ;180-  9	;180-  9
+ 74)   8A26 00 00 00 00 		               DB 0,0,0,0,0,0,0,0,0,0       ;190-  9	;190-  9
+ 74)   8A2A 00 00 00 00 		               DB 0,0,0,0,0,0,0,0,0,0       ;190-  9	;190-  9
+ 74)   8A2E 00 00       		               DB 0,0,0,0,0,0,0,0,0,0       ;190-  9	;190-  9
+ 75)   8A30 00 00 00 00 		               DB 0,0,0,0,0,0,0,0,0,0       ;200-  9	;200-  9
+ 75)   8A34 00 00 00 00 		               DB 0,0,0,0,0,0,0,0,0,0       ;200-  9	;200-  9
+ 75)   8A38 00 00       		               DB 0,0,0,0,0,0,0,0,0,0       ;200-  9	;200-  9
+ 76)   8A3A 00 00 00 00 		               DB 0,0,0,0,0,0,0,0,0,0       ;210-  9	;210-  9
+ 76)   8A3E 00 00 00 00 		               DB 0,0,0,0,0,0,0,0,0,0       ;210-  9	;210-  9
+ 76)   8A42 00 00       		               DB 0,0,0,0,0,0,0,0,0,0       ;210-  9	;210-  9
+ 77)   8A44 00 00 00 00 		               DB 0,0,0,0,0,0,0,0,0,0       ;220-  9	;220-  9
+ 77)   8A48 00 00 00 00 		               DB 0,0,0,0,0,0,0,0,0,0       ;220-  9	;220-  9
+ 77)   8A4C 00 00       		               DB 0,0,0,0,0,0,0,0,0,0       ;220-  9	;220-  9
+ 78)   8A4E 00 00 00 00 		               DB 0,0,0,0,0,0,0,0,0,0       ;230-  9	;230-  9
+ 78)   8A52 00 00 00 00 		               DB 0,0,0,0,0,0,0,0,0,0       ;230-  9	;230-  9
+ 78)   8A56 00 00       		               DB 0,0,0,0,0,0,0,0,0,0       ;230-  9	;230-  9
+ 79)   8A58 00 00 00 00 		               DB 0,0,0,0,0,0,0,0,0,0       ;240-  9	;240-  9
+ 79)   8A5C 00 00 00 00 		               DB 0,0,0,0,0,0,0,0,0,0       ;240-  9	;240-  9
+ 79)   8A60 00 00       		               DB 0,0,0,0,0,0,0,0,0,0       ;240-  9	;240-  9
+ 80)   8A62 00 00 00 00 		               DB 0,0,0,0,0,0           ;250-  5	;250-  5
+ 80)   8A66 00 00       		               DB 0,0,0,0,0,0           ;250-  5	;250-  5
+  7)   8A68 21 80 00    		@PS2KBINIT: LD HL,KEYCTR	;
+  8)   8A6B 36 00       		 LD (HL),0	;
+  9)   8A6D C9          		 RET	;
+ 12)   8A6E DB 06       		@PS2KEYAVAIL: IN A,(6)	;
+ 13)   8A70 FE 38       		 CP 56  ;38H =0011 1000  0011 IS 3 MEANS KBD INPUT 1000 MEANS REAL KEYBOARD	;38H =0011 1000  0011 IS 3 MEANS KBD INPUT 1000 MEANS REAL KEYBOARD
+ 14)   8A72 C9          		 RET	;
+ 16)   8A73 CD 7F 8A    		@READKBCHAR: CALL GETKBKEY ;GET HARDWARE KEY WITH CHECKS ON SHIFT...	;GET HARDWARE KEY WITH CHECKS ON SHIFT...
+ 17)   8A76 B7          		 OR A ;	;
+ 18)   8A77 C8          		 RET Z	;
+ 19)   8A78 32 81 00    		 LD (LASTKEY),A	;
+ 20)   8A7B CD F7 CD    		 CALL PS2LOK  ;RETURN ASCII CHAR	;RETURN ASCII CHAR
+ 21)   8A7E C9          		 RET	;
+ 24)   8A7F CD 88 8A    		GETKBKEY: CALL GETPS2HWKEY ;GET SCANCODE FROM PS/2 KEYB	;GET SCANCODE FROM PS/2 KEYB
+ 25)   8A82 B7          		 OR A 	;
+ 26)   8A83 C8          		 RET Z   ;IF KEYBRD KEY IS ZERO	;IF KEYBRD KEY IS ZERO
+ 27)   8A84 CD 36 CD    		 CALL CHECKEXT  ;CHECKEXT SHIFTS CTRL ALT CAPS	;CHECKEXT SHIFTS CTRL ALT CAPS
+ 28)   8A87 C9          		 RET	;
+ 32)   8A88 F3          		GETPS2HWKEY: DI	;
+ 33)   8A89 DB 48       		 IN A,(DEVKBI)  	;
+ 34)   8A8B 4F          		 LD C,A	;
+ 35)   8A8C CD 97 8A    		 CALL KBENABLE	;
+ 36)   8A8F 79          		 LD A,C	;
+ 37)   8A90 FB          		 EI	;
+ 38)   8A91 C9          		 RET	;
+ 40)   8A92 3E 02       		@KBDISABLE: LD A, 2	;
+ 41)   8A94 D3 48       		 OUT (DEVKBI), A	;
+ 42)   8A96 C9          		 RET	;
+ 44)   8A97 AF          		@KBENABLE: XOR A	;
+ 45)   8A98 D3 48       		 OUT (DEVKBI), A	;
+ 46)   8A9A D3 48       		 OUT (DEVKBI), A	;
+ 47)   8A9C D3 48       		 OUT (DEVKBI), A	;
+ 48)   8A9E C9          		 RET	;
+ 40)   8A9F 3E 03       		PATCHCMDS: LD A,11b ;DISABLE INTS & DISABLE NB=RAM WRITABLE	;DISABLE INTS & DISABLE NB=RAM WRITABLE
+ 41)   8AA1 D3 E0       		 OUT (INTENB),A	;
+ 44)   8AA3 21 F9 A2    		 LD HL,$A2F9	;
+ 45)   8AA6 36 CD       		 LD (HL),$CD ;CALL	;CALL
+ 46)   8AA8 11 3C 8B    		 LD DE,CHKNEWCMD	;
+ 47)   8AAB 23          		 INC HL	;
+ 48)   8AAC 73          		 LD (HL),E	;
+ 49)   8AAD 23          		 INC HL	;
+ 50)   8AAE 72          		 LD (HL),D	;
+ 51)   8AAF 21 85 A4    		 LD HL,$A485  ;PXCL3	;PXCL3
+ 52)   8AB2 36 C3       		 LD (HL),$C3 ;JP	;JP
+ 53)   8AB4 11 20 8B    		 LD DE,OSXCL3	;
+ 54)   8AB7 23          		 INC HL	;
+ 55)   8AB8 73          		 LD (HL),E	;
+ 56)   8AB9 23          		 INC HL	;
+ 57)   8ABA 72          		 LD (HL),D	;
+ 67)   8ABB 21 F1 E9    		 LD HL,$E9F1 ;PRINT EDITOR	;PRINT EDITOR
+ 68)   8ABE 36 CD       		 LD (HL),$CD ;CALL	;CALL
+ 69)   8AC0 11 82 8C    		 LD DE, MDLINT_PRNEDT	;
+ 70)   8AC3 23          		 INC HL	;
+ 71)   8AC4 73          		 LD (HL),E	;
+ 72)   8AC5 23          		 INC HL	;
+ 73)   8AC6 72          		 LD (HL),D	;
+ 75)   8AC7 21 D7 EC    		 LD HL,$ECD7 ;PRINT EDITOR	;PRINT EDITOR
+ 76)   8ACA 36 CD       		 LD (HL),$CD ;CALL	;CALL
+ 77)   8ACC 11 88 8C    		 LD DE, MDLINT_PUT31	;
+ 78)   8ACF 23          		 INC HL	;
+ 79)   8AD0 73          		 LD (HL),E	;
+ 80)   8AD1 23          		 INC HL	;
+ 81)   8AD2 72          		 LD (HL),D	;
+ 83)   8AD3 21 DF EC    		 LD HL,$ECDF ;PRINT BLANK	;PRINT BLANK
+ 84)   8AD6 36 CD       		 LD (HL),$CD ;CALL	;CALL
+ 85)   8AD8 11 8E 8C    		 LD DE, MDLINT_BLANK	;
+ 86)   8ADB 23          		 INC HL	;
+ 87)   8ADC 73          		 LD (HL),E	;
+ 88)   8ADD 23          		 INC HL	;
+ 89)   8ADE 72          		 LD (HL),D	;
+107)   8ADF 21 E6 EB    		 LD HL,$EBE6 ; SCROLL	; SCROLL
+108)   8AE2 36 C3       		 LD (HL),$C3 ;JP SO NO RET****	;JP SO NO RET****
+109)   8AE4 11 95 8C    		 LD DE, MDLINT_SCROLL	;
+110)   8AE7 23          		 INC HL	;
+111)   8AE8 73          		 LD (HL),E	;
+112)   8AE9 23          		 INC HL	;
+113)   8AEA 72          		 LD (HL),D	;
+116)   8AEB 21 BA B1    		 LD HL,$B1BA ; PLOT DOT	; PLOT DOT
+117)   8AEE 36 C3       		 LD (HL),$C3 ;JP SO NO RET****	;JP SO NO RET****
+118)   8AF0 11 C0 8C    		 LD DE, MDLINT_GRPLT	;
+119)   8AF3 23          		 INC HL	;
+120)   8AF4 73          		 LD (HL),E	;
+121)   8AF5 23          		 INC HL	;
+122)   8AF6 72          		 LD (HL),D	;
+124)   8AF7 21 B3 A7    		 LD HL,$A7B3 ; PLOT WIP	; PLOT WIP
+125)   8AFA 36 C3       		 LD (HL),$C3 ;JP SO NO RET****	;JP SO NO RET****
+126)   8AFC 11 D1 8C    		 LD DE, MDLINT_GRWIP	;
+127)   8AFF 23          		 INC HL	;
+128)   8B00 73          		 LD (HL),E	;
+129)   8B01 23          		 INC HL	;
+130)   8B02 72          		 LD (HL),D	;
+132)   8B03 21 56 AD    		 LD HL,$AD56 ; PLOT FILL	; PLOT FILL
+133)   8B06 36 CD       		 LD (HL),$CD ;CALL SO RET	;CALL SO RET
+134)   8B08 11 CA 8C    		 LD DE, MDLINT_GRFIL	;
+135)   8B0B 23          		 INC HL	;
+136)   8B0C 73          		 LD (HL),E	;
+137)   8B0D 23          		 INC HL	;
+138)   8B0E 72          		 LD (HL),D	;
+140)   8B0F 21 60 A6    		 LD HL,$A660 ; close stream	; close stream
+141)   8B12 36 CD       		 LD (HL),$CD ;CALL SO RET	;CALL SO RET
+142)   8B14 11 E2 8C    		 LD DE, MDLINT_GRCLS	;
+143)   8B17 23          		 INC HL	;
+144)   8B18 73          		 LD (HL),E	;
+145)   8B19 23          		 INC HL	;
+146)   8B1A 72          		 LD (HL),D	;
+151)   8B1B 3E 01       		OT2: LD A,01b  ;DISABLE INTS & ENABLE NB=RAM NON WRITABLE	;DISABLE INTS & ENABLE NB=RAM NON WRITABLE
+152)   8B1D D3 E0       		 OUT (INTENB),A  	;
+153)   8B1F C9          		 RET	;
+156)   8B20 01 14 DD    		OSXCL3: LD BC,XTABLE	;
+157)   8B23 FA 35 C3    		 JP M,ENTER	;
+158)   8B26 01 00 DE    		 LD BC,XTABL2	;
+159)   8B29 FE 56       		 CP LPCODE	;
+160)   8B2B DA 35 C3    		 JP C,ENTER       ;IF <$56 GOTO TAB2 	;IF <$56 GOTO TAB2
+161)   8B2E 01 43 A4    		 LD BC,XTABL3	;
+162)   8B31 FE 62       		 CP OSCODE	;
+163)   8B33 DA 35 C3    		 JP C,ENTER ;IF <$62 GOTO TAB3	;IF <$62 GOTO TAB3
+164)   8B36 01 3D 8B    		 LD BC,XTABL4 ;ELSE  OUR TAB4	;ELSE  OUR TAB4
+165)   8B39 C3 35 C3    		 JP ENTER	;
+168)   8B3C F5          		 PUSH AF	;
+169)   8B3D DD E5       		 PUSH IX	;
+170)   8B3F FD E5       		 PUSH IY	;
+171)   8B41 D5          		 PUSH DE	;
+172)   8B42 21 CB 8B    		 LD HL,TOS	;
+173)   8B45 CD D4 A2    		 CALL PSCAN	;
+174)   8B48 D4 55 8B    		 CALL NC, COSCMD	;
+175)   8B4B D1          		 POP DE	;
+176)   8B4C FD E1       		 POP IY	;
+177)   8B4E DD E1       		 POP IX	;
+178)   8B50 F1          		 POP AF	;
+179)   8B51 21 5A A3    		OT: LD HL,TPLOT	;
+180)   8B54 C9          		 RET	;
+186)   8B55 21 CE 8B    		COSCMD: LD HL,OSLST	;
+187)   8B58 CD D4 A2    		 CALL PSCAN ;check for any of the OS COMMAND-list	;check for any of the OS COMMAND-list
+188)   8B5B D8          		 RET C	;
+189)   8B5C 61          		 LD H,C  ;THE OS LIST COMMAND ID ON C	;THE OS LIST COMMAND ID ON C
+190)   8B5D 2E B1       		 LD L,YOSCMD ;THE OS COMMAND	;THE OS COMMAND
+191)   8B5F D7 01       		 DEFW ZCM2HL	;
+192)   8B61 05          		 DEC B  ;CHECK FOR ARGS	;CHECK FOR ARGS
+193)   8B62 28 06       		 JR Z,NOARGS ;NO ARGS	;NO ARGS
+194)   8B64 0D          		 DEC C  ; CCD	; CCD
+195)   8B65 20 09       		 JR NZ, NXTCMD0	;
+199)   8B67 DF 18       		 DEFW WEXPN ;GET PARAM for cd string	;GET PARAM for cd string
+200)   8B69 C9          		 RET	;
+201)   8B6A D8          		NOARGS: RET C	;
+202)   8B6B 3E B2       		 LD A,YOSEND	;
+203)   8B6D C3 85 CA    		 JP CSTOP1	;
+204)   8B70 0D          		NXTCMD0: DEC C ;COLOR COMMAND HAS 2 PARAMS	;COLOR COMMAND HAS 2 PARAMS
+205)   8B71 20 15       		 JR NZ,NXTCMD1 ;NZ MEANS OVER CMD 3 	;NZ MEANS OVER CMD 3
+207)   8B73 C5          		NXTPARAM: PUSH BC ;NUMEXP smashes BC,DE	;NUMEXP smashes BC,DE
+208)   8B74 DF 16       		 DEFW WNUMEXP ;	;
+209)   8B76 C1          		 POP BC	;
+210)   8B77 D8          		 RET C	;
+211)   8B78 3E B4       		    LD A,YCOLPAR ;PARAM HERE	;PARAM HERE
+212)   8B7A D7 57       		        DEFW ZCMONE ;	;
+213)   8B7C 05          		 DEC B	;
+214)   8B7D 28 04       		 JR Z, NPEX ;Last argument?	;Last argument?
+215)   8B7F DF 40       		 DEFW WCHKCOM ;CHECK FOR COMMA	;CHECK FOR COMMA
+216)   8B81 18 F0       		 JR NXTPARAM  	;
+217)   8B83 3E B2       		NPEX: LD A,YOSEND ;NO MORE PARAMS OS COMMAND ENDED	;NO MORE PARAMS OS COMMAND ENDED
+218)   8B85 C3 85 CA    		 JP CSTOP1	;
+219)   8B88 0D          		NXTCMD1: DEC C ;COLOR COMMAND HAS 2 PARAMS	;COLOR COMMAND HAS 2 PARAMS
+220)   8B89 C0          		 RET NZ   ;NZ MEANS OVER CMD 4 	;NZ MEANS OVER CMD 4
+222)   8B8A C5          		NXTPARAM1: PUSH BC ;NUMEXP smashes BC,DE	;NUMEXP smashes BC,DE
+223)   8B8B DF 16       		 DEFW WNUMEXP ;	;
+224)   8B8D C1          		 POP BC	;
+225)   8B8E D8          		 RET C	;
+226)   8B8F 3E B6       		    LD A,YGCOLPR ;GRAPH PARAM HERE	;GRAPH PARAM HERE
+227)   8B91 D7 57       		        DEFW ZCMONE ;	;
+228)   8B93 05          		 DEC B	;
+229)   8B94 28 04       		 JR Z, NPEX1 ;Last argument?	;Last argument?
+230)   8B96 DF 40       		 DEFW WCHKCOM ;CHECK FOR COMMA	;CHECK FOR COMMA
+231)   8B98 18 F0       		 JR NXTPARAM1  	;
+232)   8B9A 3E B2       		NPEX1: LD A,YOSEND ;NO MORE PARAMS OS COMMAND ENDED	;NO MORE PARAMS OS COMMAND ENDED
+233)   8B9C C3 85 CA    		 JP CSTOP1	;
+258)   8B9F AB 8B       		       DEFW XOSCMD	;
+261)   8BA1 BB 8B       		       DEFW XOSEND	;
+264)   8BA3 C2 8B       		       DEFW XCOL	;
+267)   8BA5 C5 8B       		 DEFW XCOLPAR	;
+270)   8BA7 C2 8B       		       DEFW XGCOL	;
+273)   8BA9 C8 8B       		 DEFW XGCOLPR	;
+276)   8BAB 7E          		XOSCMD: LD A,(HL) ;GET SUB COMMAND 0=DIR 1=CD 2=COL 3=GCOL	;GET SUB COMMAND 0=DIR 1=CD 2=COL 3=GCOL
+277)   8BAC B7          		 OR A	;
+278)   8BAD 28 34       		 JR Z,CMD_DIR	;
+279)   8BAF 3D          		 DEC A	;
+280)   8BB0 28 49       		 JR Z,CMD_CD	;
+281)   8BB2 3D          		 DEC A	;
+282)   8BB3 CA 49 8C    		 JP Z,CMD_COL	;
+283)   8BB6 3D          		 DEC A	;
+284)   8BB7 CA 49 8C    		 JP Z,CMD_COL	;
+287)   8BBA C9          		 RET	;
+289)   8BBB CD A0 D1    		XOSEND: CALL GFORP	;
+290)   8BBE CD 8C C5    		 CALL LDUSTP	;
+291)   8BC1 C9          		 RET	;
+294)   8BC2 C3 49 8C    		XCOL:  JP CMD_COL	;
+296)   8BC5 C3 55 8C    		XCOLPAR: JP CMD_COLPAR	;
+298)   8BC8 C3 51 8C    		XGCOLPR: JP CMD_GCOLPR	;
+301)   8BCB 01          		TOS: DEFB 1	;
+302)   8BCC 4F          		 DEFM 'O'	;
+303)   8BCD D3          		 DEFB 'S'+80H	;
+305)   8BCE 04          		OSLST: DEFB 4 ;no of sub-commands	;no of sub-commands
+307)   8BCF 44 49       		 DEFM 'DI' 	;
+308)   8BD1 D2 00 01    		 DEFB 'R'+80H,CDIR,0+1 ;+1 OF ARGS	;+1 OF ARGS
+310)   8BD4 43          		 DEFM 'C' 	;
+311)   8BD5 C4 01 02    		 DEFB 'D'+80H,CCD,1+1	;
+313)   8BD8 43 4F       		 DEFM 'CO' 	;
+314)   8BDA CC 02 03    		 DEFB 'L'+80H,CCOL,2+1	;
+316)   8BDD 47 43 4F    		 DEFM 'GCO' 	;
+317)   8BE0 CC 03 03    		 DEFB 'L'+80H,CGCOL,2+1	;
+319)   8BE3 D7 39       		CMD_DIR: DEFW ZPTMSG ;	;
+320)   8BE5 11          		 DEFB 17	;
+321)   8BE6 0D          		 DEFB $0D	;
+322)   8BE7 2D 2D 2D 5B 		 DEFM "---[DIR INFO]--"	;
+322)   8BEB 44 49 52 20 		 DEFM "---[DIR INFO]--"	;
+322)   8BEF 49 4E 46 4F 		 DEFM "---[DIR INFO]--"	;
+322)   8BF3 5D 2D 2D    		 DEFM "---[DIR INFO]--"	;
+323)   8BF6 0D          		 DEFB $0D	;
+324)   8BF7 CD 5D C1    		 CALL STRG_DIRLIST  ;PRINT DIR	;PRINT DIR
+325)   8BFA C9          		 RET	;
+327)   8BFB CD 36 DC    		CMD_CD: CALL GUSTP   ;SETS HL FROM IX+11,12 USRTOP	;SETS HL FROM IX+11,12 USRTOP
+338)   8BFE CD 0C C2    		 CALL STRG_DIRCHG	;
+339)   8C01 38 09       		 JR C, CD_ERR	;
+340)   8C03 3E 96       		 LD A,150   ;ERROR MISSING FILE	;ERROR MISSING FILE
+341)   8C05 28 05       		 JR Z,CD_ERR	;
+348)   8C07 CD AE C1    		 CALL STRG_DIRNMCHG	;
+349)   8C0A 18 0F       		 JR CD_CONT	;
+351)   8C0C E5          		 PUSH HL	;
+352)   8C0D F5          		 PUSH AF  	;
+353)   8C0E D7 39       		 DEFW ZPTMSG ;	;
+354)   8C10 05          		 DEFB 5	;
+355)   8C11 45 52 52 5F 		 DEFM "ERR_R"	;
+355)   8C15 52          		 DEFM "ERR_R"	;
+356)   8C16 F1          		 POP AF  	;
+357)   8C17 CD 01 81    		 CALL SOUTAS  	;
+358)   8C1A E1          		 POP HL  	;
+359)   8C1B F5          		CD_CONT: PUSH AF   ;SAVE FLAGS  	;SAVE FLAGS
+361)   8C1C 54          		 LD D,H	;
+362)   8C1D 5D          		 LD E,L	;
+363)   8C1E 1A          		CD_AGN: LD A,(DE)	;
+364)   8C1F FE 00       		 CP 0	;
+365)   8C21 3E 00       		 LD A,0	;
+366)   8C23 12          		 LD (DE),A    ;ZERO THIS	;ZERO THIS
+367)   8C24 13          		 INC DE	;
+368)   8C25 20 F7       		 JR NZ,CD_AGN	;
+369)   8C27 06 04       		 LD B,4	;
+370)   8C29 12          		CD_AGN2: LD (DE),A	;
+371)   8C2A 13          		 INC DE	;
+372)   8C2B 10 FC       		 DJNZ CD_AGN2	;
+374)   8C2D E5          		 PUSH HL	;
+375)   8C2E D5          		 PUSH DE	;
+376)   8C2F 21 E0 00    		 LD HL,DIRNM	;
+377)   8C32 7E          		NXTCHR: LD A,(HL)	;
+378)   8C33 B7          		 OR A 	;
+379)   8C34 28 05       		 JR Z,NXTPATH	;
+380)   8C36 DF 3C       		 DEFW WPTCHAR	;
+381)   8C38 23          		 INC HL	;
+382)   8C39 18 F7       		 JR NXTCHR	;
+383)   8C3B 23          		NXTPATH: INC HL	;
+384)   8C3C 7E          		 LD A,(HL)	;
+385)   8C3D B7          		 OR A	;
+386)   8C3E 20 F2       		 JR NZ,NXTCHR	;
+387)   8C40 D1          		 POP DE	;
+388)   8C41 E1          		 POP HL	;
+389)   8C42 EB          		 EX DE,HL	;
+390)   8C43 CD 8C C5    		 CALL LDUSTP	;
+394)   8C46 F1          		 POP AF  ;REST FLAGS  	;REST FLAGS
+395)   8C47 AF          		 XOR A	;
+396)   8C48 C9          		 RET	;
+401)   8C49 E5          		CMD_COL: PUSH HL	;
+402)   8C4A 11 AF 00    		 LD DE,PARAMS	;
+403)   8C4D 12          		 LD (DE),A  ;ZERO	;ZERO
+404)   8C4E C3 F2 C1    		 JP XRUN1D	;
+408)   8C51 0E 02       		CMD_GCOLPR: LD C,2	;
+409)   8C53 18 02       		 JR GCGO	;
+410)   8C55 0E 01       		CMD_COLPAR: LD C,1	;
+411)   8C57 E5          		GCGO: PUSH HL	;
+412)   8C58 CD 36 DC    		 CALL GUSTP  ;HL POINTS TO 1st PARAM	;HL POINTS TO 1st PARAM
+413)   8C5B 23          		 INC HL  ;POSITION TO PARAM  	;POSITION TO PARAM
+414)   8C5C EB          		 EX DE,HL ;DE IN PARAM POS	;DE IN PARAM POS
+415)   8C5D 21 AF 00    		 LD HL,PARAMS	;
+416)   8C60 34          		 INC (HL)	;
+417)   8C61 7E          		 LD A,(HL)  	;
+418)   8C62 23          		 INC HL	;
+419)   8C63 FE 01       		 CP 1	;
+420)   8C65 28 09       		 JR Z, SVPAR	;
+422)   8C67 7E          		 LD A,(HL)  ;1ST PARAM TO A FROM SV POS	;1ST PARAM TO A FROM SV POS
+423)   8C68 EB          		 EX DE,HL	;
+424)   8C69 46          		 LD B,(HL) ;2ND PARAM FROM USER STACK	;2ND PARAM FROM USER STACK
+425)   8C6A CD 75 8C    		 CALL DOSETCOL 	;
+426)   8C6D C3 F2 C1    		COLPAREX: JP XRUN1D	;
+428)   8C70 EB          		SVPAR: EX DE,HL ;HL IN PARAM POS, DE ON PARAMS 1 OR 2	;HL IN PARAM POS, DE ON PARAMS 1 OR 2
+429)   8C71 7E          		 LD A,(HL)	;
+430)   8C72 12          		 LD (DE),A   	;
+431)   8C73 18 F8       		 JR COLPAREX	;
+434)   8C75 CB 27       		DOSETCOL: SLA A ;HI NIBBLE IS FORE COLOR	;HI NIBBLE IS FORE COLOR
+435)   8C77 CB 27       		 SLA A 	;
+436)   8C79 CB 27       		 SLA A 	;
+437)   8C7B CB 27       		 SLA A   	;
+439)   8C7D B0          		 OR B  ;MERGE HIGH NIBBLE	;MERGE HIGH NIBBLE
+440)   8C7E 41          		 LD B,C  ;IF B=2 THEN GRAPHICS IF B=1 THEN TEXT	;IF B=2 THEN GRAPHICS IF B=1 THEN TEXT
+441)   8C7F D3 40       		 OUT (DEVCLR),A ;SEND IT TO THE COLOR SCREEN	;SEND IT TO THE COLOR SCREEN
+442)   8C81 C9          		 RET	;
+ 32)   8C82 DD 7E 0E    		MDLINT_PRNEDT: LD A,(IX+CHAR)         ;e9f1	;e9f1
+ 33)   8C85 18 20       		               JR MDL_SETCOLOR	;
+ 34)   8C87 C9          		 RET	;
+ 36)   8C88 DD 7E 06    		MDLINT_PUT31: LD A,(IX+EL)           ;ECD7	;ECD7
+ 37)   8C8B 18 1A       		               JR MDL_SETCOLOR	;
+ 38)   8C8D C9          		 RET	;
+ 40)   8C8E 36 20       		MDLINT_BLANK: LD (HL),BLANK          ;ECDF	;ECDF
+ 41)   8C90 CD A7 8C    		               CALL MDL_SETCOLOR                         	;
+ 42)   8C93 23          		               INC HL                	;
+ 43)   8C94 C9          		 RET	;
+ 54)   8C95 E5          		MDLINT_SCROLL: PUSH HL                 ;EBE6	;EBE6
+ 55)   8C96 14          		               INC D	;
+ 56)   8C97 15          		               DEC D	;
+ 57)   8C98 20 06       		               JR NZ, NOSCROLL         ; DE SHOULD BE ZERO TO SCROLL SCREEN	; DE SHOULD BE ZERO TO SCROLL SCREEN
+ 58)   8C9A 21 FF FF    		               LD HL,$FFFF	;
+ 59)   8C9D CD A7 8C    		               CALL MDL_SETCOLOR	;
+ 60)   8CA0 E1          		NOSCROLL:      POP HL                	;
+ 61)   8CA1 E5          		               PUSH HL                 ;ORIG CODE	;ORIG CODE
+ 62)   8CA2 D5          		               PUSH DE	;
+ 63)   8CA3 C5          		               PUSH BC	;
+ 64)   8CA4 C3 E9 EB    		               JP $EBE9        ;RET TO THE NB rom	;RET TO THE NB rom
+ 67)   8CA7 F5          		MDL_SETCOLOR:  PUSH AF	;
+ 68)   8CA8 E5          		 PUSH HL	;
+ 69)   8CA9 D5          		               PUSH DE	;
+ 70)   8CAA C5          		               PUSH BC	;
+ 72)   8CAB 11 82 02    		               LD DE,VidStart	;
+ 73)   8CAE B7          		               OR A                  ; clear carry	; clear carry
+ 74)   8CAF ED 52       		               SBC HL,DE             ; HL = HL - VidStart	; HL = HL - VidStart
+ 76)   8CB1 11 00 00    		               LD DE,ColorVidStart	;
+ 77)   8CB4 19          		               ADD HL,DE             ; HL = final color byte address	; HL = final color byte address
+ 78)   8CB5 44          		               LD B,H	;
+ 79)   8CB6 7D          		               LD A,L	;
+ 80)   8CB7 0E 41       		               LD C,DEVCLR+1	;
+ 81)   8CB9 ED 79       		               OUT (C),A	;
+ 82)   8CBB C1          		               POP BC	;
+ 83)   8CBC D1          		               POP DE	;
+ 84)   8CBD E1          		               POP HL	;
+ 85)   8CBE F1          		               POP AF	;
+ 86)   8CBF C9          		               RET	;
+ 91)   8CC0 CA BE B1    		MDLINT_GRPLT:  JP Z,NOPOINT    ;B1BA orig code	;B1BA orig code
+ 92)   8CC3 CD 04 8D    		               CALL MDL_SETGCLR	;
+ 93)   8CC6 CF          		               RST 8 ;orig code plot point according to colour 	;orig code plot point according to colour
+ 95)   8CC7 C3 BD B1    		               JP $B1BD ;CONTINUE	;CONTINUE
+ 97)   8CCA 79          		MDLINT_GRFIL:  LD A,C; ORIG CODE        ;$AD56	; ORIG CODE        ;$AD56
+ 98)   8CCB CD 04 8D    		               CALL MDL_SETGCLR	;
+ 99)   8CCE CF          		               RST 8 ;orig code	;orig code
+100)   8CCF 77          		               LD (HL),A  ;orig code               	;orig code
+101)   8CD0 C9          		               RET	;
+103)   8CD1 E5          		MDLINT_GRWIP:  PUSH HL ;ADDRESS	;ADDRESS
+104)   8CD2 C5          		               PUSH BC ;BYTES TO WRITE	;BYTES TO WRITE
+105)   8CD3 ED B0       		               LDIR ;original  code  $A7B3	;original  code  $A7B3
+107)   8CD5 C1          		               POP BC	;
+108)   8CD6 E1          		               POP HL	;
+109)   8CD7 03          		               INC BC	;
+110)   8CD8 CD F5 8C    		NXTADDR:       CALL MDL_SETGCOLOR	;
+111)   8CDB 23          		               INC HL	;
+112)   8CDC 0B          		               DEC BC	;
+113)   8CDD 78          		               LD A,B	;
+114)   8CDE B1          		               OR C 	;
+115)   8CDF 20 F7       		               JR NZ,NXTADDR	;
+117)   8CE1 C9          		               RET  ;original code	;original code
+120)   8CE2 E5          		MDLINT_GRCLS:  PUSH HL	;
+121)   8CE3 C5          		               PUSH BC	;
+122)   8CE4 1B          		               DEC DE ;orig code	;orig code
+123)   8CE5 ED B8       		               LDDR ;ORIG CODE	;ORIG CODE
+124)   8CE7 C1          		               POP BC	;
+125)   8CE8 E1          		               POP HL	;
+126)   8CE9 03          		               INC BC	;
+127)   8CEA 03          		               INC BC	;
+128)   8CEB CD A7 8C    		NXTADDR2:      CALL MDL_SETCOLOR       ;THIS IS CORRECT SETING TEXT COLORS ON CLOSE GRPH	;THIS IS CORRECT SETING TEXT COLORS ON CLOSE GRPH
+129)   8CEE 2B          		               DEC HL	;
+130)   8CEF 0B          		               DEC BC	;
+131)   8CF0 78          		               LD A,B	;
+132)   8CF1 B1          		               OR C 	;
+133)   8CF2 20 F7       		               JR NZ,NXTADDR2	;
+135)   8CF4 C9          		               RET  	;
+139)   8CF5 F5          		MDL_SETGCOLOR: PUSH AF	;
+140)   8CF6 C5          		               PUSH BC	;
+141)   8CF7 44          		               LD B,H	;
+142)   8CF8 7D          		               LD A,L	;
+143)   8CF9 0E 42       		               LD C, DEVCLR + 2	;
+144)   8CFB ED 79       		               OUT (C),A	;
+145)   8CFD 0E 44       		               LD C, DEVCLR + 4	;
+146)   8CFF ED 79       		               OUT (C),A	;
+147)   8D01 C1          		               POP BC	;
+148)   8D02 F1          		               POP AF	;
+149)   8D03 C9          		               RET	;
+154)   8D04 F5          		   PUSH AF	;
+155)   8D05 C5          		   PUSH BC	;
+156)   8D06 E5          		   PUSH HL	;
+157)   8D07 D5          		   PUSH DE	;
+160)   8D08 57          		   LD D,A	;
+161)   8D09 0E 00       		   LD C,0	;
+163)   8D0B CB 3F       		   SRL A	;
+164)   8D0D 38 03       		   JR C,BITIDX_FOUND	;
+165)   8D0F 0C          		   INC C	;
+166)   8D10 18 F9       		   JR BITIDX_LOOP	;
+168)   8D12 41          		   LD B,C                ; B = bit index 0..7	; B = bit index 0..7
+171)   8D13 11 82 02    		   LD DE,VidStart	;
+172)   8D16 B7          		   OR A                  ; clear carry	; clear carry
+173)   8D17 ED 52       		   SBC HL,DE             ; HL = HL - VidStart	; HL = HL - VidStart
+176)   8D19 29          		   ADD HL,HL             ; *2	; *2
+177)   8D1A 29          		   ADD HL,HL             ; *4	; *4
+180)   8D1B CB 38       		   SRL B                 ; B = bit_index / 2	; B = bit_index / 2
+181)   8D1D 58          		   LD E,B	;
+182)   8D1E 16 00       		   LD D,0	;
+183)   8D20 19          		   ADD HL,DE	;
+186)   8D21 11 00 00    		   LD DE,ColorVidStart	;
+187)   8D24 19          		   ADD HL,DE             ; HL = final color byte address	; HL = final color byte address
+190)   8D25 79          		   LD A,C                ; original bit index in C	; original bit index in C
+191)   8D26 E6 01       		   AND 1	;
+192)   8D28 57          		   LD D,A                ; D = PixelSide	; D = PixelSide
+195)   8D29 7A          		   LD A,D            ; Pixel side: 0 = right, 1 = left	; Pixel side: 0 = right, 1 = left
+196)   8D2A B7          		   OR A	;
+197)   8D2B 28 04       		   JR Z, PIXEL_RIGHT	;
+200)   8D2D 0E 42       		   LD C, DEVCLR + 2	;
+201)   8D2F 18 02       		   JR PIXEL_OUT	;
+204)   8D31 0E 44       		   LD C, DEVCLR + 4	;
+208)   8D33 44          		   LD B,H	;
+209)   8D34 7D          		   LD A,L	;
+210)   8D35 ED 79       		   OUT (C),A	;
+213)   8D37 D1          		   POP DE	;
+214)   8D38 E1          		   POP HL	;
+215)   8D39 C1          		   POP BC	;
+216)   8D3A F1          		   POP AF	;
+217)   8D3B C9          		   RET	;
+  1)   8D3C 00 00 00 00 		DS 0A000H-$	;
+  1)   8D40 00 00 00 00 		DS 0A000H-$	;
+  1)   8D44 00 00 00 00 		DS 0A000H-$	;
+  1)   8D48 00 00 00 00 		DS 0A000H-$	;
+  1)   8D4C 00 00 00 00 		DS 0A000H-$	;
+  1)   8D50 00 00 00 00 		DS 0A000H-$	;
+  1)   8D54 00 00 00 00 		DS 0A000H-$	;
+  1)   8D58 00 00 00 00 		DS 0A000H-$	;
+  1)   8D5C 00 00 00 00 		DS 0A000H-$	;
+  1)   8D60 00 00 00 00 		DS 0A000H-$	;
+  1)   8D64 00 00 00 00 		DS 0A000H-$	;
+  1)   8D68 00 00 00 00 		DS 0A000H-$	;
+  1)   8D6C 00 00 00 00 		DS 0A000H-$	;
+  1)   8D70 00 00 00 00 		DS 0A000H-$	;
+  1)   8D74 00 00 00 00 		DS 0A000H-$	;
+  1)   8D78 00 00 00 00 		DS 0A000H-$	;
+  1)   8D7C 00 00 00 00 		DS 0A000H-$	;
+  1)   8D80 00 00 00 00 		DS 0A000H-$	;
+  1)   8D84 00 00 00 00 		DS 0A000H-$	;
+  1)   8D88 00 00 00 00 		DS 0A000H-$	;
+  1)   8D8C 00 00 00 00 		DS 0A000H-$	;
+  1)   8D90 00 00 00 00 		DS 0A000H-$	;
+  1)   8D94 00 00 00 00 		DS 0A000H-$	;
+  1)   8D98 00 00 00 00 		DS 0A000H-$	;
+  1)   8D9C 00 00 00 00 		DS 0A000H-$	;
+  1)   8DA0 00 00 00 00 		DS 0A000H-$	;
+  1)   8DA4 00 00 00 00 		DS 0A000H-$	;
+  1)   8DA8 00 00 00 00 		DS 0A000H-$	;
+  1)   8DAC 00 00 00 00 		DS 0A000H-$	;
+  1)   8DB0 00 00 00 00 		DS 0A000H-$	;
+  1)   8DB4 00 00 00 00 		DS 0A000H-$	;
+  1)   8DB8 00 00 00 00 		DS 0A000H-$	;
+  1)   8DBC 00 00 00 00 		DS 0A000H-$	;
+  1)   8DC0 00 00 00 00 		DS 0A000H-$	;
+  1)   8DC4 00 00 00 00 		DS 0A000H-$	;
+  1)   8DC8 00 00 00 00 		DS 0A000H-$	;
+  1)   8DCC 00 00 00 00 		DS 0A000H-$	;
+  1)   8DD0 00 00 00 00 		DS 0A000H-$	;
+  1)   8DD4 00 00 00 00 		DS 0A000H-$	;
+  1)   8DD8 00 00 00 00 		DS 0A000H-$	;
+  1)   8DDC 00 00 00 00 		DS 0A000H-$	;
+  1)   8DE0 00 00 00 00 		DS 0A000H-$	;
+  1)   8DE4 00 00 00 00 		DS 0A000H-$	;
+  1)   8DE8 00 00 00 00 		DS 0A000H-$	;
+  1)   8DEC 00 00 00 00 		DS 0A000H-$	;
+  1)   8DF0 00 00 00 00 		DS 0A000H-$	;
+  1)   8DF4 00 00 00 00 		DS 0A000H-$	;
+  1)   8DF8 00 00 00 00 		DS 0A000H-$	;
+  1)   8DFC 00 00 00 00 		DS 0A000H-$	;
+  1)   8E00 00 00 00 00 		DS 0A000H-$	;
+  1)   8E04 00 00 00 00 		DS 0A000H-$	;
+  1)   8E08 00 00 00 00 		DS 0A000H-$	;
+  1)   8E0C 00 00 00 00 		DS 0A000H-$	;
+  1)   8E10 00 00 00 00 		DS 0A000H-$	;
+  1)   8E14 00 00 00 00 		DS 0A000H-$	;
+  1)   8E18 00 00 00 00 		DS 0A000H-$	;
+  1)   8E1C 00 00 00 00 		DS 0A000H-$	;
+  1)   8E20 00 00 00 00 		DS 0A000H-$	;
+  1)   8E24 00 00 00 00 		DS 0A000H-$	;
+  1)   8E28 00 00 00 00 		DS 0A000H-$	;
+  1)   8E2C 00 00 00 00 		DS 0A000H-$	;
+  1)   8E30 00 00 00 00 		DS 0A000H-$	;
+  1)   8E34 00 00 00 00 		DS 0A000H-$	;
+  1)   8E38 00 00 00 00 		DS 0A000H-$	;
+  1)   8E3C 00 00 00 00 		DS 0A000H-$	;
+  1)   8E40 00 00 00 00 		DS 0A000H-$	;
+  1)   8E44 00 00 00 00 		DS 0A000H-$	;
+  1)   8E48 00 00 00 00 		DS 0A000H-$	;
+  1)   8E4C 00 00 00 00 		DS 0A000H-$	;
+  1)   8E50 00 00 00 00 		DS 0A000H-$	;
+  1)   8E54 00 00 00 00 		DS 0A000H-$	;
+  1)   8E58 00 00 00 00 		DS 0A000H-$	;
+  1)   8E5C 00 00 00 00 		DS 0A000H-$	;
+  1)   8E60 00 00 00 00 		DS 0A000H-$	;
+  1)   8E64 00 00 00 00 		DS 0A000H-$	;
+  1)   8E68 00 00 00 00 		DS 0A000H-$	;
+  1)   8E6C 00 00 00 00 		DS 0A000H-$	;
+  1)   8E70 00 00 00 00 		DS 0A000H-$	;
+  1)   8E74 00 00 00 00 		DS 0A000H-$	;
+  1)   8E78 00 00 00 00 		DS 0A000H-$	;
+  1)   8E7C 00 00 00 00 		DS 0A000H-$	;
+  1)   8E80 00 00 00 00 		DS 0A000H-$	;
+  1)   8E84 00 00 00 00 		DS 0A000H-$	;
+  1)   8E88 00 00 00 00 		DS 0A000H-$	;
+  1)   8E8C 00 00 00 00 		DS 0A000H-$	;
+  1)   8E90 00 00 00 00 		DS 0A000H-$	;
+  1)   8E94 00 00 00 00 		DS 0A000H-$	;
+  1)   8E98 00 00 00 00 		DS 0A000H-$	;
+  1)   8E9C 00 00 00 00 		DS 0A000H-$	;
+  1)   8EA0 00 00 00 00 		DS 0A000H-$	;
+  1)   8EA4 00 00 00 00 		DS 0A000H-$	;
+  1)   8EA8 00 00 00 00 		DS 0A000H-$	;
+  1)   8EAC 00 00 00 00 		DS 0A000H-$	;
+  1)   8EB0 00 00 00 00 		DS 0A000H-$	;
+  1)   8EB4 00 00 00 00 		DS 0A000H-$	;
+  1)   8EB8 00 00 00 00 		DS 0A000H-$	;
+  1)   8EBC 00 00 00 00 		DS 0A000H-$	;
+  1)   8EC0 00 00 00 00 		DS 0A000H-$	;
+  1)   8EC4 00 00 00 00 		DS 0A000H-$	;
+  1)   8EC8 00 00 00 00 		DS 0A000H-$	;
+  1)   8ECC 00 00 00 00 		DS 0A000H-$	;
+  1)   8ED0 00 00 00 00 		DS 0A000H-$	;
+  1)   8ED4 00 00 00 00 		DS 0A000H-$	;
+  1)   8ED8 00 00 00 00 		DS 0A000H-$	;
+  1)   8EDC 00 00 00 00 		DS 0A000H-$	;
+  1)   8EE0 00 00 00 00 		DS 0A000H-$	;
+  1)   8EE4 00 00 00 00 		DS 0A000H-$	;
+  1)   8EE8 00 00 00 00 		DS 0A000H-$	;
+  1)   8EEC 00 00 00 00 		DS 0A000H-$	;
+  1)   8EF0 00 00 00 00 		DS 0A000H-$	;
+  1)   8EF4 00 00 00 00 		DS 0A000H-$	;
+  1)   8EF8 00 00 00 00 		DS 0A000H-$	;
+  1)   8EFC 00 00 00 00 		DS 0A000H-$	;
+  1)   8F00 00 00 00 00 		DS 0A000H-$	;
+  1)   8F04 00 00 00 00 		DS 0A000H-$	;
+  1)   8F08 00 00 00 00 		DS 0A000H-$	;
+  1)   8F0C 00 00 00 00 		DS 0A000H-$	;
+  1)   8F10 00 00 00 00 		DS 0A000H-$	;
+  1)   8F14 00 00 00 00 		DS 0A000H-$	;
+  1)   8F18 00 00 00 00 		DS 0A000H-$	;
+  1)   8F1C 00 00 00 00 		DS 0A000H-$	;
+  1)   8F20 00 00 00 00 		DS 0A000H-$	;
+  1)   8F24 00 00 00 00 		DS 0A000H-$	;
+  1)   8F28 00 00 00 00 		DS 0A000H-$	;
+  1)   8F2C 00 00 00 00 		DS 0A000H-$	;
+  1)   8F30 00 00 00 00 		DS 0A000H-$	;
+  1)   8F34 00 00 00 00 		DS 0A000H-$	;
+  1)   8F38 00 00 00 00 		DS 0A000H-$	;
+  1)   8F3C 00 00 00 00 		DS 0A000H-$	;
+  1)   8F40 00 00 00 00 		DS 0A000H-$	;
+  1)   8F44 00 00 00 00 		DS 0A000H-$	;
+  1)   8F48 00 00 00 00 		DS 0A000H-$	;
+  1)   8F4C 00 00 00 00 		DS 0A000H-$	;
+  1)   8F50 00 00 00 00 		DS 0A000H-$	;
+  1)   8F54 00 00 00 00 		DS 0A000H-$	;
+  1)   8F58 00 00 00 00 		DS 0A000H-$	;
+  1)   8F5C 00 00 00 00 		DS 0A000H-$	;
+  1)   8F60 00 00 00 00 		DS 0A000H-$	;
+  1)   8F64 00 00 00 00 		DS 0A000H-$	;
+  1)   8F68 00 00 00 00 		DS 0A000H-$	;
+  1)   8F6C 00 00 00 00 		DS 0A000H-$	;
+  1)   8F70 00 00 00 00 		DS 0A000H-$	;
+  1)   8F74 00 00 00 00 		DS 0A000H-$	;
+  1)   8F78 00 00 00 00 		DS 0A000H-$	;
+  1)   8F7C 00 00 00 00 		DS 0A000H-$	;
+  1)   8F80 00 00 00 00 		DS 0A000H-$	;
+  1)   8F84 00 00 00 00 		DS 0A000H-$	;
+  1)   8F88 00 00 00 00 		DS 0A000H-$	;
+  1)   8F8C 00 00 00 00 		DS 0A000H-$	;
+  1)   8F90 00 00 00 00 		DS 0A000H-$	;
+  1)   8F94 00 00 00 00 		DS 0A000H-$	;
+  1)   8F98 00 00 00 00 		DS 0A000H-$	;
+  1)   8F9C 00 00 00 00 		DS 0A000H-$	;
+  1)   8FA0 00 00 00 00 		DS 0A000H-$	;
+  1)   8FA4 00 00 00 00 		DS 0A000H-$	;
+  1)   8FA8 00 00 00 00 		DS 0A000H-$	;
+  1)   8FAC 00 00 00 00 		DS 0A000H-$	;
+  1)   8FB0 00 00 00 00 		DS 0A000H-$	;
+  1)   8FB4 00 00 00 00 		DS 0A000H-$	;
+  1)   8FB8 00 00 00 00 		DS 0A000H-$	;
+  1)   8FBC 00 00 00 00 		DS 0A000H-$	;
+  1)   8FC0 00 00 00 00 		DS 0A000H-$	;
+  1)   8FC4 00 00 00 00 		DS 0A000H-$	;
+  1)   8FC8 00 00 00 00 		DS 0A000H-$	;
+  1)   8FCC 00 00 00 00 		DS 0A000H-$	;
+  1)   8FD0 00 00 00 00 		DS 0A000H-$	;
+  1)   8FD4 00 00 00 00 		DS 0A000H-$	;
+  1)   8FD8 00 00 00 00 		DS 0A000H-$	;
+  1)   8FDC 00 00 00 00 		DS 0A000H-$	;
+  1)   8FE0 00 00 00 00 		DS 0A000H-$	;
+  1)   8FE4 00 00 00 00 		DS 0A000H-$	;
+  1)   8FE8 00 00 00 00 		DS 0A000H-$	;
+  1)   8FEC 00 00 00 00 		DS 0A000H-$	;
+  1)   8FF0 00 00 00 00 		DS 0A000H-$	;
+  1)   8FF4 00 00 00 00 		DS 0A000H-$	;
+  1)   8FF8 00 00 00 00 		DS 0A000H-$	;
+  1)   8FFC 00 00 00 00 		DS 0A000H-$	;
+  1)   9000 00 00 00 00 		DS 0A000H-$	;
+  1)   9004 00 00 00 00 		DS 0A000H-$	;
+  1)   9008 00 00 00 00 		DS 0A000H-$	;
+  1)   900C 00 00 00 00 		DS 0A000H-$	;
+  1)   9010 00 00 00 00 		DS 0A000H-$	;
+  1)   9014 00 00 00 00 		DS 0A000H-$	;
+  1)   9018 00 00 00 00 		DS 0A000H-$	;
+  1)   901C 00 00 00 00 		DS 0A000H-$	;
+  1)   9020 00 00 00 00 		DS 0A000H-$	;
+  1)   9024 00 00 00 00 		DS 0A000H-$	;
+  1)   9028 00 00 00 00 		DS 0A000H-$	;
+  1)   902C 00 00 00 00 		DS 0A000H-$	;
+  1)   9030 00 00 00 00 		DS 0A000H-$	;
+  1)   9034 00 00 00 00 		DS 0A000H-$	;
+  1)   9038 00 00 00 00 		DS 0A000H-$	;
+  1)   903C 00 00 00 00 		DS 0A000H-$	;
+  1)   9040 00 00 00 00 		DS 0A000H-$	;
+  1)   9044 00 00 00 00 		DS 0A000H-$	;
+  1)   9048 00 00 00 00 		DS 0A000H-$	;
+  1)   904C 00 00 00 00 		DS 0A000H-$	;
+  1)   9050 00 00 00 00 		DS 0A000H-$	;
+  1)   9054 00 00 00 00 		DS 0A000H-$	;
+  1)   9058 00 00 00 00 		DS 0A000H-$	;
+  1)   905C 00 00 00 00 		DS 0A000H-$	;
+  1)   9060 00 00 00 00 		DS 0A000H-$	;
+  1)   9064 00 00 00 00 		DS 0A000H-$	;
+  1)   9068 00 00 00 00 		DS 0A000H-$	;
+  1)   906C 00 00 00 00 		DS 0A000H-$	;
+  1)   9070 00 00 00 00 		DS 0A000H-$	;
+  1)   9074 00 00 00 00 		DS 0A000H-$	;
+  1)   9078 00 00 00 00 		DS 0A000H-$	;
+  1)   907C 00 00 00 00 		DS 0A000H-$	;
+  1)   9080 00 00 00 00 		DS 0A000H-$	;
+  1)   9084 00 00 00 00 		DS 0A000H-$	;
+  1)   9088 00 00 00 00 		DS 0A000H-$	;
+  1)   908C 00 00 00 00 		DS 0A000H-$	;
+  1)   9090 00 00 00 00 		DS 0A000H-$	;
+  1)   9094 00 00 00 00 		DS 0A000H-$	;
+  1)   9098 00 00 00 00 		DS 0A000H-$	;
+  1)   909C 00 00 00 00 		DS 0A000H-$	;
+  1)   90A0 00 00 00 00 		DS 0A000H-$	;
+  1)   90A4 00 00 00 00 		DS 0A000H-$	;
+  1)   90A8 00 00 00 00 		DS 0A000H-$	;
+  1)   90AC 00 00 00 00 		DS 0A000H-$	;
+  1)   90B0 00 00 00 00 		DS 0A000H-$	;
+  1)   90B4 00 00 00 00 		DS 0A000H-$	;
+  1)   90B8 00 00 00 00 		DS 0A000H-$	;
+  1)   90BC 00 00 00 00 		DS 0A000H-$	;
+  1)   90C0 00 00 00 00 		DS 0A000H-$	;
+  1)   90C4 00 00 00 00 		DS 0A000H-$	;
+  1)   90C8 00 00 00 00 		DS 0A000H-$	;
+  1)   90CC 00 00 00 00 		DS 0A000H-$	;
+  1)   90D0 00 00 00 00 		DS 0A000H-$	;
+  1)   90D4 00 00 00 00 		DS 0A000H-$	;
+  1)   90D8 00 00 00 00 		DS 0A000H-$	;
+  1)   90DC 00 00 00 00 		DS 0A000H-$	;
+  1)   90E0 00 00 00 00 		DS 0A000H-$	;
+  1)   90E4 00 00 00 00 		DS 0A000H-$	;
+  1)   90E8 00 00 00 00 		DS 0A000H-$	;
+  1)   90EC 00 00 00 00 		DS 0A000H-$	;
+  1)   90F0 00 00 00 00 		DS 0A000H-$	;
+  1)   90F4 00 00 00 00 		DS 0A000H-$	;
+  1)   90F8 00 00 00 00 		DS 0A000H-$	;
+  1)   90FC 00 00 00 00 		DS 0A000H-$	;
+  1)   9100 00 00 00 00 		DS 0A000H-$	;
+  1)   9104 00 00 00 00 		DS 0A000H-$	;
+  1)   9108 00 00 00 00 		DS 0A000H-$	;
+  1)   910C 00 00 00 00 		DS 0A000H-$	;
+  1)   9110 00 00 00 00 		DS 0A000H-$	;
+  1)   9114 00 00 00 00 		DS 0A000H-$	;
+  1)   9118 00 00 00 00 		DS 0A000H-$	;
+  1)   911C 00 00 00 00 		DS 0A000H-$	;
+  1)   9120 00 00 00 00 		DS 0A000H-$	;
+  1)   9124 00 00 00 00 		DS 0A000H-$	;
+  1)   9128 00 00 00 00 		DS 0A000H-$	;
+  1)   912C 00 00 00 00 		DS 0A000H-$	;
+  1)   9130 00 00 00 00 		DS 0A000H-$	;
+  1)   9134 00 00 00 00 		DS 0A000H-$	;
+  1)   9138 00 00 00 00 		DS 0A000H-$	;
+  1)   913C 00 00 00 00 		DS 0A000H-$	;
+  1)   9140 00 00 00 00 		DS 0A000H-$	;
+  1)   9144 00 00 00 00 		DS 0A000H-$	;
+  1)   9148 00 00 00 00 		DS 0A000H-$	;
+  1)   914C 00 00 00 00 		DS 0A000H-$	;
+  1)   9150 00 00 00 00 		DS 0A000H-$	;
+  1)   9154 00 00 00 00 		DS 0A000H-$	;
+  1)   9158 00 00 00 00 		DS 0A000H-$	;
+  1)   915C 00 00 00 00 		DS 0A000H-$	;
+  1)   9160 00 00 00 00 		DS 0A000H-$	;
+  1)   9164 00 00 00 00 		DS 0A000H-$	;
+  1)   9168 00 00 00 00 		DS 0A000H-$	;
+  1)   916C 00 00 00 00 		DS 0A000H-$	;
+  1)   9170 00 00 00 00 		DS 0A000H-$	;
+  1)   9174 00 00 00 00 		DS 0A000H-$	;
+  1)   9178 00 00 00 00 		DS 0A000H-$	;
+  1)   917C 00 00 00 00 		DS 0A000H-$	;
+  1)   9180 00 00 00 00 		DS 0A000H-$	;
+  1)   9184 00 00 00 00 		DS 0A000H-$	;
+  1)   9188 00 00 00 00 		DS 0A000H-$	;
+  1)   918C 00 00 00 00 		DS 0A000H-$	;
+  1)   9190 00 00 00 00 		DS 0A000H-$	;
+  1)   9194 00 00 00 00 		DS 0A000H-$	;
+  1)   9198 00 00 00 00 		DS 0A000H-$	;
+  1)   919C 00 00 00 00 		DS 0A000H-$	;
+  1)   91A0 00 00 00 00 		DS 0A000H-$	;
+  1)   91A4 00 00 00 00 		DS 0A000H-$	;
+  1)   91A8 00 00 00 00 		DS 0A000H-$	;
+  1)   91AC 00 00 00 00 		DS 0A000H-$	;
+  1)   91B0 00 00 00 00 		DS 0A000H-$	;
+  1)   91B4 00 00 00 00 		DS 0A000H-$	;
+  1)   91B8 00 00 00 00 		DS 0A000H-$	;
+  1)   91BC 00 00 00 00 		DS 0A000H-$	;
+  1)   91C0 00 00 00 00 		DS 0A000H-$	;
+  1)   91C4 00 00 00 00 		DS 0A000H-$	;
+  1)   91C8 00 00 00 00 		DS 0A000H-$	;
+  1)   91CC 00 00 00 00 		DS 0A000H-$	;
+  1)   91D0 00 00 00 00 		DS 0A000H-$	;
+  1)   91D4 00 00 00 00 		DS 0A000H-$	;
+  1)   91D8 00 00 00 00 		DS 0A000H-$	;
+  1)   91DC 00 00 00 00 		DS 0A000H-$	;
+  1)   91E0 00 00 00 00 		DS 0A000H-$	;
+  1)   91E4 00 00 00 00 		DS 0A000H-$	;
+  1)   91E8 00 00 00 00 		DS 0A000H-$	;
+  1)   91EC 00 00 00 00 		DS 0A000H-$	;
+  1)   91F0 00 00 00 00 		DS 0A000H-$	;
+  1)   91F4 00 00 00 00 		DS 0A000H-$	;
+  1)   91F8 00 00 00 00 		DS 0A000H-$	;
+  1)   91FC 00 00 00 00 		DS 0A000H-$	;
+  1)   9200 00 00 00 00 		DS 0A000H-$	;
+  1)   9204 00 00 00 00 		DS 0A000H-$	;
+  1)   9208 00 00 00 00 		DS 0A000H-$	;
+  1)   920C 00 00 00 00 		DS 0A000H-$	;
+  1)   9210 00 00 00 00 		DS 0A000H-$	;
+  1)   9214 00 00 00 00 		DS 0A000H-$	;
+  1)   9218 00 00 00 00 		DS 0A000H-$	;
+  1)   921C 00 00 00 00 		DS 0A000H-$	;
+  1)   9220 00 00 00 00 		DS 0A000H-$	;
+  1)   9224 00 00 00 00 		DS 0A000H-$	;
+  1)   9228 00 00 00 00 		DS 0A000H-$	;
+  1)   922C 00 00 00 00 		DS 0A000H-$	;
+  1)   9230 00 00 00 00 		DS 0A000H-$	;
+  1)   9234 00 00 00 00 		DS 0A000H-$	;
+  1)   9238 00 00 00 00 		DS 0A000H-$	;
+  1)   923C 00 00 00 00 		DS 0A000H-$	;
+  1)   9240 00 00 00 00 		DS 0A000H-$	;
+  1)   9244 00 00 00 00 		DS 0A000H-$	;
+  1)   9248 00 00 00 00 		DS 0A000H-$	;
+  1)   924C 00 00 00 00 		DS 0A000H-$	;
+  1)   9250 00 00 00 00 		DS 0A000H-$	;
+  1)   9254 00 00 00 00 		DS 0A000H-$	;
+  1)   9258 00 00 00 00 		DS 0A000H-$	;
+  1)   925C 00 00 00 00 		DS 0A000H-$	;
+  1)   9260 00 00 00 00 		DS 0A000H-$	;
+  1)   9264 00 00 00 00 		DS 0A000H-$	;
+  1)   9268 00 00 00 00 		DS 0A000H-$	;
+  1)   926C 00 00 00 00 		DS 0A000H-$	;
+  1)   9270 00 00 00 00 		DS 0A000H-$	;
+  1)   9274 00 00 00 00 		DS 0A000H-$	;
+  1)   9278 00 00 00 00 		DS 0A000H-$	;
+  1)   927C 00 00 00 00 		DS 0A000H-$	;
+  1)   9280 00 00 00 00 		DS 0A000H-$	;
+  1)   9284 00 00 00 00 		DS 0A000H-$	;
+  1)   9288 00 00 00 00 		DS 0A000H-$	;
+  1)   928C 00 00 00 00 		DS 0A000H-$	;
+  1)   9290 00 00 00 00 		DS 0A000H-$	;
+  1)   9294 00 00 00 00 		DS 0A000H-$	;
+  1)   9298 00 00 00 00 		DS 0A000H-$	;
+  1)   929C 00 00 00 00 		DS 0A000H-$	;
+  1)   92A0 00 00 00 00 		DS 0A000H-$	;
+  1)   92A4 00 00 00 00 		DS 0A000H-$	;
+  1)   92A8 00 00 00 00 		DS 0A000H-$	;
+  1)   92AC 00 00 00 00 		DS 0A000H-$	;
+  1)   92B0 00 00 00 00 		DS 0A000H-$	;
+  1)   92B4 00 00 00 00 		DS 0A000H-$	;
+  1)   92B8 00 00 00 00 		DS 0A000H-$	;
+  1)   92BC 00 00 00 00 		DS 0A000H-$	;
+  1)   92C0 00 00 00 00 		DS 0A000H-$	;
+  1)   92C4 00 00 00 00 		DS 0A000H-$	;
+  1)   92C8 00 00 00 00 		DS 0A000H-$	;
+  1)   92CC 00 00 00 00 		DS 0A000H-$	;
+  1)   92D0 00 00 00 00 		DS 0A000H-$	;
+  1)   92D4 00 00 00 00 		DS 0A000H-$	;
+  1)   92D8 00 00 00 00 		DS 0A000H-$	;
+  1)   92DC 00 00 00 00 		DS 0A000H-$	;
+  1)   92E0 00 00 00 00 		DS 0A000H-$	;
+  1)   92E4 00 00 00 00 		DS 0A000H-$	;
+  1)   92E8 00 00 00 00 		DS 0A000H-$	;
+  1)   92EC 00 00 00 00 		DS 0A000H-$	;
+  1)   92F0 00 00 00 00 		DS 0A000H-$	;
+  1)   92F4 00 00 00 00 		DS 0A000H-$	;
+  1)   92F8 00 00 00 00 		DS 0A000H-$	;
+  1)   92FC 00 00 00 00 		DS 0A000H-$	;
+  1)   9300 00 00 00 00 		DS 0A000H-$	;
+  1)   9304 00 00 00 00 		DS 0A000H-$	;
+  1)   9308 00 00 00 00 		DS 0A000H-$	;
+  1)   930C 00 00 00 00 		DS 0A000H-$	;
+  1)   9310 00 00 00 00 		DS 0A000H-$	;
+  1)   9314 00 00 00 00 		DS 0A000H-$	;
+  1)   9318 00 00 00 00 		DS 0A000H-$	;
+  1)   931C 00 00 00 00 		DS 0A000H-$	;
+  1)   9320 00 00 00 00 		DS 0A000H-$	;
+  1)   9324 00 00 00 00 		DS 0A000H-$	;
+  1)   9328 00 00 00 00 		DS 0A000H-$	;
+  1)   932C 00 00 00 00 		DS 0A000H-$	;
+  1)   9330 00 00 00 00 		DS 0A000H-$	;
+  1)   9334 00 00 00 00 		DS 0A000H-$	;
+  1)   9338 00 00 00 00 		DS 0A000H-$	;
+  1)   933C 00 00 00 00 		DS 0A000H-$	;
+  1)   9340 00 00 00 00 		DS 0A000H-$	;
+  1)   9344 00 00 00 00 		DS 0A000H-$	;
+  1)   9348 00 00 00 00 		DS 0A000H-$	;
+  1)   934C 00 00 00 00 		DS 0A000H-$	;
+  1)   9350 00 00 00 00 		DS 0A000H-$	;
+  1)   9354 00 00 00 00 		DS 0A000H-$	;
+  1)   9358 00 00 00 00 		DS 0A000H-$	;
+  1)   935C 00 00 00 00 		DS 0A000H-$	;
+  1)   9360 00 00 00 00 		DS 0A000H-$	;
+  1)   9364 00 00 00 00 		DS 0A000H-$	;
+  1)   9368 00 00 00 00 		DS 0A000H-$	;
+  1)   936C 00 00 00 00 		DS 0A000H-$	;
+  1)   9370 00 00 00 00 		DS 0A000H-$	;
+  1)   9374 00 00 00 00 		DS 0A000H-$	;
+  1)   9378 00 00 00 00 		DS 0A000H-$	;
+  1)   937C 00 00 00 00 		DS 0A000H-$	;
+  1)   9380 00 00 00 00 		DS 0A000H-$	;
+  1)   9384 00 00 00 00 		DS 0A000H-$	;
+  1)   9388 00 00 00 00 		DS 0A000H-$	;
+  1)   938C 00 00 00 00 		DS 0A000H-$	;
+  1)   9390 00 00 00 00 		DS 0A000H-$	;
+  1)   9394 00 00 00 00 		DS 0A000H-$	;
+  1)   9398 00 00 00 00 		DS 0A000H-$	;
+  1)   939C 00 00 00 00 		DS 0A000H-$	;
+  1)   93A0 00 00 00 00 		DS 0A000H-$	;
+  1)   93A4 00 00 00 00 		DS 0A000H-$	;
+  1)   93A8 00 00 00 00 		DS 0A000H-$	;
+  1)   93AC 00 00 00 00 		DS 0A000H-$	;
+  1)   93B0 00 00 00 00 		DS 0A000H-$	;
+  1)   93B4 00 00 00 00 		DS 0A000H-$	;
+  1)   93B8 00 00 00 00 		DS 0A000H-$	;
+  1)   93BC 00 00 00 00 		DS 0A000H-$	;
+  1)   93C0 00 00 00 00 		DS 0A000H-$	;
+  1)   93C4 00 00 00 00 		DS 0A000H-$	;
+  1)   93C8 00 00 00 00 		DS 0A000H-$	;
+  1)   93CC 00 00 00 00 		DS 0A000H-$	;
+  1)   93D0 00 00 00 00 		DS 0A000H-$	;
+  1)   93D4 00 00 00 00 		DS 0A000H-$	;
+  1)   93D8 00 00 00 00 		DS 0A000H-$	;
+  1)   93DC 00 00 00 00 		DS 0A000H-$	;
+  1)   93E0 00 00 00 00 		DS 0A000H-$	;
+  1)   93E4 00 00 00 00 		DS 0A000H-$	;
+  1)   93E8 00 00 00 00 		DS 0A000H-$	;
+  1)   93EC 00 00 00 00 		DS 0A000H-$	;
+  1)   93F0 00 00 00 00 		DS 0A000H-$	;
+  1)   93F4 00 00 00 00 		DS 0A000H-$	;
+  1)   93F8 00 00 00 00 		DS 0A000H-$	;
+  1)   93FC 00 00 00 00 		DS 0A000H-$	;
+  1)   9400 00 00 00 00 		DS 0A000H-$	;
+  1)   9404 00 00 00 00 		DS 0A000H-$	;
+  1)   9408 00 00 00 00 		DS 0A000H-$	;
+  1)   940C 00 00 00 00 		DS 0A000H-$	;
+  1)   9410 00 00 00 00 		DS 0A000H-$	;
+  1)   9414 00 00 00 00 		DS 0A000H-$	;
+  1)   9418 00 00 00 00 		DS 0A000H-$	;
+  1)   941C 00 00 00 00 		DS 0A000H-$	;
+  1)   9420 00 00 00 00 		DS 0A000H-$	;
+  1)   9424 00 00 00 00 		DS 0A000H-$	;
+  1)   9428 00 00 00 00 		DS 0A000H-$	;
+  1)   942C 00 00 00 00 		DS 0A000H-$	;
+  1)   9430 00 00 00 00 		DS 0A000H-$	;
+  1)   9434 00 00 00 00 		DS 0A000H-$	;
+  1)   9438 00 00 00 00 		DS 0A000H-$	;
+  1)   943C 00 00 00 00 		DS 0A000H-$	;
+  1)   9440 00 00 00 00 		DS 0A000H-$	;
+  1)   9444 00 00 00 00 		DS 0A000H-$	;
+  1)   9448 00 00 00 00 		DS 0A000H-$	;
+  1)   944C 00 00 00 00 		DS 0A000H-$	;
+  1)   9450 00 00 00 00 		DS 0A000H-$	;
+  1)   9454 00 00 00 00 		DS 0A000H-$	;
+  1)   9458 00 00 00 00 		DS 0A000H-$	;
+  1)   945C 00 00 00 00 		DS 0A000H-$	;
+  1)   9460 00 00 00 00 		DS 0A000H-$	;
+  1)   9464 00 00 00 00 		DS 0A000H-$	;
+  1)   9468 00 00 00 00 		DS 0A000H-$	;
+  1)   946C 00 00 00 00 		DS 0A000H-$	;
+  1)   9470 00 00 00 00 		DS 0A000H-$	;
+  1)   9474 00 00 00 00 		DS 0A000H-$	;
+  1)   9478 00 00 00 00 		DS 0A000H-$	;
+  1)   947C 00 00 00 00 		DS 0A000H-$	;
+  1)   9480 00 00 00 00 		DS 0A000H-$	;
+  1)   9484 00 00 00 00 		DS 0A000H-$	;
+  1)   9488 00 00 00 00 		DS 0A000H-$	;
+  1)   948C 00 00 00 00 		DS 0A000H-$	;
+  1)   9490 00 00 00 00 		DS 0A000H-$	;
+  1)   9494 00 00 00 00 		DS 0A000H-$	;
+  1)   9498 00 00 00 00 		DS 0A000H-$	;
+  1)   949C 00 00 00 00 		DS 0A000H-$	;
+  1)   94A0 00 00 00 00 		DS 0A000H-$	;
+  1)   94A4 00 00 00 00 		DS 0A000H-$	;
+  1)   94A8 00 00 00 00 		DS 0A000H-$	;
+  1)   94AC 00 00 00 00 		DS 0A000H-$	;
+  1)   94B0 00 00 00 00 		DS 0A000H-$	;
+  1)   94B4 00 00 00 00 		DS 0A000H-$	;
+  1)   94B8 00 00 00 00 		DS 0A000H-$	;
+  1)   94BC 00 00 00 00 		DS 0A000H-$	;
+  1)   94C0 00 00 00 00 		DS 0A000H-$	;
+  1)   94C4 00 00 00 00 		DS 0A000H-$	;
+  1)   94C8 00 00 00 00 		DS 0A000H-$	;
+  1)   94CC 00 00 00 00 		DS 0A000H-$	;
+  1)   94D0 00 00 00 00 		DS 0A000H-$	;
+  1)   94D4 00 00 00 00 		DS 0A000H-$	;
+  1)   94D8 00 00 00 00 		DS 0A000H-$	;
+  1)   94DC 00 00 00 00 		DS 0A000H-$	;
+  1)   94E0 00 00 00 00 		DS 0A000H-$	;
+  1)   94E4 00 00 00 00 		DS 0A000H-$	;
+  1)   94E8 00 00 00 00 		DS 0A000H-$	;
+  1)   94EC 00 00 00 00 		DS 0A000H-$	;
+  1)   94F0 00 00 00 00 		DS 0A000H-$	;
+  1)   94F4 00 00 00 00 		DS 0A000H-$	;
+  1)   94F8 00 00 00 00 		DS 0A000H-$	;
+  1)   94FC 00 00 00 00 		DS 0A000H-$	;
+  1)   9500 00 00 00 00 		DS 0A000H-$	;
+  1)   9504 00 00 00 00 		DS 0A000H-$	;
+  1)   9508 00 00 00 00 		DS 0A000H-$	;
+  1)   950C 00 00 00 00 		DS 0A000H-$	;
+  1)   9510 00 00 00 00 		DS 0A000H-$	;
+  1)   9514 00 00 00 00 		DS 0A000H-$	;
+  1)   9518 00 00 00 00 		DS 0A000H-$	;
+  1)   951C 00 00 00 00 		DS 0A000H-$	;
+  1)   9520 00 00 00 00 		DS 0A000H-$	;
+  1)   9524 00 00 00 00 		DS 0A000H-$	;
+  1)   9528 00 00 00 00 		DS 0A000H-$	;
+  1)   952C 00 00 00 00 		DS 0A000H-$	;
+  1)   9530 00 00 00 00 		DS 0A000H-$	;
+  1)   9534 00 00 00 00 		DS 0A000H-$	;
+  1)   9538 00 00 00 00 		DS 0A000H-$	;
+  1)   953C 00 00 00 00 		DS 0A000H-$	;
+  1)   9540 00 00 00 00 		DS 0A000H-$	;
+  1)   9544 00 00 00 00 		DS 0A000H-$	;
+  1)   9548 00 00 00 00 		DS 0A000H-$	;
+  1)   954C 00 00 00 00 		DS 0A000H-$	;
+  1)   9550 00 00 00 00 		DS 0A000H-$	;
+  1)   9554 00 00 00 00 		DS 0A000H-$	;
+  1)   9558 00 00 00 00 		DS 0A000H-$	;
+  1)   955C 00 00 00 00 		DS 0A000H-$	;
+  1)   9560 00 00 00 00 		DS 0A000H-$	;
+  1)   9564 00 00 00 00 		DS 0A000H-$	;
+  1)   9568 00 00 00 00 		DS 0A000H-$	;
+  1)   956C 00 00 00 00 		DS 0A000H-$	;
+  1)   9570 00 00 00 00 		DS 0A000H-$	;
+  1)   9574 00 00 00 00 		DS 0A000H-$	;
+  1)   9578 00 00 00 00 		DS 0A000H-$	;
+  1)   957C 00 00 00 00 		DS 0A000H-$	;
+  1)   9580 00 00 00 00 		DS 0A000H-$	;
+  1)   9584 00 00 00 00 		DS 0A000H-$	;
+  1)   9588 00 00 00 00 		DS 0A000H-$	;
+  1)   958C 00 00 00 00 		DS 0A000H-$	;
+  1)   9590 00 00 00 00 		DS 0A000H-$	;
+  1)   9594 00 00 00 00 		DS 0A000H-$	;
+  1)   9598 00 00 00 00 		DS 0A000H-$	;
+  1)   959C 00 00 00 00 		DS 0A000H-$	;
+  1)   95A0 00 00 00 00 		DS 0A000H-$	;
+  1)   95A4 00 00 00 00 		DS 0A000H-$	;
+  1)   95A8 00 00 00 00 		DS 0A000H-$	;
+  1)   95AC 00 00 00 00 		DS 0A000H-$	;
+  1)   95B0 00 00 00 00 		DS 0A000H-$	;
+  1)   95B4 00 00 00 00 		DS 0A000H-$	;
+  1)   95B8 00 00 00 00 		DS 0A000H-$	;
+  1)   95BC 00 00 00 00 		DS 0A000H-$	;
+  1)   95C0 00 00 00 00 		DS 0A000H-$	;
+  1)   95C4 00 00 00 00 		DS 0A000H-$	;
+  1)   95C8 00 00 00 00 		DS 0A000H-$	;
+  1)   95CC 00 00 00 00 		DS 0A000H-$	;
+  1)   95D0 00 00 00 00 		DS 0A000H-$	;
+  1)   95D4 00 00 00 00 		DS 0A000H-$	;
+  1)   95D8 00 00 00 00 		DS 0A000H-$	;
+  1)   95DC 00 00 00 00 		DS 0A000H-$	;
+  1)   95E0 00 00 00 00 		DS 0A000H-$	;
+  1)   95E4 00 00 00 00 		DS 0A000H-$	;
+  1)   95E8 00 00 00 00 		DS 0A000H-$	;
+  1)   95EC 00 00 00 00 		DS 0A000H-$	;
+  1)   95F0 00 00 00 00 		DS 0A000H-$	;
+  1)   95F4 00 00 00 00 		DS 0A000H-$	;
+  1)   95F8 00 00 00 00 		DS 0A000H-$	;
+  1)   95FC 00 00 00 00 		DS 0A000H-$	;
+  1)   9600 00 00 00 00 		DS 0A000H-$	;
+  1)   9604 00 00 00 00 		DS 0A000H-$	;
+  1)   9608 00 00 00 00 		DS 0A000H-$	;
+  1)   960C 00 00 00 00 		DS 0A000H-$	;
+  1)   9610 00 00 00 00 		DS 0A000H-$	;
+  1)   9614 00 00 00 00 		DS 0A000H-$	;
+  1)   9618 00 00 00 00 		DS 0A000H-$	;
+  1)   961C 00 00 00 00 		DS 0A000H-$	;
+  1)   9620 00 00 00 00 		DS 0A000H-$	;
+  1)   9624 00 00 00 00 		DS 0A000H-$	;
+  1)   9628 00 00 00 00 		DS 0A000H-$	;
+  1)   962C 00 00 00 00 		DS 0A000H-$	;
+  1)   9630 00 00 00 00 		DS 0A000H-$	;
+  1)   9634 00 00 00 00 		DS 0A000H-$	;
+  1)   9638 00 00 00 00 		DS 0A000H-$	;
+  1)   963C 00 00 00 00 		DS 0A000H-$	;
+  1)   9640 00 00 00 00 		DS 0A000H-$	;
+  1)   9644 00 00 00 00 		DS 0A000H-$	;
+  1)   9648 00 00 00 00 		DS 0A000H-$	;
+  1)   964C 00 00 00 00 		DS 0A000H-$	;
+  1)   9650 00 00 00 00 		DS 0A000H-$	;
+  1)   9654 00 00 00 00 		DS 0A000H-$	;
+  1)   9658 00 00 00 00 		DS 0A000H-$	;
+  1)   965C 00 00 00 00 		DS 0A000H-$	;
+  1)   9660 00 00 00 00 		DS 0A000H-$	;
+  1)   9664 00 00 00 00 		DS 0A000H-$	;
+  1)   9668 00 00 00 00 		DS 0A000H-$	;
+  1)   966C 00 00 00 00 		DS 0A000H-$	;
+  1)   9670 00 00 00 00 		DS 0A000H-$	;
+  1)   9674 00 00 00 00 		DS 0A000H-$	;
+  1)   9678 00 00 00 00 		DS 0A000H-$	;
+  1)   967C 00 00 00 00 		DS 0A000H-$	;
+  1)   9680 00 00 00 00 		DS 0A000H-$	;
+  1)   9684 00 00 00 00 		DS 0A000H-$	;
+  1)   9688 00 00 00 00 		DS 0A000H-$	;
+  1)   968C 00 00 00 00 		DS 0A000H-$	;
+  1)   9690 00 00 00 00 		DS 0A000H-$	;
+  1)   9694 00 00 00 00 		DS 0A000H-$	;
+  1)   9698 00 00 00 00 		DS 0A000H-$	;
+  1)   969C 00 00 00 00 		DS 0A000H-$	;
+  1)   96A0 00 00 00 00 		DS 0A000H-$	;
+  1)   96A4 00 00 00 00 		DS 0A000H-$	;
+  1)   96A8 00 00 00 00 		DS 0A000H-$	;
+  1)   96AC 00 00 00 00 		DS 0A000H-$	;
+  1)   96B0 00 00 00 00 		DS 0A000H-$	;
+  1)   96B4 00 00 00 00 		DS 0A000H-$	;
+  1)   96B8 00 00 00 00 		DS 0A000H-$	;
+  1)   96BC 00 00 00 00 		DS 0A000H-$	;
+  1)   96C0 00 00 00 00 		DS 0A000H-$	;
+  1)   96C4 00 00 00 00 		DS 0A000H-$	;
+  1)   96C8 00 00 00 00 		DS 0A000H-$	;
+  1)   96CC 00 00 00 00 		DS 0A000H-$	;
+  1)   96D0 00 00 00 00 		DS 0A000H-$	;
+  1)   96D4 00 00 00 00 		DS 0A000H-$	;
+  1)   96D8 00 00 00 00 		DS 0A000H-$	;
+  1)   96DC 00 00 00 00 		DS 0A000H-$	;
+  1)   96E0 00 00 00 00 		DS 0A000H-$	;
+  1)   96E4 00 00 00 00 		DS 0A000H-$	;
+  1)   96E8 00 00 00 00 		DS 0A000H-$	;
+  1)   96EC 00 00 00 00 		DS 0A000H-$	;
+  1)   96F0 00 00 00 00 		DS 0A000H-$	;
+  1)   96F4 00 00 00 00 		DS 0A000H-$	;
+  1)   96F8 00 00 00 00 		DS 0A000H-$	;
+  1)   96FC 00 00 00 00 		DS 0A000H-$	;
+  1)   9700 00 00 00 00 		DS 0A000H-$	;
+  1)   9704 00 00 00 00 		DS 0A000H-$	;
+  1)   9708 00 00 00 00 		DS 0A000H-$	;
+  1)   970C 00 00 00 00 		DS 0A000H-$	;
+  1)   9710 00 00 00 00 		DS 0A000H-$	;
+  1)   9714 00 00 00 00 		DS 0A000H-$	;
+  1)   9718 00 00 00 00 		DS 0A000H-$	;
+  1)   971C 00 00 00 00 		DS 0A000H-$	;
+  1)   9720 00 00 00 00 		DS 0A000H-$	;
+  1)   9724 00 00 00 00 		DS 0A000H-$	;
+  1)   9728 00 00 00 00 		DS 0A000H-$	;
+  1)   972C 00 00 00 00 		DS 0A000H-$	;
+  1)   9730 00 00 00 00 		DS 0A000H-$	;
+  1)   9734 00 00 00 00 		DS 0A000H-$	;
+  1)   9738 00 00 00 00 		DS 0A000H-$	;
+  1)   973C 00 00 00 00 		DS 0A000H-$	;
+  1)   9740 00 00 00 00 		DS 0A000H-$	;
+  1)   9744 00 00 00 00 		DS 0A000H-$	;
+  1)   9748 00 00 00 00 		DS 0A000H-$	;
+  1)   974C 00 00 00 00 		DS 0A000H-$	;
+  1)   9750 00 00 00 00 		DS 0A000H-$	;
+  1)   9754 00 00 00 00 		DS 0A000H-$	;
+  1)   9758 00 00 00 00 		DS 0A000H-$	;
+  1)   975C 00 00 00 00 		DS 0A000H-$	;
+  1)   9760 00 00 00 00 		DS 0A000H-$	;
+  1)   9764 00 00 00 00 		DS 0A000H-$	;
+  1)   9768 00 00 00 00 		DS 0A000H-$	;
+  1)   976C 00 00 00 00 		DS 0A000H-$	;
+  1)   9770 00 00 00 00 		DS 0A000H-$	;
+  1)   9774 00 00 00 00 		DS 0A000H-$	;
+  1)   9778 00 00 00 00 		DS 0A000H-$	;
+  1)   977C 00 00 00 00 		DS 0A000H-$	;
+  1)   9780 00 00 00 00 		DS 0A000H-$	;
+  1)   9784 00 00 00 00 		DS 0A000H-$	;
+  1)   9788 00 00 00 00 		DS 0A000H-$	;
+  1)   978C 00 00 00 00 		DS 0A000H-$	;
+  1)   9790 00 00 00 00 		DS 0A000H-$	;
+  1)   9794 00 00 00 00 		DS 0A000H-$	;
+  1)   9798 00 00 00 00 		DS 0A000H-$	;
+  1)   979C 00 00 00 00 		DS 0A000H-$	;
+  1)   97A0 00 00 00 00 		DS 0A000H-$	;
+  1)   97A4 00 00 00 00 		DS 0A000H-$	;
+  1)   97A8 00 00 00 00 		DS 0A000H-$	;
+  1)   97AC 00 00 00 00 		DS 0A000H-$	;
+  1)   97B0 00 00 00 00 		DS 0A000H-$	;
+  1)   97B4 00 00 00 00 		DS 0A000H-$	;
+  1)   97B8 00 00 00 00 		DS 0A000H-$	;
+  1)   97BC 00 00 00 00 		DS 0A000H-$	;
+  1)   97C0 00 00 00 00 		DS 0A000H-$	;
+  1)   97C4 00 00 00 00 		DS 0A000H-$	;
+  1)   97C8 00 00 00 00 		DS 0A000H-$	;
+  1)   97CC 00 00 00 00 		DS 0A000H-$	;
+  1)   97D0 00 00 00 00 		DS 0A000H-$	;
+  1)   97D4 00 00 00 00 		DS 0A000H-$	;
+  1)   97D8 00 00 00 00 		DS 0A000H-$	;
+  1)   97DC 00 00 00 00 		DS 0A000H-$	;
+  1)   97E0 00 00 00 00 		DS 0A000H-$	;
+  1)   97E4 00 00 00 00 		DS 0A000H-$	;
+  1)   97E8 00 00 00 00 		DS 0A000H-$	;
+  1)   97EC 00 00 00 00 		DS 0A000H-$	;
+  1)   97F0 00 00 00 00 		DS 0A000H-$	;
+  1)   97F4 00 00 00 00 		DS 0A000H-$	;
+  1)   97F8 00 00 00 00 		DS 0A000H-$	;
+  1)   97FC 00 00 00 00 		DS 0A000H-$	;
+  1)   9800 00 00 00 00 		DS 0A000H-$	;
+  1)   9804 00 00 00 00 		DS 0A000H-$	;
+  1)   9808 00 00 00 00 		DS 0A000H-$	;
+  1)   980C 00 00 00 00 		DS 0A000H-$	;
+  1)   9810 00 00 00 00 		DS 0A000H-$	;
+  1)   9814 00 00 00 00 		DS 0A000H-$	;
+  1)   9818 00 00 00 00 		DS 0A000H-$	;
+  1)   981C 00 00 00 00 		DS 0A000H-$	;
+  1)   9820 00 00 00 00 		DS 0A000H-$	;
+  1)   9824 00 00 00 00 		DS 0A000H-$	;
+  1)   9828 00 00 00 00 		DS 0A000H-$	;
+  1)   982C 00 00 00 00 		DS 0A000H-$	;
+  1)   9830 00 00 00 00 		DS 0A000H-$	;
+  1)   9834 00 00 00 00 		DS 0A000H-$	;
+  1)   9838 00 00 00 00 		DS 0A000H-$	;
+  1)   983C 00 00 00 00 		DS 0A000H-$	;
+  1)   9840 00 00 00 00 		DS 0A000H-$	;
+  1)   9844 00 00 00 00 		DS 0A000H-$	;
+  1)   9848 00 00 00 00 		DS 0A000H-$	;
+  1)   984C 00 00 00 00 		DS 0A000H-$	;
+  1)   9850 00 00 00 00 		DS 0A000H-$	;
+  1)   9854 00 00 00 00 		DS 0A000H-$	;
+  1)   9858 00 00 00 00 		DS 0A000H-$	;
+  1)   985C 00 00 00 00 		DS 0A000H-$	;
+  1)   9860 00 00 00 00 		DS 0A000H-$	;
+  1)   9864 00 00 00 00 		DS 0A000H-$	;
+  1)   9868 00 00 00 00 		DS 0A000H-$	;
+  1)   986C 00 00 00 00 		DS 0A000H-$	;
+  1)   9870 00 00 00 00 		DS 0A000H-$	;
+  1)   9874 00 00 00 00 		DS 0A000H-$	;
+  1)   9878 00 00 00 00 		DS 0A000H-$	;
+  1)   987C 00 00 00 00 		DS 0A000H-$	;
+  1)   9880 00 00 00 00 		DS 0A000H-$	;
+  1)   9884 00 00 00 00 		DS 0A000H-$	;
+  1)   9888 00 00 00 00 		DS 0A000H-$	;
+  1)   988C 00 00 00 00 		DS 0A000H-$	;
+  1)   9890 00 00 00 00 		DS 0A000H-$	;
+  1)   9894 00 00 00 00 		DS 0A000H-$	;
+  1)   9898 00 00 00 00 		DS 0A000H-$	;
+  1)   989C 00 00 00 00 		DS 0A000H-$	;
+  1)   98A0 00 00 00 00 		DS 0A000H-$	;
+  1)   98A4 00 00 00 00 		DS 0A000H-$	;
+  1)   98A8 00 00 00 00 		DS 0A000H-$	;
+  1)   98AC 00 00 00 00 		DS 0A000H-$	;
+  1)   98B0 00 00 00 00 		DS 0A000H-$	;
+  1)   98B4 00 00 00 00 		DS 0A000H-$	;
+  1)   98B8 00 00 00 00 		DS 0A000H-$	;
+  1)   98BC 00 00 00 00 		DS 0A000H-$	;
+  1)   98C0 00 00 00 00 		DS 0A000H-$	;
+  1)   98C4 00 00 00 00 		DS 0A000H-$	;
+  1)   98C8 00 00 00 00 		DS 0A000H-$	;
+  1)   98CC 00 00 00 00 		DS 0A000H-$	;
+  1)   98D0 00 00 00 00 		DS 0A000H-$	;
+  1)   98D4 00 00 00 00 		DS 0A000H-$	;
+  1)   98D8 00 00 00 00 		DS 0A000H-$	;
+  1)   98DC 00 00 00 00 		DS 0A000H-$	;
+  1)   98E0 00 00 00 00 		DS 0A000H-$	;
+  1)   98E4 00 00 00 00 		DS 0A000H-$	;
+  1)   98E8 00 00 00 00 		DS 0A000H-$	;
+  1)   98EC 00 00 00 00 		DS 0A000H-$	;
+  1)   98F0 00 00 00 00 		DS 0A000H-$	;
+  1)   98F4 00 00 00 00 		DS 0A000H-$	;
+  1)   98F8 00 00 00 00 		DS 0A000H-$	;
+  1)   98FC 00 00 00 00 		DS 0A000H-$	;
+  1)   9900 00 00 00 00 		DS 0A000H-$	;
+  1)   9904 00 00 00 00 		DS 0A000H-$	;
+  1)   9908 00 00 00 00 		DS 0A000H-$	;
+  1)   990C 00 00 00 00 		DS 0A000H-$	;
+  1)   9910 00 00 00 00 		DS 0A000H-$	;
+  1)   9914 00 00 00 00 		DS 0A000H-$	;
+  1)   9918 00 00 00 00 		DS 0A000H-$	;
+  1)   991C 00 00 00 00 		DS 0A000H-$	;
+  1)   9920 00 00 00 00 		DS 0A000H-$	;
+  1)   9924 00 00 00 00 		DS 0A000H-$	;
+  1)   9928 00 00 00 00 		DS 0A000H-$	;
+  1)   992C 00 00 00 00 		DS 0A000H-$	;
+  1)   9930 00 00 00 00 		DS 0A000H-$	;
+  1)   9934 00 00 00 00 		DS 0A000H-$	;
+  1)   9938 00 00 00 00 		DS 0A000H-$	;
+  1)   993C 00 00 00 00 		DS 0A000H-$	;
+  1)   9940 00 00 00 00 		DS 0A000H-$	;
+  1)   9944 00 00 00 00 		DS 0A000H-$	;
+  1)   9948 00 00 00 00 		DS 0A000H-$	;
+  1)   994C 00 00 00 00 		DS 0A000H-$	;
+  1)   9950 00 00 00 00 		DS 0A000H-$	;
+  1)   9954 00 00 00 00 		DS 0A000H-$	;
+  1)   9958 00 00 00 00 		DS 0A000H-$	;
+  1)   995C 00 00 00 00 		DS 0A000H-$	;
+  1)   9960 00 00 00 00 		DS 0A000H-$	;
+  1)   9964 00 00 00 00 		DS 0A000H-$	;
+  1)   9968 00 00 00 00 		DS 0A000H-$	;
+  1)   996C 00 00 00 00 		DS 0A000H-$	;
+  1)   9970 00 00 00 00 		DS 0A000H-$	;
+  1)   9974 00 00 00 00 		DS 0A000H-$	;
+  1)   9978 00 00 00 00 		DS 0A000H-$	;
+  1)   997C 00 00 00 00 		DS 0A000H-$	;
+  1)   9980 00 00 00 00 		DS 0A000H-$	;
+  1)   9984 00 00 00 00 		DS 0A000H-$	;
+  1)   9988 00 00 00 00 		DS 0A000H-$	;
+  1)   998C 00 00 00 00 		DS 0A000H-$	;
+  1)   9990 00 00 00 00 		DS 0A000H-$	;
+  1)   9994 00 00 00 00 		DS 0A000H-$	;
+  1)   9998 00 00 00 00 		DS 0A000H-$	;
+  1)   999C 00 00 00 00 		DS 0A000H-$	;
+  1)   99A0 00 00 00 00 		DS 0A000H-$	;
+  1)   99A4 00 00 00 00 		DS 0A000H-$	;
+  1)   99A8 00 00 00 00 		DS 0A000H-$	;
+  1)   99AC 00 00 00 00 		DS 0A000H-$	;
+  1)   99B0 00 00 00 00 		DS 0A000H-$	;
+  1)   99B4 00 00 00 00 		DS 0A000H-$	;
+  1)   99B8 00 00 00 00 		DS 0A000H-$	;
+  1)   99BC 00 00 00 00 		DS 0A000H-$	;
+  1)   99C0 00 00 00 00 		DS 0A000H-$	;
+  1)   99C4 00 00 00 00 		DS 0A000H-$	;
+  1)   99C8 00 00 00 00 		DS 0A000H-$	;
+  1)   99CC 00 00 00 00 		DS 0A000H-$	;
+  1)   99D0 00 00 00 00 		DS 0A000H-$	;
+  1)   99D4 00 00 00 00 		DS 0A000H-$	;
+  1)   99D8 00 00 00 00 		DS 0A000H-$	;
+  1)   99DC 00 00 00 00 		DS 0A000H-$	;
+  1)   99E0 00 00 00 00 		DS 0A000H-$	;
+  1)   99E4 00 00 00 00 		DS 0A000H-$	;
+  1)   99E8 00 00 00 00 		DS 0A000H-$	;
+  1)   99EC 00 00 00 00 		DS 0A000H-$	;
+  1)   99F0 00 00 00 00 		DS 0A000H-$	;
+  1)   99F4 00 00 00 00 		DS 0A000H-$	;
+  1)   99F8 00 00 00 00 		DS 0A000H-$	;
+  1)   99FC 00 00 00 00 		DS 0A000H-$	;
+  1)   9A00 00 00 00 00 		DS 0A000H-$	;
+  1)   9A04 00 00 00 00 		DS 0A000H-$	;
+  1)   9A08 00 00 00 00 		DS 0A000H-$	;
+  1)   9A0C 00 00 00 00 		DS 0A000H-$	;
+  1)   9A10 00 00 00 00 		DS 0A000H-$	;
+  1)   9A14 00 00 00 00 		DS 0A000H-$	;
+  1)   9A18 00 00 00 00 		DS 0A000H-$	;
+  1)   9A1C 00 00 00 00 		DS 0A000H-$	;
+  1)   9A20 00 00 00 00 		DS 0A000H-$	;
+  1)   9A24 00 00 00 00 		DS 0A000H-$	;
+  1)   9A28 00 00 00 00 		DS 0A000H-$	;
+  1)   9A2C 00 00 00 00 		DS 0A000H-$	;
+  1)   9A30 00 00 00 00 		DS 0A000H-$	;
+  1)   9A34 00 00 00 00 		DS 0A000H-$	;
+  1)   9A38 00 00 00 00 		DS 0A000H-$	;
+  1)   9A3C 00 00 00 00 		DS 0A000H-$	;
+  1)   9A40 00 00 00 00 		DS 0A000H-$	;
+  1)   9A44 00 00 00 00 		DS 0A000H-$	;
+  1)   9A48 00 00 00 00 		DS 0A000H-$	;
+  1)   9A4C 00 00 00 00 		DS 0A000H-$	;
+  1)   9A50 00 00 00 00 		DS 0A000H-$	;
+  1)   9A54 00 00 00 00 		DS 0A000H-$	;
+  1)   9A58 00 00 00 00 		DS 0A000H-$	;
+  1)   9A5C 00 00 00 00 		DS 0A000H-$	;
+  1)   9A60 00 00 00 00 		DS 0A000H-$	;
+  1)   9A64 00 00 00 00 		DS 0A000H-$	;
+  1)   9A68 00 00 00 00 		DS 0A000H-$	;
+  1)   9A6C 00 00 00 00 		DS 0A000H-$	;
+  1)   9A70 00 00 00 00 		DS 0A000H-$	;
+  1)   9A74 00 00 00 00 		DS 0A000H-$	;
+  1)   9A78 00 00 00 00 		DS 0A000H-$	;
+  1)   9A7C 00 00 00 00 		DS 0A000H-$	;
+  1)   9A80 00 00 00 00 		DS 0A000H-$	;
+  1)   9A84 00 00 00 00 		DS 0A000H-$	;
+  1)   9A88 00 00 00 00 		DS 0A000H-$	;
+  1)   9A8C 00 00 00 00 		DS 0A000H-$	;
+  1)   9A90 00 00 00 00 		DS 0A000H-$	;
+  1)   9A94 00 00 00 00 		DS 0A000H-$	;
+  1)   9A98 00 00 00 00 		DS 0A000H-$	;
+  1)   9A9C 00 00 00 00 		DS 0A000H-$	;
+  1)   9AA0 00 00 00 00 		DS 0A000H-$	;
+  1)   9AA4 00 00 00 00 		DS 0A000H-$	;
+  1)   9AA8 00 00 00 00 		DS 0A000H-$	;
+  1)   9AAC 00 00 00 00 		DS 0A000H-$	;
+  1)   9AB0 00 00 00 00 		DS 0A000H-$	;
+  1)   9AB4 00 00 00 00 		DS 0A000H-$	;
+  1)   9AB8 00 00 00 00 		DS 0A000H-$	;
+  1)   9ABC 00 00 00 00 		DS 0A000H-$	;
+  1)   9AC0 00 00 00 00 		DS 0A000H-$	;
+  1)   9AC4 00 00 00 00 		DS 0A000H-$	;
+  1)   9AC8 00 00 00 00 		DS 0A000H-$	;
+  1)   9ACC 00 00 00 00 		DS 0A000H-$	;
+  1)   9AD0 00 00 00 00 		DS 0A000H-$	;
+  1)   9AD4 00 00 00 00 		DS 0A000H-$	;
+  1)   9AD8 00 00 00 00 		DS 0A000H-$	;
+  1)   9ADC 00 00 00 00 		DS 0A000H-$	;
+  1)   9AE0 00 00 00 00 		DS 0A000H-$	;
+  1)   9AE4 00 00 00 00 		DS 0A000H-$	;
+  1)   9AE8 00 00 00 00 		DS 0A000H-$	;
+  1)   9AEC 00 00 00 00 		DS 0A000H-$	;
+  1)   9AF0 00 00 00 00 		DS 0A000H-$	;
+  1)   9AF4 00 00 00 00 		DS 0A000H-$	;
+  1)   9AF8 00 00 00 00 		DS 0A000H-$	;
+  1)   9AFC 00 00 00 00 		DS 0A000H-$	;
+  1)   9B00 00 00 00 00 		DS 0A000H-$	;
+  1)   9B04 00 00 00 00 		DS 0A000H-$	;
+  1)   9B08 00 00 00 00 		DS 0A000H-$	;
+  1)   9B0C 00 00 00 00 		DS 0A000H-$	;
+  1)   9B10 00 00 00 00 		DS 0A000H-$	;
+  1)   9B14 00 00 00 00 		DS 0A000H-$	;
+  1)   9B18 00 00 00 00 		DS 0A000H-$	;
+  1)   9B1C 00 00 00 00 		DS 0A000H-$	;
+  1)   9B20 00 00 00 00 		DS 0A000H-$	;
+  1)   9B24 00 00 00 00 		DS 0A000H-$	;
+  1)   9B28 00 00 00 00 		DS 0A000H-$	;
+  1)   9B2C 00 00 00 00 		DS 0A000H-$	;
+  1)   9B30 00 00 00 00 		DS 0A000H-$	;
+  1)   9B34 00 00 00 00 		DS 0A000H-$	;
+  1)   9B38 00 00 00 00 		DS 0A000H-$	;
+  1)   9B3C 00 00 00 00 		DS 0A000H-$	;
+  1)   9B40 00 00 00 00 		DS 0A000H-$	;
+  1)   9B44 00 00 00 00 		DS 0A000H-$	;
+  1)   9B48 00 00 00 00 		DS 0A000H-$	;
+  1)   9B4C 00 00 00 00 		DS 0A000H-$	;
+  1)   9B50 00 00 00 00 		DS 0A000H-$	;
+  1)   9B54 00 00 00 00 		DS 0A000H-$	;
+  1)   9B58 00 00 00 00 		DS 0A000H-$	;
+  1)   9B5C 00 00 00 00 		DS 0A000H-$	;
+  1)   9B60 00 00 00 00 		DS 0A000H-$	;
+  1)   9B64 00 00 00 00 		DS 0A000H-$	;
+  1)   9B68 00 00 00 00 		DS 0A000H-$	;
+  1)   9B6C 00 00 00 00 		DS 0A000H-$	;
+  1)   9B70 00 00 00 00 		DS 0A000H-$	;
+  1)   9B74 00 00 00 00 		DS 0A000H-$	;
+  1)   9B78 00 00 00 00 		DS 0A000H-$	;
+  1)   9B7C 00 00 00 00 		DS 0A000H-$	;
+  1)   9B80 00 00 00 00 		DS 0A000H-$	;
+  1)   9B84 00 00 00 00 		DS 0A000H-$	;
+  1)   9B88 00 00 00 00 		DS 0A000H-$	;
+  1)   9B8C 00 00 00 00 		DS 0A000H-$	;
+  1)   9B90 00 00 00 00 		DS 0A000H-$	;
+  1)   9B94 00 00 00 00 		DS 0A000H-$	;
+  1)   9B98 00 00 00 00 		DS 0A000H-$	;
+  1)   9B9C 00 00 00 00 		DS 0A000H-$	;
+  1)   9BA0 00 00 00 00 		DS 0A000H-$	;
+  1)   9BA4 00 00 00 00 		DS 0A000H-$	;
+  1)   9BA8 00 00 00 00 		DS 0A000H-$	;
+  1)   9BAC 00 00 00 00 		DS 0A000H-$	;
+  1)   9BB0 00 00 00 00 		DS 0A000H-$	;
+  1)   9BB4 00 00 00 00 		DS 0A000H-$	;
+  1)   9BB8 00 00 00 00 		DS 0A000H-$	;
+  1)   9BBC 00 00 00 00 		DS 0A000H-$	;
+  1)   9BC0 00 00 00 00 		DS 0A000H-$	;
+  1)   9BC4 00 00 00 00 		DS 0A000H-$	;
+  1)   9BC8 00 00 00 00 		DS 0A000H-$	;
+  1)   9BCC 00 00 00 00 		DS 0A000H-$	;
+  1)   9BD0 00 00 00 00 		DS 0A000H-$	;
+  1)   9BD4 00 00 00 00 		DS 0A000H-$	;
+  1)   9BD8 00 00 00 00 		DS 0A000H-$	;
+  1)   9BDC 00 00 00 00 		DS 0A000H-$	;
+  1)   9BE0 00 00 00 00 		DS 0A000H-$	;
+  1)   9BE4 00 00 00 00 		DS 0A000H-$	;
+  1)   9BE8 00 00 00 00 		DS 0A000H-$	;
+  1)   9BEC 00 00 00 00 		DS 0A000H-$	;
+  1)   9BF0 00 00 00 00 		DS 0A000H-$	;
+  1)   9BF4 00 00 00 00 		DS 0A000H-$	;
+  1)   9BF8 00 00 00 00 		DS 0A000H-$	;
+  1)   9BFC 00 00 00 00 		DS 0A000H-$	;
+  1)   9C00 00 00 00 00 		DS 0A000H-$	;
+  1)   9C04 00 00 00 00 		DS 0A000H-$	;
+  1)   9C08 00 00 00 00 		DS 0A000H-$	;
+  1)   9C0C 00 00 00 00 		DS 0A000H-$	;
+  1)   9C10 00 00 00 00 		DS 0A000H-$	;
+  1)   9C14 00 00 00 00 		DS 0A000H-$	;
+  1)   9C18 00 00 00 00 		DS 0A000H-$	;
+  1)   9C1C 00 00 00 00 		DS 0A000H-$	;
+  1)   9C20 00 00 00 00 		DS 0A000H-$	;
+  1)   9C24 00 00 00 00 		DS 0A000H-$	;
+  1)   9C28 00 00 00 00 		DS 0A000H-$	;
+  1)   9C2C 00 00 00 00 		DS 0A000H-$	;
+  1)   9C30 00 00 00 00 		DS 0A000H-$	;
+  1)   9C34 00 00 00 00 		DS 0A000H-$	;
+  1)   9C38 00 00 00 00 		DS 0A000H-$	;
+  1)   9C3C 00 00 00 00 		DS 0A000H-$	;
+  1)   9C40 00 00 00 00 		DS 0A000H-$	;
+  1)   9C44 00 00 00 00 		DS 0A000H-$	;
+  1)   9C48 00 00 00 00 		DS 0A000H-$	;
+  1)   9C4C 00 00 00 00 		DS 0A000H-$	;
+  1)   9C50 00 00 00 00 		DS 0A000H-$	;
+  1)   9C54 00 00 00 00 		DS 0A000H-$	;
+  1)   9C58 00 00 00 00 		DS 0A000H-$	;
+  1)   9C5C 00 00 00 00 		DS 0A000H-$	;
+  1)   9C60 00 00 00 00 		DS 0A000H-$	;
+  1)   9C64 00 00 00 00 		DS 0A000H-$	;
+  1)   9C68 00 00 00 00 		DS 0A000H-$	;
+  1)   9C6C 00 00 00 00 		DS 0A000H-$	;
+  1)   9C70 00 00 00 00 		DS 0A000H-$	;
+  1)   9C74 00 00 00 00 		DS 0A000H-$	;
+  1)   9C78 00 00 00 00 		DS 0A000H-$	;
+  1)   9C7C 00 00 00 00 		DS 0A000H-$	;
+  1)   9C80 00 00 00 00 		DS 0A000H-$	;
+  1)   9C84 00 00 00 00 		DS 0A000H-$	;
+  1)   9C88 00 00 00 00 		DS 0A000H-$	;
+  1)   9C8C 00 00 00 00 		DS 0A000H-$	;
+  1)   9C90 00 00 00 00 		DS 0A000H-$	;
+  1)   9C94 00 00 00 00 		DS 0A000H-$	;
+  1)   9C98 00 00 00 00 		DS 0A000H-$	;
+  1)   9C9C 00 00 00 00 		DS 0A000H-$	;
+  1)   9CA0 00 00 00 00 		DS 0A000H-$	;
+  1)   9CA4 00 00 00 00 		DS 0A000H-$	;
+  1)   9CA8 00 00 00 00 		DS 0A000H-$	;
+  1)   9CAC 00 00 00 00 		DS 0A000H-$	;
+  1)   9CB0 00 00 00 00 		DS 0A000H-$	;
+  1)   9CB4 00 00 00 00 		DS 0A000H-$	;
+  1)   9CB8 00 00 00 00 		DS 0A000H-$	;
+  1)   9CBC 00 00 00 00 		DS 0A000H-$	;
+  1)   9CC0 00 00 00 00 		DS 0A000H-$	;
+  1)   9CC4 00 00 00 00 		DS 0A000H-$	;
+  1)   9CC8 00 00 00 00 		DS 0A000H-$	;
+  1)   9CCC 00 00 00 00 		DS 0A000H-$	;
+  1)   9CD0 00 00 00 00 		DS 0A000H-$	;
+  1)   9CD4 00 00 00 00 		DS 0A000H-$	;
+  1)   9CD8 00 00 00 00 		DS 0A000H-$	;
+  1)   9CDC 00 00 00 00 		DS 0A000H-$	;
+  1)   9CE0 00 00 00 00 		DS 0A000H-$	;
+  1)   9CE4 00 00 00 00 		DS 0A000H-$	;
+  1)   9CE8 00 00 00 00 		DS 0A000H-$	;
+  1)   9CEC 00 00 00 00 		DS 0A000H-$	;
+  1)   9CF0 00 00 00 00 		DS 0A000H-$	;
+  1)   9CF4 00 00 00 00 		DS 0A000H-$	;
+  1)   9CF8 00 00 00 00 		DS 0A000H-$	;
+  1)   9CFC 00 00 00 00 		DS 0A000H-$	;
+  1)   9D00 00 00 00 00 		DS 0A000H-$	;
+  1)   9D04 00 00 00 00 		DS 0A000H-$	;
+  1)   9D08 00 00 00 00 		DS 0A000H-$	;
+  1)   9D0C 00 00 00 00 		DS 0A000H-$	;
+  1)   9D10 00 00 00 00 		DS 0A000H-$	;
+  1)   9D14 00 00 00 00 		DS 0A000H-$	;
+  1)   9D18 00 00 00 00 		DS 0A000H-$	;
+  1)   9D1C 00 00 00 00 		DS 0A000H-$	;
+  1)   9D20 00 00 00 00 		DS 0A000H-$	;
+  1)   9D24 00 00 00 00 		DS 0A000H-$	;
+  1)   9D28 00 00 00 00 		DS 0A000H-$	;
+  1)   9D2C 00 00 00 00 		DS 0A000H-$	;
+  1)   9D30 00 00 00 00 		DS 0A000H-$	;
+  1)   9D34 00 00 00 00 		DS 0A000H-$	;
+  1)   9D38 00 00 00 00 		DS 0A000H-$	;
+  1)   9D3C 00 00 00 00 		DS 0A000H-$	;
+  1)   9D40 00 00 00 00 		DS 0A000H-$	;
+  1)   9D44 00 00 00 00 		DS 0A000H-$	;
+  1)   9D48 00 00 00 00 		DS 0A000H-$	;
+  1)   9D4C 00 00 00 00 		DS 0A000H-$	;
+  1)   9D50 00 00 00 00 		DS 0A000H-$	;
+  1)   9D54 00 00 00 00 		DS 0A000H-$	;
+  1)   9D58 00 00 00 00 		DS 0A000H-$	;
+  1)   9D5C 00 00 00 00 		DS 0A000H-$	;
+  1)   9D60 00 00 00 00 		DS 0A000H-$	;
+  1)   9D64 00 00 00 00 		DS 0A000H-$	;
+  1)   9D68 00 00 00 00 		DS 0A000H-$	;
+  1)   9D6C 00 00 00 00 		DS 0A000H-$	;
+  1)   9D70 00 00 00 00 		DS 0A000H-$	;
+  1)   9D74 00 00 00 00 		DS 0A000H-$	;
+  1)   9D78 00 00 00 00 		DS 0A000H-$	;
+  1)   9D7C 00 00 00 00 		DS 0A000H-$	;
+  1)   9D80 00 00 00 00 		DS 0A000H-$	;
+  1)   9D84 00 00 00 00 		DS 0A000H-$	;
+  1)   9D88 00 00 00 00 		DS 0A000H-$	;
+  1)   9D8C 00 00 00 00 		DS 0A000H-$	;
+  1)   9D90 00 00 00 00 		DS 0A000H-$	;
+  1)   9D94 00 00 00 00 		DS 0A000H-$	;
+  1)   9D98 00 00 00 00 		DS 0A000H-$	;
+  1)   9D9C 00 00 00 00 		DS 0A000H-$	;
+  1)   9DA0 00 00 00 00 		DS 0A000H-$	;
+  1)   9DA4 00 00 00 00 		DS 0A000H-$	;
+  1)   9DA8 00 00 00 00 		DS 0A000H-$	;
+  1)   9DAC 00 00 00 00 		DS 0A000H-$	;
+  1)   9DB0 00 00 00 00 		DS 0A000H-$	;
+  1)   9DB4 00 00 00 00 		DS 0A000H-$	;
+  1)   9DB8 00 00 00 00 		DS 0A000H-$	;
+  1)   9DBC 00 00 00 00 		DS 0A000H-$	;
+  1)   9DC0 00 00 00 00 		DS 0A000H-$	;
+  1)   9DC4 00 00 00 00 		DS 0A000H-$	;
+  1)   9DC8 00 00 00 00 		DS 0A000H-$	;
+  1)   9DCC 00 00 00 00 		DS 0A000H-$	;
+  1)   9DD0 00 00 00 00 		DS 0A000H-$	;
+  1)   9DD4 00 00 00 00 		DS 0A000H-$	;
+  1)   9DD8 00 00 00 00 		DS 0A000H-$	;
+  1)   9DDC 00 00 00 00 		DS 0A000H-$	;
+  1)   9DE0 00 00 00 00 		DS 0A000H-$	;
+  1)   9DE4 00 00 00 00 		DS 0A000H-$	;
+  1)   9DE8 00 00 00 00 		DS 0A000H-$	;
+  1)   9DEC 00 00 00 00 		DS 0A000H-$	;
+  1)   9DF0 00 00 00 00 		DS 0A000H-$	;
+  1)   9DF4 00 00 00 00 		DS 0A000H-$	;
+  1)   9DF8 00 00 00 00 		DS 0A000H-$	;
+  1)   9DFC 00 00 00 00 		DS 0A000H-$	;
+  1)   9E00 00 00 00 00 		DS 0A000H-$	;
+  1)   9E04 00 00 00 00 		DS 0A000H-$	;
+  1)   9E08 00 00 00 00 		DS 0A000H-$	;
+  1)   9E0C 00 00 00 00 		DS 0A000H-$	;
+  1)   9E10 00 00 00 00 		DS 0A000H-$	;
+  1)   9E14 00 00 00 00 		DS 0A000H-$	;
+  1)   9E18 00 00 00 00 		DS 0A000H-$	;
+  1)   9E1C 00 00 00 00 		DS 0A000H-$	;
+  1)   9E20 00 00 00 00 		DS 0A000H-$	;
+  1)   9E24 00 00 00 00 		DS 0A000H-$	;
+  1)   9E28 00 00 00 00 		DS 0A000H-$	;
+  1)   9E2C 00 00 00 00 		DS 0A000H-$	;
+  1)   9E30 00 00 00 00 		DS 0A000H-$	;
+  1)   9E34 00 00 00 00 		DS 0A000H-$	;
+  1)   9E38 00 00 00 00 		DS 0A000H-$	;
+  1)   9E3C 00 00 00 00 		DS 0A000H-$	;
+  1)   9E40 00 00 00 00 		DS 0A000H-$	;
+  1)   9E44 00 00 00 00 		DS 0A000H-$	;
+  1)   9E48 00 00 00 00 		DS 0A000H-$	;
+  1)   9E4C 00 00 00 00 		DS 0A000H-$	;
+  1)   9E50 00 00 00 00 		DS 0A000H-$	;
+  1)   9E54 00 00 00 00 		DS 0A000H-$	;
+  1)   9E58 00 00 00 00 		DS 0A000H-$	;
+  1)   9E5C 00 00 00 00 		DS 0A000H-$	;
+  1)   9E60 00 00 00 00 		DS 0A000H-$	;
+  1)   9E64 00 00 00 00 		DS 0A000H-$	;
+  1)   9E68 00 00 00 00 		DS 0A000H-$	;
+  1)   9E6C 00 00 00 00 		DS 0A000H-$	;
+  1)   9E70 00 00 00 00 		DS 0A000H-$	;
+  1)   9E74 00 00 00 00 		DS 0A000H-$	;
+  1)   9E78 00 00 00 00 		DS 0A000H-$	;
+  1)   9E7C 00 00 00 00 		DS 0A000H-$	;
+  1)   9E80 00 00 00 00 		DS 0A000H-$	;
+  1)   9E84 00 00 00 00 		DS 0A000H-$	;
+  1)   9E88 00 00 00 00 		DS 0A000H-$	;
+  1)   9E8C 00 00 00 00 		DS 0A000H-$	;
+  1)   9E90 00 00 00 00 		DS 0A000H-$	;
+  1)   9E94 00 00 00 00 		DS 0A000H-$	;
+  1)   9E98 00 00 00 00 		DS 0A000H-$	;
+  1)   9E9C 00 00 00 00 		DS 0A000H-$	;
+  1)   9EA0 00 00 00 00 		DS 0A000H-$	;
+  1)   9EA4 00 00 00 00 		DS 0A000H-$	;
+  1)   9EA8 00 00 00 00 		DS 0A000H-$	;
+  1)   9EAC 00 00 00 00 		DS 0A000H-$	;
+  1)   9EB0 00 00 00 00 		DS 0A000H-$	;
+  1)   9EB4 00 00 00 00 		DS 0A000H-$	;
+  1)   9EB8 00 00 00 00 		DS 0A000H-$	;
+  1)   9EBC 00 00 00 00 		DS 0A000H-$	;
+  1)   9EC0 00 00 00 00 		DS 0A000H-$	;
+  1)   9EC4 00 00 00 00 		DS 0A000H-$	;
+  1)   9EC8 00 00 00 00 		DS 0A000H-$	;
+  1)   9ECC 00 00 00 00 		DS 0A000H-$	;
+  1)   9ED0 00 00 00 00 		DS 0A000H-$	;
+  1)   9ED4 00 00 00 00 		DS 0A000H-$	;
+  1)   9ED8 00 00 00 00 		DS 0A000H-$	;
+  1)   9EDC 00 00 00 00 		DS 0A000H-$	;
+  1)   9EE0 00 00 00 00 		DS 0A000H-$	;
+  1)   9EE4 00 00 00 00 		DS 0A000H-$	;
+  1)   9EE8 00 00 00 00 		DS 0A000H-$	;
+  1)   9EEC 00 00 00 00 		DS 0A000H-$	;
+  1)   9EF0 00 00 00 00 		DS 0A000H-$	;
+  1)   9EF4 00 00 00 00 		DS 0A000H-$	;
+  1)   9EF8 00 00 00 00 		DS 0A000H-$	;
+  1)   9EFC 00 00 00 00 		DS 0A000H-$	;
+  1)   9F00 00 00 00 00 		DS 0A000H-$	;
+  1)   9F04 00 00 00 00 		DS 0A000H-$	;
+  1)   9F08 00 00 00 00 		DS 0A000H-$	;
+  1)   9F0C 00 00 00 00 		DS 0A000H-$	;
+  1)   9F10 00 00 00 00 		DS 0A000H-$	;
+  1)   9F14 00 00 00 00 		DS 0A000H-$	;
+  1)   9F18 00 00 00 00 		DS 0A000H-$	;
+  1)   9F1C 00 00 00 00 		DS 0A000H-$	;
+  1)   9F20 00 00 00 00 		DS 0A000H-$	;
+  1)   9F24 00 00 00 00 		DS 0A000H-$	;
+  1)   9F28 00 00 00 00 		DS 0A000H-$	;
+  1)   9F2C 00 00 00 00 		DS 0A000H-$	;
+  1)   9F30 00 00 00 00 		DS 0A000H-$	;
+  1)   9F34 00 00 00 00 		DS 0A000H-$	;
+  1)   9F38 00 00 00 00 		DS 0A000H-$	;
+  1)   9F3C 00 00 00 00 		DS 0A000H-$	;
+  1)   9F40 00 00 00 00 		DS 0A000H-$	;
+  1)   9F44 00 00 00 00 		DS 0A000H-$	;
+  1)   9F48 00 00 00 00 		DS 0A000H-$	;
+  1)   9F4C 00 00 00 00 		DS 0A000H-$	;
+  1)   9F50 00 00 00 00 		DS 0A000H-$	;
+  1)   9F54 00 00 00 00 		DS 0A000H-$	;
+  1)   9F58 00 00 00 00 		DS 0A000H-$	;
+  1)   9F5C 00 00 00 00 		DS 0A000H-$	;
+  1)   9F60 00 00 00 00 		DS 0A000H-$	;
+  1)   9F64 00 00 00 00 		DS 0A000H-$	;
+  1)   9F68 00 00 00 00 		DS 0A000H-$	;
+  1)   9F6C 00 00 00 00 		DS 0A000H-$	;
+  1)   9F70 00 00 00 00 		DS 0A000H-$	;
+  1)   9F74 00 00 00 00 		DS 0A000H-$	;
+  1)   9F78 00 00 00 00 		DS 0A000H-$	;
+  1)   9F7C 00 00 00 00 		DS 0A000H-$	;
+  1)   9F80 00 00 00 00 		DS 0A000H-$	;
+  1)   9F84 00 00 00 00 		DS 0A000H-$	;
+  1)   9F88 00 00 00 00 		DS 0A000H-$	;
+  1)   9F8C 00 00 00 00 		DS 0A000H-$	;
+  1)   9F90 00 00 00 00 		DS 0A000H-$	;
+  1)   9F94 00 00 00 00 		DS 0A000H-$	;
+  1)   9F98 00 00 00 00 		DS 0A000H-$	;
+  1)   9F9C 00 00 00 00 		DS 0A000H-$	;
+  1)   9FA0 00 00 00 00 		DS 0A000H-$	;
+  1)   9FA4 00 00 00 00 		DS 0A000H-$	;
+  1)   9FA8 00 00 00 00 		DS 0A000H-$	;
+  1)   9FAC 00 00 00 00 		DS 0A000H-$	;
+  1)   9FB0 00 00 00 00 		DS 0A000H-$	;
+  1)   9FB4 00 00 00 00 		DS 0A000H-$	;
+  1)   9FB8 00 00 00 00 		DS 0A000H-$	;
+  1)   9FBC 00 00 00 00 		DS 0A000H-$	;
+  1)   9FC0 00 00 00 00 		DS 0A000H-$	;
+  1)   9FC4 00 00 00 00 		DS 0A000H-$	;
+  1)   9FC8 00 00 00 00 		DS 0A000H-$	;
+  1)   9FCC 00 00 00 00 		DS 0A000H-$	;
+  1)   9FD0 00 00 00 00 		DS 0A000H-$	;
+  1)   9FD4 00 00 00 00 		DS 0A000H-$	;
+  1)   9FD8 00 00 00 00 		DS 0A000H-$	;
+  1)   9FDC 00 00 00 00 		DS 0A000H-$	;
+  1)   9FE0 00 00 00 00 		DS 0A000H-$	;
+  1)   9FE4 00 00 00 00 		DS 0A000H-$	;
+  1)   9FE8 00 00 00 00 		DS 0A000H-$	;
+  1)   9FEC 00 00 00 00 		DS 0A000H-$	;
+  1)   9FF0 00 00 00 00 		DS 0A000H-$	;
+  1)   9FF4 00 00 00 00 		DS 0A000H-$	;
+  1)   9FF8 00 00 00 00 		DS 0A000H-$	;
+  1)   9FFC 00 00 00 00 		DS 0A000H-$	;
