@@ -6,3 +6,5 @@ FPGA/Z80SBC/src/_Old/
 FPGA/Z80SBC/src/I2C/temp/
 USBDISK/
 USBDISK - Αντιγραφή/
+EEPROMs/Atlas/Rom/AtlasOld/
+*.bmp

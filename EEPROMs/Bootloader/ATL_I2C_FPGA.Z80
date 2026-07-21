@@ -302,7 +302,7 @@ I2C_RD_LOOP:
 
         IN A,(Receive_reg)
         LD (HL),A
-	CALL SOUTAS
+	;CALL SOUTAS
         INC HL
 
         JR I2C_RD_LOOP
@@ -319,7 +319,7 @@ I2C_RD_LAST:
 
         IN A,(Receive_reg)
         LD (HL),A
-	CALL SOUTAS
+	;CALL SOUTAS
 I2C_RD_DONE:
         XOR A
         RET

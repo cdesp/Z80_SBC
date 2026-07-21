@@ -31,6 +31,8 @@ ARCHITECTURE behavioral OF Z80_Bus_Arbiter IS
     -- 2-bit vector to hold the calculated BA inputs for the 74LS139 (B=DEV2, A=DEV1)
     SIGNAL LS139_BA_OUT : STD_LOGIC_VECTOR(1 DOWNTO 0);
     SIGNAL ISLS139 : STD_LOGIC :='1';
+    signal io_strobe : std_logic;
+
 BEGIN
     
     -- Map lower 8 bits of Z80 address bus for I/O decoding
@@ -91,11 +93,11 @@ BEGIN
 
     END PROCESS;
     
-    -- Assign the calculated CBA outputs to the physical DEV pins
-    Z80_Out.DEV2 <= LS139_BA_OUT(1) WHEN (Z80_In.Z80_IORQ_N = '0'  AND ISLS139 = '0')
-                      ELSE '0'; -- 74LS139 Input B
-    Z80_Out.DEV1 <= LS139_BA_OUT(0) WHEN (Z80_In.Z80_IORQ_N = '0'  AND ISLS139 = '0')
-                      ELSE '0'; -- 74LS139 Input A
+    io_strobe <= '1' when (Z80_In.Z80_IORQ_N = '0' and (Z80_In.Z80_WR_N = '0' or Z80_In.Z80_RD_N = '0')) 
+                 else '0';
+
+    Z80_Out.DEV2 <= LS139_BA_OUT(1) WHEN (io_strobe = '1' AND ISLS139 = '0') ELSE '0';  --B
+    Z80_Out.DEV1 <= LS139_BA_OUT(0) WHEN (io_strobe = '1' AND ISLS139 = '0') ELSE '0';  --A
     
     -- ***************************************************************
     -- ** 2. MMU I/O PORT DECODING (Z80 OUT commands) **

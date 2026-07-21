@@ -268,6 +268,10 @@ architecture structural of Z80_FPGA_SYSTEM is
         --Generic
     signal v80_bus_out      : video_bus_out;  --demo  -- Video Output from Video Systems
     signal bootld_out       : t_system_to_z80; --Bus Arbiter out signals
+        --BootL
+    signal bootl_bus_out    : video_bus_out;  --Atlas video controller
+    signal bootl_out        : t_system_to_z80;
+    signal VBL_ADDR_BUS      : std_logic_vector(15 downto 0); -- Address from the Video Controller
         --Atlas
     signal atlas_bus_out    : video_bus_out;  --Atlas video controller
     signal atlas_out        : t_system_to_z80;
@@ -343,6 +347,40 @@ architecture structural of Z80_FPGA_SYSTEM is
         );
     end component;
 
+    component Z80_Bus_Arbiter
+        port (
+            CLK_FPGA          : in  std_logic;
+            -- Z80 Side
+            CLK               : in  std_logic;
+            nRESET            : in  std_logic;
+            -- All Z80 inputs bundled together
+            Z80_In            : in  t_z80_to_system;
+            -- All system outputs bundled together
+            Z80_Out           : out t_system_to_z80;
+            -- Other signals
+            OTSigs_in         : IN t_ot_sigs_to_system;
+            -- Video registers
+            VDRegs_out        : OUT t_video_regs
+        );
+    end component;
+
+    component Z80_BA_Atlas
+        port (
+            CLK_FPGA          : in  std_logic;
+            -- Z80 Side
+            CLK               : in  std_logic;
+            nRESET            : in  std_logic;
+            -- All Z80 inputs bundled together
+            Z80_In            : in  t_z80_to_system;
+            -- All system outputs bundled together
+            Z80_Out           : out t_system_to_z80;
+            -- Other signals
+            OTSigs_in         : IN t_ot_sigs_to_system;
+            -- Video registers
+            VDRegs_out        : OUT t_video_regs
+        );
+    end component;
+
   component Z80_BA_Newbrain
         port (
             CLK_FPGA          : in  std_logic;
@@ -360,22 +398,7 @@ architecture structural of Z80_FPGA_SYSTEM is
         );
     end component;
 
-    component Z80_Bus_Arbiter
-        port (
-            CLK_FPGA          : in  std_logic;
-            -- Z80 Side
-            CLK               : in  std_logic;
-            nRESET            : in  std_logic;
-            -- All Z80 inputs bundled together
-            Z80_In            : in  t_z80_to_system;
-            -- All system outputs bundled together
-            Z80_Out           : out t_system_to_z80;
-            -- Other signals
-            OTSigs_in         : IN t_ot_sigs_to_system;
-            -- Video registers
-            VDRegs_out        : OUT t_video_regs
-        );
-    end component;
+
 
     component MMU is
         port (
@@ -535,6 +558,23 @@ architecture structural of Z80_FPGA_SYSTEM is
     end component;
 
     component video_system_v80 is
+        port (
+            V_IN            : in  video_bus_in;
+            V_OUT           : out video_bus_out;
+            FPGA_CLK        : in  std_logic;
+            Z80_CLK         : in  std_logic;
+            Z80_WR_N        : in  std_logic;
+            Z80_ADDR        : in  std_logic_vector(3 downto 0);
+            Z80_DATA        : in  std_logic_vector(7 downto 0);
+            REG_SEL_N       : in  std_logic;
+            VRAM_DATA       : in  std_logic_vector(7 downto 0);
+            VRAM_ADDR       : out std_logic_vector(15 downto 0);
+            -- Video registers
+            VDRegs          : in t_video_regs
+        );
+    end component;
+
+   component BootLVideo is
         port (
             V_IN            : in  video_bus_in;
             V_OUT           : out video_bus_out;
@@ -740,6 +780,32 @@ begin
     -- ***************************************************************
     -- ** Z80 BUS ARBITER INSTANTIATION **
     -- ***************************************************************
+    BA_Bootld: Z80_Bus_Arbiter
+        port map (
+            CLK_FPGA          => CLK_IN,
+            CLK               => CLK_Z80_INT,             -- Z80 Operating Clock
+            nRESET            => reset_n_sync2,                -- System Reset (from external logic/button)
+            
+            Z80_In            => master_in,
+            Z80_Out           => bootld_out,
+            OTSigs_in         => otsigs,
+
+            VDRegs_out        => open
+        );
+
+    BA_Atlas: Z80_BA_Atlas
+        port map (
+            CLK_FPGA          => CLK_IN,
+            CLK               => CLK_Z80_INT,             -- Z80 Operating Clock
+            nRESET            => reset_n_sync2,                -- System Reset (from external logic/button)
+            
+            Z80_In            => master_in,
+            Z80_Out           => atlas_out,
+            OTSigs_in         => otsigs,
+
+            VDRegs_out        => open
+        );
+
 
     BA_Newbrain: Z80_BA_Newbrain
         port map (
@@ -754,18 +820,7 @@ begin
             VDRegs_out        => nb_regs
         );
 
-    BA_Bootld: Z80_Bus_Arbiter
-        port map (
-            CLK_FPGA          => CLK_IN,
-            CLK               => CLK_Z80_INT,             -- Z80 Operating Clock
-            nRESET            => reset_n_sync2,                -- System Reset (from external logic/button)
-            
-            Z80_In            => master_in,
-            Z80_Out           => bootld_out,
-            OTSigs_in         => otsigs,
 
-            VDRegs_out        => open
-        );
 
         master_in.Z80_DATA    <= Z80_DATA_IN_INT;
         master_in.Z80_IORQ_N  <= nIORQ_r;
@@ -796,8 +851,7 @@ begin
 
         WITH system_selection SELECT
         master_out <= bootld_out WHEN "0000",
-                      bootld_out WHEN "0001",  
-                      --atlas_out WHEN "0000",
+                      atlas_out WHEN "0001",
                       nb_out    WHEN "0010",
                       zx_out    WHEN "0011",
                       am_out    WHEN "0100",
@@ -1012,6 +1066,21 @@ begin
             VDRegs     => DUMMY_VDREGS
         );
 
+   U_PRODUCER_BOOTL : BootLVideo
+        port map(
+            V_IN       => video_timing,
+            V_OUT      => bootl_bus_out,
+            FPGA_CLK   => CLK_IN,
+            Z80_CLK    => CLK_Z80_INT,
+            Z80_WR_N   => nWR_CPU_r,
+            Z80_ADDR   => Z80_LA_BUS_INT(3 downto 0),
+            Z80_DATA   => Z80_DATA_IN_INT,
+            REG_SEL_N  => '1', 
+            VRAM_DATA  => VRAM_DATA_TO_VCTRL,
+            VRAM_ADDR  => VBL_ADDR_BUS,
+            VDRegs     => DUMMY_VDREGS  --atlas registers are ram based
+        );
+
     U_PRODUCER_ATLAS : AtlasVideo
         port map(
             V_IN       => video_timing,
@@ -1044,7 +1113,7 @@ begin
 
     -- Video handler
     with system_selection select
-        VCTRL_ADDR_BUS <= VAT_ADDR_BUS  when "0000",
+        VCTRL_ADDR_BUS <= VBL_ADDR_BUS  when "0000",
                           VAT_ADDR_BUS  when "0001",
                           VNB_ADDR_BUS  when "0010",
                           VZX_ADDR_BUS  when "0011",
@@ -1060,13 +1129,13 @@ begin
     process(CLK_Z80_INT, nRESET)
     begin
         if nRESET = '0' then
-            video_selection <= "0000";
+          --  video_selection <= "0000";
             system_selection <= "0000";
         elsif rising_edge(CLK_Z80_INT) then
-            if reg_video_sel_n = '0' then
-                -- Store lower 4 bits to address 16 potential systems
-                video_selection <= unsigned(Z80_DATA_IN_INT(3 downto 0)); 
-            end if;
+--            if reg_video_sel_n = '0' then
+----                Store lower 4 bits to address 16 potential systems
+--                video_selection <= unsigned(Z80_DATA_IN_INT(3 downto 0)); 
+--            end if;
          if reg_system_sel_n = '0' then
                 -- Store lower 4 bits to address 16 potential systems
                 system_selection <= unsigned(Z80_DATA_IN_INT(3 downto 0)); 
@@ -1074,18 +1143,8 @@ begin
         end if;
     end process;
 
-    --this selects the video system
---    with video_selection select
---        selected_video <= --v80_bus_out when "0000",
---                        atlas_bus_out when "0000",
---                          nb_bus_out when "0001",
---                          zx_bus_out when "0010",
---                          am_bus_out when "0011",
-
---                          v80_bus_out when others;
-
     with system_selection select
-        selected_video <= atlas_bus_out when "0000",
+        selected_video <= bootl_bus_out when "0000",
                           atlas_bus_out when "0001",
                           nb_bus_out    when "0010",
                           zx_bus_out    when "0011",
@@ -1093,14 +1152,13 @@ begin
 
                           v80_bus_out when others;
 
-
     -- ***************************************************************
     -- ** CHIP ENABLE AND EXTENDED ADDRESS PIN MAPPING **
     -- ***************************************************************
     DEV1 <= BADEV1; -- Z80's decoded output
     DEV2 <= BADEV2; -- Z80's decoded output
 
-    SN_DSn <='0' WHEN BADEV1='0' AND BADEV2='1' ELSE '1';
+    SN_DSn <='0' WHEN BADEV1='0' AND BADEV2='1' ELSE '1'; --LAUD_CS_N
 
 
 -- Z80 CPU WAIT IMPLEMENTATION
@@ -1153,58 +1211,55 @@ begin
 
 
 
-    -- 1. Combine the Z80 control signals first
-    z80_strobe_raw <= '0' when (BADEV1='1' and BADEV2='1' and nIORQ_r='0' ) else '1'; 
+----     1. Combine the Z80 control signals first for ch376
+--    z80_strobe_raw <= '0' when (BADEV1='1' and BADEV2='1' and nIORQ_r='0' ) else '1'; 
 
-    process(CLK_IN)
-    begin
-        if rising_edge(CLK_IN) then
-            sync_reg1 <= z80_strobe_raw;
-            sync_reg2 <= sync_reg1;
-            sync_reg3 <= sync_reg2;
-            
-            -- Detect edge
-            if (sync_reg3 = '1' and sync_reg2 = '0') then
-                pulse_timer <= 7; -- Start a timer
-            elsif pulse_timer > 0 then
-                pulse_timer <= pulse_timer - 1;
-            end if;
-            
-            -- Signal is active as long as the timer is running
-            if pulse_timer > 0 then
-                write_event <= '1';
-            else
-                write_event <= '0';
-            end if;
-        end if;
-    end process;
+--    process(CLK_IN)
+--    begin
+--        if rising_edge(CLK_IN) then
+--            sync_reg1 <= z80_strobe_raw;
+--            sync_reg2 <= sync_reg1;
+--            sync_reg3 <= sync_reg2;
+--            
+----             Detect edge
+--            if (sync_reg3 = '1' and sync_reg2 = '0') then
+--                pulse_timer <= 7; -- Start a timer
+--            elsif pulse_timer > 0 then
+--                pulse_timer <= pulse_timer - 1;
+--            end if;
+--            
+----             Signal is active as long as the timer is running
+--            if pulse_timer > 0 then
+--                write_event <= '1';
+--            else
+--                write_event <= '0';
+--            end if;
+--        end if;
+--    end process;
 
- 
-
-
-    process(CLK_IN, reset_n_sync2)
-    begin
-        if reset_n_sync2 = '0' then
-            write_count <= 0;
-            capturedata <= '0';
-            event_processed <= '0';
-        elsif rising_edge(CLK_IN) then
-            if write_event = '1' then
-                -- Only count if we haven't processed this specific pulse yet
-                if event_processed = '0' then
-                    if write_count < 0 then -- Change 2 to 6 to skip 6 writes
-                        write_count <= write_count + 1;
-                        event_processed <= '1'; -- Lock out further counts for this pulse
-                    else
-                        capturedata <= '1';
-                    end if;
-                end if;
-            else
-                -- Pulse is gone, reset the lockout so we are ready for the next one
-                event_processed <= '0';
-            end if;
-        end if;
-    end process;
+--    process(CLK_IN, reset_n_sync2)
+--    begin
+--        if reset_n_sync2 = '0' then
+--            write_count <= 0;
+--            capturedata <= '0';
+--            event_processed <= '0';
+--        elsif rising_edge(CLK_IN) then
+--            if write_event = '1' then
+ ----                Only count if we haven't processed this specific pulse yet
+--                if event_processed = '0' then
+--                    if write_count < 0 then -- Change 2 to 6 to skip 6 writes
+--                        write_count <= write_count + 1;
+--                        event_processed <= '1'; -- Lock out further counts for this pulse
+--                    else
+--                        capturedata <= '1';
+--                    end if;
+--                end if;
+--            else
+----                 Pulse is gone, reset the lockout so we are ready for the next one
+--                event_processed <= '0';
+--            end if;
+--        end if;
+--    end process;
     --i2c_rd_n_s goes low to signal we can read the data
     --i2c_data_out_s to the data bus
       
@@ -1227,9 +1282,7 @@ begin
                 (others => 'Z');                           -- Default if no device is selected for read
         END IF;
     END PROCESS;
-
          
-   
     sEnableDataOut <= '1' when flash_prog='0' 
            else '0' when ( UART_nCS = '0' or PS2_DSn ='0' or VRAM_CE_CPU_N = '0' or nCLK_SEL='0' or I2C_CSn ='0' or sIsDout ='0') and nRD_CPU_r = '0'--add i2c when it works
            else '1';

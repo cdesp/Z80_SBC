@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"z80-macroasm.files.include": "**/*.{a80,asm,inc,s,S}"
+	},
+	"launch": {
+		"version": "0.2.0",
+		"configurations": []
+	}
+}

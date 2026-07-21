@@ -15,10 +15,12 @@
         <File path="src/MMU.vhd" type="file.vhdl" enable="1"/>
         <File path="src/RegisterN.vhd" type="file.vhdl" enable="1"/>
         <File path="src/VD_Atlas_video.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/VD_Bootloader.vhd" type="file.vhdl" enable="1"/>
         <File path="src/VD_GenericZ80_module.vhd" type="file.vhdl" enable="1"/>
         <File path="src/VD_HDMI_Controller.vhd" type="file.vhdl" enable="1"/>
         <File path="src/VD_NEWBRAIN.vhd" type="file.vhdl" enable="1"/>
         <File path="src/VD_types_pkg.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/Z80_BA_Atlas.vhd" type="file.vhdl" enable="1"/>
         <File path="src/Z80_BA_Newbrain.vhd" type="file.vhdl" enable="1"/>
         <File path="src/Z80_Bus_Arbiter.vhd" type="file.vhdl" enable="1"/>
         <File path="src/Z80_FPGA_SYSTEM.vhd" type="file.vhdl" enable="1"/>

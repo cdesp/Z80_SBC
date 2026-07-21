@@ -1,0 +1,100 @@
+ORG $9000
+
+DEVINT  EQU $40 ;Y8 
+DEVINP  EQU $18 ;Y3
+
+
+
+
+
+INCLUDE MYOS_2_0000.SYM
+
+
+DI
+LD A,40
+LD (CURSORX),A
+LD A,20
+LD (CURSORY),A
+LD HL,MYMSG1
+CALL LCD_MSG
+
+
+AGN:    LD HL,MYMSG1
+    CALL RS_TXT
+ CALL RS_RX	;TAKE A CHAR FROM RS232 
+
+CP '1'
+CALL Z,CLRINT1
+CP '2'
+CALL Z,CLRINT2
+CP '3'
+CALL Z,CLRINT3
+CP '4'
+CALL Z,CLRINT4
+CP '5'
+CALL Z,CLRINT5
+CP '6'
+CALL Z,CLRINT6
+CP '7'
+CALL Z,CLRINT7
+CP '8'
+CALL Z,CLRINT8
+
+
+CP 'T'
+CALL Z,TSTINT
+CP 'M'
+JP Z,4
+JP AGN
+
+MYMSG1 DEFM "1,2:CLEAR INT | M=MENU"
+    DB 10,13,0
+
+
+CLRINT1:LD A,0 
+        OUT (DEVINT),A
+        RET
+
+CLRINT2:LD A,1
+        OUT (DEVINT),A
+        RET
+
+CLRINT3:LD A,2 
+        OUT (DEVINT),A
+        RET
+
+CLRINT4:LD A,3
+        OUT (DEVINT),A
+        RET
+
+CLRINT5:LD A,4
+        OUT (DEVINT),A
+        RET
+
+CLRINT6:LD A,5
+        OUT (DEVINT),A
+        RET
+
+CLRINT7:LD A,6
+        OUT (DEVINT),A
+        RET
+
+CLRINT8:LD A,7
+        OUT (DEVINT),A
+        RET
+
+
+
+TSTINT: IN A,(DEVINP)
+	PUSH AF
+        CALL SOUTAS
+	;        IN A,(DEVINP)
+	POP AF
+        CPL        
+        AND 0X07        
+        CALL SOUTAS
+        RET
+
+
+
+

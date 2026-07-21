@@ -10,55 +10,10 @@
                 <Signal>system_selection[1]</Signal>
                 <Signal>system_selection[0]</Signal>
             </Bus>
-            <Signal capture_enable="true">BA_Newbrain/KBint</Signal>
-            <Signal capture_enable="true">BA_Newbrain/kbintIN</Signal>
-            <Bus capture_enable="true" name="BA_Newbrain/ADDRin[7:0]">
-                <Signal>BA_Newbrain/ADDRin[7]</Signal>
-                <Signal>BA_Newbrain/ADDRin[6]</Signal>
-                <Signal>BA_Newbrain/ADDRin[5]</Signal>
-                <Signal>BA_Newbrain/ADDRin[4]</Signal>
-                <Signal>BA_Newbrain/ADDRin[3]</Signal>
-                <Signal>BA_Newbrain/ADDRin[2]</Signal>
-                <Signal>BA_Newbrain/ADDRin[1]</Signal>
-                <Signal>BA_Newbrain/ADDRin[0]</Signal>
-            </Bus>
-            <Signal capture_enable="true">BA_Newbrain/outputData</Signal>
-            <Bus capture_enable="true" name="BA_Newbrain/COPCTL2[7:0]">
-                <Signal>BA_Newbrain/COPCTL2[7]</Signal>
-                <Signal>BA_Newbrain/COPCTL2[6]</Signal>
-                <Signal>BA_Newbrain/COPCTL2[5]</Signal>
-                <Signal>BA_Newbrain/COPCTL2[4]</Signal>
-                <Signal>BA_Newbrain/COPCTL2[3]</Signal>
-                <Signal>BA_Newbrain/COPCTL2[2]</Signal>
-                <Signal>BA_Newbrain/COPCTL2[1]</Signal>
-                <Signal>BA_Newbrain/COPCTL2[0]</Signal>
-            </Bus>
-            <Bus capture_enable="true" name="BA_Newbrain/DATAout[7:0]">
-                <Signal>BA_Newbrain/DATAout[7]</Signal>
-                <Signal>BA_Newbrain/DATAout[6]</Signal>
-                <Signal>BA_Newbrain/DATAout[5]</Signal>
-                <Signal>BA_Newbrain/DATAout[4]</Signal>
-                <Signal>BA_Newbrain/DATAout[3]</Signal>
-                <Signal>BA_Newbrain/DATAout[2]</Signal>
-                <Signal>BA_Newbrain/DATAout[1]</Signal>
-                <Signal>BA_Newbrain/DATAout[0]</Signal>
-            </Bus>
-            <Signal capture_enable="true">BA_Newbrain/FRMint</Signal>
-            <Signal capture_enable="true">BA_Newbrain/FRMinton</Signal>
-            <Signal capture_enable="true">BA_Newbrain/COPint</Signal>
-            <Signal capture_enable="true">BA_Newbrain/CLRCOP</Signal>
-            <Signal capture_enable="true">BA_Newbrain/CLRKBD</Signal>
-            <Bus capture_enable="true" name="BA_Newbrain/KBcount[2:0]">
-                <Signal>BA_Newbrain/KBcount[2]</Signal>
-                <Signal>BA_Newbrain/KBcount[1]</Signal>
-                <Signal>BA_Newbrain/KBcount[0]</Signal>
-            </Bus>
             <Signal capture_enable="true">sPS2_BTRDY</Signal>
             <Signal capture_enable="true">otsigs.PS2_KEYB_Int</Signal>
             <Signal capture_enable="true">PS2_DSn</Signal>
             <Signal capture_enable="true">PS2KeybCtrl/byte_ready</Signal>
-            <Signal capture_enable="true">BA_Newbrain/nIORQin</Signal>
-            <Signal capture_enable="true">BA_Newbrain/nRDin</Signal>
             <Bus capture_enable="true" name="PS2_DATA_OUT[7:0]">
                 <Signal>PS2_DATA_OUT[7]</Signal>
                 <Signal>PS2_DATA_OUT[6]</Signal>
@@ -79,23 +34,47 @@
                 <Signal>Z80_DATA_OUT_INT[1]</Signal>
                 <Signal>Z80_DATA_OUT_INT[0]</Signal>
             </Bus>
+            <Signal capture_enable="true">sISDout</Signal>
+            <Signal capture_enable="true">BA_Atlas/FRMint</Signal>
+            <Signal capture_enable="true">BA_Atlas/OTSigs_in.PS2_KEYB_Int</Signal>
+            <Signal capture_enable="true">BA_Atlas/Z80_Out.Z80_INT_N</Signal>
+            <Signal capture_enable="true">BA_Atlas/Z80_In.INT_REQ_N</Signal>
+            <Signal capture_enable="true">BA_Atlas/CLRFRM</Signal>
+            <Bus capture_enable="true" name="BA_Atlas/Z80_IO_ADDR[7:0]">
+                <Signal>BA_Atlas/Z80_IO_ADDR[7]</Signal>
+                <Signal>BA_Atlas/Z80_IO_ADDR[6]</Signal>
+                <Signal>BA_Atlas/Z80_IO_ADDR[5]</Signal>
+                <Signal>BA_Atlas/Z80_IO_ADDR[4]</Signal>
+                <Signal>BA_Atlas/Z80_IO_ADDR[3]</Signal>
+                <Signal>BA_Atlas/Z80_IO_ADDR[2]</Signal>
+                <Signal>BA_Atlas/Z80_IO_ADDR[1]</Signal>
+                <Signal>BA_Atlas/Z80_IO_ADDR[0]</Signal>
+            </Bus>
+            <Signal capture_enable="true">LINT_N</Signal>
+            <Signal capture_enable="true">SYS_CSn</Signal>
+            <Signal capture_enable="true">master_out.SYS_CS_N</Signal>
+            <Signal capture_enable="true">atlas_out.SYS_CS_N</Signal>
+            <Signal capture_enable="true">nb_out.SYS_CS_N</Signal>
+            <Signal capture_enable="true">bootld_out.SYS_CS_N</Signal>
+            <Signal capture_enable="true">reg_system_sel_n</Signal>
+            <Signal capture_enable="true">BA_Atlas/Z80_In.Z80_IORQ_N</Signal>
+            <Signal capture_enable="true">BA_Atlas/Z80_In.Z80_RD_N</Signal>
         </SignalList>
         <Triggers>
             <Trigger index="0">
                 <SignalList>
-                    <Signal>BA_Newbrain/nIORQin</Signal>
-                    <Signal>BA_Newbrain/nRDin</Signal>
-                    <Bus restorename="BA_Newbrain/ADDRin[7:0]">
-                        <Signal>BA_Newbrain/ADDRin[7]</Signal>
-                        <Signal>BA_Newbrain/ADDRin[6]</Signal>
-                        <Signal>BA_Newbrain/ADDRin[5]</Signal>
-                        <Signal>BA_Newbrain/ADDRin[4]</Signal>
-                        <Signal>BA_Newbrain/ADDRin[3]</Signal>
-                        <Signal>BA_Newbrain/ADDRin[2]</Signal>
-                        <Signal>BA_Newbrain/ADDRin[1]</Signal>
-                        <Signal>BA_Newbrain/ADDRin[0]</Signal>
+                    <Bus restorename="BA_Atlas/Z80_IO_ADDR[7:0]">
+                        <Signal>BA_Atlas/Z80_IO_ADDR[7]</Signal>
+                        <Signal>BA_Atlas/Z80_IO_ADDR[6]</Signal>
+                        <Signal>BA_Atlas/Z80_IO_ADDR[5]</Signal>
+                        <Signal>BA_Atlas/Z80_IO_ADDR[4]</Signal>
+                        <Signal>BA_Atlas/Z80_IO_ADDR[3]</Signal>
+                        <Signal>BA_Atlas/Z80_IO_ADDR[2]</Signal>
+                        <Signal>BA_Atlas/Z80_IO_ADDR[1]</Signal>
+                        <Signal>BA_Atlas/Z80_IO_ADDR[0]</Signal>
                     </Bus>
-                    <Signal>PS2_DSn</Signal>
+                    <Signal>BA_Atlas/Z80_In.Z80_IORQ_N</Signal>
+                    <Signal>BA_Atlas/Z80_In.Z80_RD_N</Signal>
                 </SignalList>
             </Trigger>
             <Trigger index="1"/>
@@ -115,7 +94,7 @@
             <Trigger index="15"/>
         </Triggers>
         <MatchUnits>
-            <MatchUnit index="0" enabled="1" match_type="0" counter_enable="0" counter_width="5" counter="6" countinuous="0" func="0" value0="00000001100" value1="00000000000" trigger="0"/>
+            <MatchUnit index="0" enabled="1" match_type="0" counter_enable="0" counter_width="5" counter="6" countinuous="0" func="0" value0="0110100000" value1="0000000000" trigger="0"/>
             <MatchUnit index="1" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
             <MatchUnit index="2" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
             <MatchUnit index="3" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
@@ -136,5 +115,5 @@
             <Expression>M0</Expression>
         </Expressions>
     </AoCore>
-    <GAO_ID>0110110011011001</GAO_ID>
+    <GAO_ID>1110101001110001</GAO_ID>
 </GAO_CONFIG>
