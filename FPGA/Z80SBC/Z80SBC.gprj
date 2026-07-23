@@ -27,6 +27,7 @@
         <File path="src/clkDiv50.vhd" type="file.vhdl" enable="1"/>
         <File path="src/clock_manager.vhd" type="file.vhdl" enable="1"/>
         <File path="src/defs_pkg.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/gowin_sp/gowin_spRAM.vhd" type="file.vhdl" enable="1"/>
         <File path="src/i2c/i2c_master.vhd" type="file.vhdl" enable="1"/>
         <File path="src/ps2_Z80_wrapper.vhd" type="file.vhdl" enable="1"/>
         <File path="src/ps2_keyboard_controller.vhd" type="file.vhdl" enable="1"/>

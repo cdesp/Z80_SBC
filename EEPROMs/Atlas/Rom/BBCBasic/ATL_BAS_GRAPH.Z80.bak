@@ -4,7 +4,7 @@
 ;========================
 		
 ; GLOBAL VARS FROM ATLAS O.S.		
-INCLUDE ..\OSATLAS.SYM
+INCLUDE ..\MYOS_2_0000.SYM
 		
 
 

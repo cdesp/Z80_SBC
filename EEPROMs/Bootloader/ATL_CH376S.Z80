@@ -3,7 +3,7 @@
 ; This library provides low-level functions for interacting with the CH376S
 ; USB and SD Card storage controller using the Z80 microprocessor.
 ;
-; Author: Gemini
+; Author: CDesp , GEMINI did the text formatting
 ; Date:   August 2025
 ;-------------------------------------------------------------------------------
 		

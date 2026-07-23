@@ -10,71 +10,28 @@
                 <Signal>system_selection[1]</Signal>
                 <Signal>system_selection[0]</Signal>
             </Bus>
-            <Signal capture_enable="true">sPS2_BTRDY</Signal>
-            <Signal capture_enable="true">otsigs.PS2_KEYB_Int</Signal>
-            <Signal capture_enable="true">PS2_DSn</Signal>
-            <Signal capture_enable="true">PS2KeybCtrl/byte_ready</Signal>
-            <Bus capture_enable="true" name="PS2_DATA_OUT[7:0]">
-                <Signal>PS2_DATA_OUT[7]</Signal>
-                <Signal>PS2_DATA_OUT[6]</Signal>
-                <Signal>PS2_DATA_OUT[5]</Signal>
-                <Signal>PS2_DATA_OUT[4]</Signal>
-                <Signal>PS2_DATA_OUT[3]</Signal>
-                <Signal>PS2_DATA_OUT[2]</Signal>
-                <Signal>PS2_DATA_OUT[1]</Signal>
-                <Signal>PS2_DATA_OUT[0]</Signal>
+            <Bus capture_enable="true" name="U_PRODUCER_ATLAS/vidset[1:0]">
+                <Signal>U_PRODUCER_ATLAS/vidset[1]</Signal>
+                <Signal>U_PRODUCER_ATLAS/vidset[0]</Signal>
             </Bus>
-            <Bus capture_enable="true" name="Z80_DATA_OUT_INT[7:0]">
-                <Signal>Z80_DATA_OUT_INT[7]</Signal>
-                <Signal>Z80_DATA_OUT_INT[6]</Signal>
-                <Signal>Z80_DATA_OUT_INT[5]</Signal>
-                <Signal>Z80_DATA_OUT_INT[4]</Signal>
-                <Signal>Z80_DATA_OUT_INT[3]</Signal>
-                <Signal>Z80_DATA_OUT_INT[2]</Signal>
-                <Signal>Z80_DATA_OUT_INT[1]</Signal>
-                <Signal>Z80_DATA_OUT_INT[0]</Signal>
+            <Signal capture_enable="true">U_PRODUCER_ATLAS/vidbuf</Signal>
+            <Bus capture_enable="true" name="U_PRODUCER_ATLAS/pxlfore_r[3:0]">
+                <Signal>U_PRODUCER_ATLAS/pxlfore_r[3]</Signal>
+                <Signal>U_PRODUCER_ATLAS/pxlfore_r[2]</Signal>
+                <Signal>U_PRODUCER_ATLAS/pxlfore_r[1]</Signal>
+                <Signal>U_PRODUCER_ATLAS/pxlfore_r[0]</Signal>
             </Bus>
-            <Signal capture_enable="true">sISDout</Signal>
-            <Signal capture_enable="true">BA_Atlas/FRMint</Signal>
-            <Signal capture_enable="true">BA_Atlas/OTSigs_in.PS2_KEYB_Int</Signal>
-            <Signal capture_enable="true">BA_Atlas/Z80_Out.Z80_INT_N</Signal>
-            <Signal capture_enable="true">BA_Atlas/Z80_In.INT_REQ_N</Signal>
-            <Signal capture_enable="true">BA_Atlas/CLRFRM</Signal>
-            <Bus capture_enable="true" name="BA_Atlas/Z80_IO_ADDR[7:0]">
-                <Signal>BA_Atlas/Z80_IO_ADDR[7]</Signal>
-                <Signal>BA_Atlas/Z80_IO_ADDR[6]</Signal>
-                <Signal>BA_Atlas/Z80_IO_ADDR[5]</Signal>
-                <Signal>BA_Atlas/Z80_IO_ADDR[4]</Signal>
-                <Signal>BA_Atlas/Z80_IO_ADDR[3]</Signal>
-                <Signal>BA_Atlas/Z80_IO_ADDR[2]</Signal>
-                <Signal>BA_Atlas/Z80_IO_ADDR[1]</Signal>
-                <Signal>BA_Atlas/Z80_IO_ADDR[0]</Signal>
+            <Bus capture_enable="true" name="U_PRODUCER_ATLAS/pxlback_r[3:0]">
+                <Signal>U_PRODUCER_ATLAS/pxlback_r[3]</Signal>
+                <Signal>U_PRODUCER_ATLAS/pxlback_r[2]</Signal>
+                <Signal>U_PRODUCER_ATLAS/pxlback_r[1]</Signal>
+                <Signal>U_PRODUCER_ATLAS/pxlback_r[0]</Signal>
             </Bus>
-            <Signal capture_enable="true">LINT_N</Signal>
-            <Signal capture_enable="true">SYS_CSn</Signal>
-            <Signal capture_enable="true">master_out.SYS_CS_N</Signal>
-            <Signal capture_enable="true">atlas_out.SYS_CS_N</Signal>
-            <Signal capture_enable="true">nb_out.SYS_CS_N</Signal>
-            <Signal capture_enable="true">bootld_out.SYS_CS_N</Signal>
-            <Signal capture_enable="true">reg_system_sel_n</Signal>
-            <Signal capture_enable="true">BA_Atlas/Z80_In.Z80_IORQ_N</Signal>
-            <Signal capture_enable="true">BA_Atlas/Z80_In.Z80_RD_N</Signal>
         </SignalList>
         <Triggers>
             <Trigger index="0">
                 <SignalList>
-                    <Bus restorename="BA_Atlas/Z80_IO_ADDR[7:0]">
-                        <Signal>BA_Atlas/Z80_IO_ADDR[7]</Signal>
-                        <Signal>BA_Atlas/Z80_IO_ADDR[6]</Signal>
-                        <Signal>BA_Atlas/Z80_IO_ADDR[5]</Signal>
-                        <Signal>BA_Atlas/Z80_IO_ADDR[4]</Signal>
-                        <Signal>BA_Atlas/Z80_IO_ADDR[3]</Signal>
-                        <Signal>BA_Atlas/Z80_IO_ADDR[2]</Signal>
-                        <Signal>BA_Atlas/Z80_IO_ADDR[1]</Signal>
-                        <Signal>BA_Atlas/Z80_IO_ADDR[0]</Signal>
-                    </Bus>
-                    <Signal>BA_Atlas/Z80_In.Z80_IORQ_N</Signal>
-                    <Signal>BA_Atlas/Z80_In.Z80_RD_N</Signal>
+                    <Signal>U_PRODUCER_ATLAS/frame_start</Signal>
                 </SignalList>
             </Trigger>
             <Trigger index="1"/>
@@ -94,7 +51,7 @@
             <Trigger index="15"/>
         </Triggers>
         <MatchUnits>
-            <MatchUnit index="0" enabled="1" match_type="0" counter_enable="0" counter_width="5" counter="6" countinuous="0" func="0" value0="0110100000" value1="0000000000" trigger="0"/>
+            <MatchUnit index="0" enabled="1" match_type="0" counter_enable="0" counter_width="5" counter="6" countinuous="0" func="0" value0="1" value1="0" trigger="0"/>
             <MatchUnit index="1" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
             <MatchUnit index="2" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
             <MatchUnit index="3" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
@@ -115,5 +72,5 @@
             <Expression>M0</Expression>
         </Expressions>
     </AoCore>
-    <GAO_ID>1110101001110001</GAO_ID>
+    <GAO_ID>0011011111001100</GAO_ID>
 </GAO_CONFIG>

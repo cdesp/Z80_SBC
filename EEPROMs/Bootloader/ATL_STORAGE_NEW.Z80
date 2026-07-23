@@ -181,12 +181,16 @@ DL_NXTFILE:     RET     Z                      ; No more files
 ;   HL: Points to the directory name string.
 ;
 ; Returns:
-;   HL: Points to the null terminator of the string.
+;   HL: Points to the next start of the directory of the string.
 ;-------------------------------------------------------------------------------
-NEXTDIR:        LD      A, (HL)
-                INC     HL
+NEXTDIR:        INC     HL		;1ST LETTER ALWAYS NON 0
+		        LD      A, (HL)
                 OR      A
-                RET     Z
+                RET Z
+		        CP '/'
+		        RET Z
+		        CP '\'
+		        RET Z
                 JR      NEXTDIR
 
 ;-------------------------------------------------------------------------------
@@ -246,30 +250,26 @@ STRG_DIRNMCHG:  PUSH    HL
 DNC_RESET:      LD      HL, DIRNM
                 LD      (HL), '\'
                 INC     HL
-                LD      (HL), 0
+DNC_TERMIN:     LD      (HL), 0
                 INC     HL
                 LD      (HL), 0
                 POP     HL
                 RET
 DNC_RMV:        LD      HL, DIRNM
-                CALL    NEXTDIR
+RMLP:           PUSH    HL
+                POP     DE                    ;DE=HL
+                CALL    NEXTDIR               ;STARTS FROM HL+1
                 LD      A, (HL)
                 OR      A
-                EX      DE, HL                 ; DE points to the end of the last directory name
-                POP     HL
-                RET     Z                      ; At the root directory
-                PUSH    HL
-                EX      DE, HL                 ; HL points to the end of the last directory name
-RMV_NXT:        LD      B, H
-                LD      C, L
-                CALL    NEXTDIR
-                LD      A, (HL)
+                JR      NZ, RMLP
+                ; DE POINTS TO THE PREVIOUS DIR
+		        LD  	HL,DIRNM            ;CHECK IF ON ROOT
                 OR      A
-                JR      NZ, RMV_NXT            ; Find the end of the second-to-last directory
-                XOR     A
-                LD      (BC), A                ; Null-terminate to remove the last directory
-                POP     HL
-                RET
+                SBC 	HL,DE
+                JR 	    NZ, SKP0
+                INC     DE
+SKP0:		    EX      DE,HL
+                JR      DNC_TERMIN
 DNC_ADD:        EX      DE, HL                 ; DE points to the new directory name
                 LD      HL, DIRNM
 ADDNXT:         CALL    NEXTDIR
@@ -277,6 +277,17 @@ ADDNXT:         CALL    NEXTDIR
                 OR      A
                 JR      NZ, ADDNXT
                 EX      DE, HL
+						;DE points to the destination 
+                DEC     DE				;check for '/' 
+                LD      A,(DE)
+                INC     DE
+                CP      '/'
+                JR      Z, ADDNXT2
+                CP      '\'
+                JR      Z, ADDNXT2
+                LD      A,'\'
+                LD      (DE),A       
+                INC     DE
 ADDNXT2:        LD      A, (HL)
                 LD      (DE), A
                 INC     HL
@@ -287,6 +298,8 @@ ADDNXT2:        LD      A, (HL)
                 LD      (HL), 0                ; Signal end of directories with a second zero
                 POP     HL
                 RET
+
+
 
 
 ;HL THE MESSAGE       
@@ -507,6 +520,7 @@ STRG_CLSFILE:   LD      A, CMD_FILE_CLOSE
                 CALL    CH376_WTCMDEND
                 RET
 
+
 ;-------------------------------------------------------------------------------
 ; STRG_BLKREAD: Reads a block of bytes from the file.
 ;
@@ -617,6 +631,14 @@ FOPENERR:       POP     BC
                 CALL    RS_NEWLINE
                 SCF
                 RET
+
+@STRG_CLEARBUF:  LD       HL, STRGBUFF
+                LD       DE, STRGBUFF+1
+                XOR      A
+                LD       (HL),A
+                LD       BC, 39             ;STORAGE BUFFER BYTE COUNT
+                LDIR
+                RET    
 
 ;-------------------------------------------------------------------------------
 ; STRG_READBUFR: Reads 500 bytes from a file into a buffer.
