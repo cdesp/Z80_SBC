@@ -15,6 +15,7 @@ ENTITY Z80_Bus_Arbiter IS
         Z80_Out             : OUT t_system_to_z80;
         -- Other signals
         OTSigs_in           : IN t_ot_sigs_to_system;
+        OTSigs_out          : OUT t_ot_sigs_from_system;
         -- Video registers
         VDRegs_out          : OUT t_video_regs
     );
@@ -34,7 +35,8 @@ ARCHITECTURE behavioral OF Z80_Bus_Arbiter IS
     signal io_strobe : std_logic;
 
 BEGIN
-    
+    OTSigs_out.PS2_KEYB_READ <= '0'; --notused
+
     -- Map lower 8 bits of Z80 address bus for I/O decoding
     Z80_IO_ADDR <= Z80_In.Z80_ADDR(7 DOWNTO 0);
     

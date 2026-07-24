@@ -10,6 +10,7 @@ entity Z80_PS2_Bridge is
 
         PS2_DS_N       : in  std_logic; -- Active Low 
         PS2_BT_RDY     : out  std_logic; -- Active Low  
+        FPGA_READ      : in std_logic; -- Active high 
         -- Z80 Bus Interface
         Z80_IO_ADDR    : in    std_logic_vector(7 downto 0);
         Z80_RD_N       : in    std_logic;
@@ -136,7 +137,7 @@ begin
     -- =========================================================
     -- NEW LOGIC: Z80 Read Edge Detection (Trailing Edge)
     -- =========================================================
-    z80_read_req <= '1' when (PS2_DS_N = '0' and Z80_RD_N = '0' and Z80_IO_ADDR(0) = '0') else '0';
+    z80_read_req <= '1' when (PS2_DS_N = '0' and Z80_RD_N = '0' and Z80_IO_ADDR(0) = '0')  else '0';
 
     process(CLK, nRESET)
     begin
@@ -150,7 +151,7 @@ begin
     end process;
 
     -- Pulses high for exactly 1 clock cycle when the Z80 FINISHES reading
-    z80_rd_done <= '1' when (z80_rd_sync_2 = '1' and z80_rd_sync_1 = '0') else '0';
+    z80_rd_done <= '1' when (z80_rd_sync_2 = '1' and z80_rd_sync_1 = '0') or FPGA_READ='1' else '0';
 
     -- =========================================================
     -- NEW LOGIC: 16-Byte FIFO for capturing PS/2 Data
@@ -212,6 +213,9 @@ begin
     begin
         Z80_DATA_OUT <= (others => 'Z'); -- Default high-impedance
         PS2_BT_RDY <= byte_ready;
+        if byte_ready='1' then      --always on
+           Z80_DATA_OUT <= byte_reg;
+        end if;
         if (PS2_DS_N = '0' and Z80_RD_N = '0') then
             if (Z80_IO_ADDR(0) = '0') then
                 Z80_DATA_OUT <= byte_reg;

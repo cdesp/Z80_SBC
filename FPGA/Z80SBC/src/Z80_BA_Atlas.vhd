@@ -15,6 +15,7 @@ ENTITY Z80_BA_Atlas IS
         Z80_Out             : OUT t_system_to_z80;
         -- Other signals
         OTSigs_in           : IN t_ot_sigs_to_system;
+        OTSigs_out          : OUT t_ot_sigs_from_system;
         -- Video registers
         VDRegs_out          : OUT t_video_regs
     );
@@ -54,7 +55,7 @@ end component;
 
 BEGIN
 
-  
+  OTSigs_out.PS2_KEYB_READ <= '0'; --notused
 
     CLK20: Clock_Divider
     generic map ( CYCLE_COUNT => 1000000 )

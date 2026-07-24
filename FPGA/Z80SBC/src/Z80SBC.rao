@@ -10,28 +10,49 @@
                 <Signal>system_selection[1]</Signal>
                 <Signal>system_selection[0]</Signal>
             </Bus>
-            <Bus capture_enable="true" name="U_PRODUCER_ATLAS/vidset[1:0]">
-                <Signal>U_PRODUCER_ATLAS/vidset[1]</Signal>
-                <Signal>U_PRODUCER_ATLAS/vidset[0]</Signal>
+            <Bus capture_enable="true" name="BA_Spectrum/Z80_IO_ADDR[7:0]">
+                <Signal>BA_Spectrum/Z80_IO_ADDR[7]</Signal>
+                <Signal>BA_Spectrum/Z80_IO_ADDR[6]</Signal>
+                <Signal>BA_Spectrum/Z80_IO_ADDR[5]</Signal>
+                <Signal>BA_Spectrum/Z80_IO_ADDR[4]</Signal>
+                <Signal>BA_Spectrum/Z80_IO_ADDR[3]</Signal>
+                <Signal>BA_Spectrum/Z80_IO_ADDR[2]</Signal>
+                <Signal>BA_Spectrum/Z80_IO_ADDR[1]</Signal>
+                <Signal>BA_Spectrum/Z80_IO_ADDR[0]</Signal>
             </Bus>
-            <Signal capture_enable="true">U_PRODUCER_ATLAS/vidbuf</Signal>
-            <Bus capture_enable="true" name="U_PRODUCER_ATLAS/pxlfore_r[3:0]">
-                <Signal>U_PRODUCER_ATLAS/pxlfore_r[3]</Signal>
-                <Signal>U_PRODUCER_ATLAS/pxlfore_r[2]</Signal>
-                <Signal>U_PRODUCER_ATLAS/pxlfore_r[1]</Signal>
-                <Signal>U_PRODUCER_ATLAS/pxlfore_r[0]</Signal>
+            <Signal capture_enable="true">BA_Spectrum/Z80_In.Z80_IORQ_N</Signal>
+            <Signal capture_enable="true">BA_Spectrum/Z80_In.Z80_WR_N</Signal>
+            <Bus capture_enable="true" name="BA_Spectrum/Z80_In.Z80_Data[7:0]">
+                <Signal>BA_Spectrum/Z80_In.Z80_Data[7]</Signal>
+                <Signal>BA_Spectrum/Z80_In.Z80_Data[6]</Signal>
+                <Signal>BA_Spectrum/Z80_In.Z80_Data[5]</Signal>
+                <Signal>BA_Spectrum/Z80_In.Z80_Data[4]</Signal>
+                <Signal>BA_Spectrum/Z80_In.Z80_Data[3]</Signal>
+                <Signal>BA_Spectrum/Z80_In.Z80_Data[2]</Signal>
+                <Signal>BA_Spectrum/Z80_In.Z80_Data[1]</Signal>
+                <Signal>BA_Spectrum/Z80_In.Z80_Data[0]</Signal>
             </Bus>
-            <Bus capture_enable="true" name="U_PRODUCER_ATLAS/pxlback_r[3:0]">
-                <Signal>U_PRODUCER_ATLAS/pxlback_r[3]</Signal>
-                <Signal>U_PRODUCER_ATLAS/pxlback_r[2]</Signal>
-                <Signal>U_PRODUCER_ATLAS/pxlback_r[1]</Signal>
-                <Signal>U_PRODUCER_ATLAS/pxlback_r[0]</Signal>
+            <Bus capture_enable="true" name="BA_Spectrum/Z80_Out.DataOut[7:0]">
+                <Signal>BA_Spectrum/Z80_Out.DataOut[7]</Signal>
+                <Signal>BA_Spectrum/Z80_Out.DataOut[6]</Signal>
+                <Signal>BA_Spectrum/Z80_Out.DataOut[5]</Signal>
+                <Signal>BA_Spectrum/Z80_Out.DataOut[4]</Signal>
+                <Signal>BA_Spectrum/Z80_Out.DataOut[3]</Signal>
+                <Signal>BA_Spectrum/Z80_Out.DataOut[2]</Signal>
+                <Signal>BA_Spectrum/Z80_Out.DataOut[1]</Signal>
+                <Signal>BA_Spectrum/Z80_Out.DataOut[0]</Signal>
             </Bus>
         </SignalList>
         <Triggers>
             <Trigger index="0">
                 <SignalList>
-                    <Signal>U_PRODUCER_ATLAS/frame_start</Signal>
+                    <Bus restorename="BA_Spectrum/ZXSpec_KEYB[4:0]">
+                        <Signal>BA_Spectrum/ZXSpec_KEYB[4]</Signal>
+                        <Signal>BA_Spectrum/ZXSpec_KEYB[3]</Signal>
+                        <Signal>BA_Spectrum/ZXSpec_KEYB[2]</Signal>
+                        <Signal>BA_Spectrum/ZXSpec_KEYB[1]</Signal>
+                        <Signal>BA_Spectrum/ZXSpec_KEYB[0]</Signal>
+                    </Bus>
                 </SignalList>
             </Trigger>
             <Trigger index="1"/>
@@ -51,7 +72,7 @@
             <Trigger index="15"/>
         </Triggers>
         <MatchUnits>
-            <MatchUnit index="0" enabled="1" match_type="0" counter_enable="0" counter_width="5" counter="6" countinuous="0" func="0" value0="1" value1="0" trigger="0"/>
+            <MatchUnit index="0" enabled="1" match_type="0" counter_enable="0" counter_width="5" counter="6" countinuous="0" func="1" value0="11111" value1="00000" trigger="0"/>
             <MatchUnit index="1" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
             <MatchUnit index="2" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
             <MatchUnit index="3" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
@@ -72,5 +93,5 @@
             <Expression>M0</Expression>
         </Expressions>
     </AoCore>
-    <GAO_ID>0011011111001100</GAO_ID>
+    <GAO_ID>0101001110101110</GAO_ID>
 </GAO_CONFIG>

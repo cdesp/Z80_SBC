@@ -181,9 +181,10 @@ architecture structural of Z80_FPGA_SYSTEM is
     signal BADEV2           : std_logic;
     signal L_BA_WAIT_N      : std_logic;
     
-    signal master_in  : t_z80_to_system;
-    signal master_out : t_system_to_z80;
-    signal otsigs     : t_ot_sigs_to_system;
+    signal master_in        : t_z80_to_system;
+    signal master_out       : t_system_to_z80;
+    signal sOTSigs_in       : t_ot_sigs_to_system;
+    signal sOTSigs_out      : t_ot_sigs_from_system;
 
     signal sISDout      : std_logic;
     signal sDataout     : STD_LOGIC_VECTOR(7 DOWNTO 0);
@@ -223,9 +224,10 @@ architecture structural of Z80_FPGA_SYSTEM is
 
     -- Signal declarations for PS/2 Keyboard
     signal PS2_DSn        : std_logic := '1';  --ps/2 keyboard port signal 
-    signal sPS2_BTRDY      : std_logic ; --ps/2 keyboard has a byte active low
---    signal wr_n_delayed   : std_logic := '1';
+    signal sPS2_BTRDY     : std_logic ; --ps/2 keyboard has a byte active low
+    signal sPS2_READ      : std_logic := '0'; --1 when signaling key was read so get another
     signal PS2_DATA_OUT   : std_logic_vector(7 downto 0);
+    
     signal sKB_CLOCK      : std_logic := '1'; 
     signal sKB_DATA       : std_logic := '1'; 
 
@@ -283,12 +285,14 @@ architecture structural of Z80_FPGA_SYSTEM is
     signal VNB_ADDR_BUS      : std_logic_vector(15 downto 0); -- Address from the Video Controller
         --Spectrum
     signal zx_bus_out       : video_bus_out;  --ZX Spectrum video controller
+    signal zx_regs          : t_video_regs;   --Newbrain video registers 
     signal zx_out           : t_system_to_z80;
     signal VZX_ADDR_BUS      : std_logic_vector(15 downto 0); -- Address from the Video Controller
+ 
         --Amstrad
     signal am_bus_out       : video_bus_out;  --Amstrad video controller
     signal am_out           : t_system_to_z80;
-    signal VAM_ADDR_BUS      : std_logic_vector(15 downto 0); -- Address from the Video Controller
+    signal VAM_ADDR_BUS      : std_logic_vector(15 downto 0) := (others => '0'); -- Address from the Video Controller
 
 --debug signals
     signal capturedata : std_logic := '0';
@@ -359,6 +363,7 @@ architecture structural of Z80_FPGA_SYSTEM is
             Z80_Out           : out t_system_to_z80;
             -- Other signals
             OTSigs_in         : IN t_ot_sigs_to_system;
+            OTSigs_out        : OUT t_ot_sigs_from_system;
             -- Video registers
             VDRegs_out        : OUT t_video_regs
         );
@@ -376,6 +381,7 @@ architecture structural of Z80_FPGA_SYSTEM is
             Z80_Out           : out t_system_to_z80;
             -- Other signals
             OTSigs_in         : IN t_ot_sigs_to_system;
+            OTSigs_out        : OUT t_ot_sigs_from_system;
             -- Video registers
             VDRegs_out        : OUT t_video_regs
         );
@@ -393,12 +399,29 @@ architecture structural of Z80_FPGA_SYSTEM is
             Z80_Out           : out t_system_to_z80;
             -- Other signals
             OTSigs_in         : IN t_ot_sigs_to_system;
+            OTSigs_out        : OUT t_ot_sigs_from_system;
             -- Video registers
             VDRegs_out        : OUT t_video_regs
         );
     end component;
 
-
+    component Z80_BA_Spectrum
+        port (
+            CLK_FPGA          : in  std_logic;
+            -- Z80 Side
+            CLK               : in  std_logic;
+            nRESET            : in  std_logic;
+            -- All Z80 inputs bundled together
+            Z80_In            : in  t_z80_to_system;
+            -- All system outputs bundled together
+            Z80_Out           : out t_system_to_z80;
+            -- Other signals
+            OTSigs_in         : IN t_ot_sigs_to_system;
+            OTSigs_out        : OUT t_ot_sigs_from_system;
+            -- Video registers
+            VDRegs_out        : OUT t_video_regs
+        );
+    end component;
 
     component MMU is
         port (
@@ -484,6 +507,7 @@ architecture structural of Z80_FPGA_SYSTEM is
             nRESET         : in    std_logic;
             PS2_DS_N       : in    std_logic;
             PS2_BT_RDY     : out    std_logic; 
+            FPGA_READ      : in std_logic; 
             Z80_IO_ADDR    : in    std_logic_vector(7 downto 0);
             Z80_RD_N       : in    std_logic;
             Z80_WR_N       : in    std_logic;
@@ -625,6 +649,22 @@ architecture structural of Z80_FPGA_SYSTEM is
         );
     end component;
 
+    component SpectrumVideo is
+        port (
+            V_IN            : in  video_bus_in;
+            V_OUT           : out video_bus_out;
+            FPGA_CLK        : in  std_logic;
+            Z80_CLK         : in  std_logic;
+            Z80_WR_N        : in  std_logic;
+            Z80_ADDR        : in  std_logic_vector(3 downto 0);
+            Z80_DATA        : in  std_logic_vector(7 downto 0);
+            REG_SEL_N       : in  std_logic;
+            VRAM_DATA       : in  std_logic_vector(7 downto 0);
+            VRAM_ADDR       : out std_logic_vector(15 downto 0);
+            -- Video registers
+            VDRegs          : in t_video_regs
+        );
+    end component;
 
 begin
 
@@ -788,8 +828,8 @@ begin
             
             Z80_In            => master_in,
             Z80_Out           => bootld_out,
-            OTSigs_in         => otsigs,
-
+            OTSigs_in         => sotsigs_in,
+            OTSigs_out        => open,
             VDRegs_out        => open
         );
 
@@ -801,8 +841,8 @@ begin
             
             Z80_In            => master_in,
             Z80_Out           => atlas_out,
-            OTSigs_in         => otsigs,
-
+            OTSigs_in         => sotsigs_in,
+            OTSigs_out        => open,
             VDRegs_out        => open
         );
 
@@ -815,11 +855,23 @@ begin
             
             Z80_In            => master_in,
             Z80_Out           => nb_out,
-            OTSigs_in         => otsigs,
-
+            OTSigs_in         => sotsigs_in,
+            OTSigs_out        => open,
             VDRegs_out        => nb_regs
         );
 
+    BA_Spectrum: Z80_BA_Spectrum
+        port map (
+            CLK_FPGA          => CLK_IN,
+            CLK               => CLK_Z80_INT,             -- Z80 Operating Clock
+            nRESET            => reset_n_sync2,                -- System Reset (from external logic/button)
+            
+            Z80_In            => master_in,
+            Z80_Out           => zx_out,
+            OTSigs_in         => sotsigs_in,
+            OTSigs_out        => sotsigs_out,
+            VDRegs_out        => zx_regs
+        );
 
 
         master_in.Z80_DATA    <= Z80_DATA_IN_INT;
@@ -829,9 +881,14 @@ begin
         master_in.Z80_ADDR    <= Z80_LA_BUS_INT;
         master_in.INT_REQ_N   <= nINT_REQ_PERIPH;
 
-        OTSigs.PS2_KEYB_Int <= sPS2_BTRDY;
-      --  OTSigs.PS2_DATA <= PS2_DATA_OUT;
-        OTSigs.CPU_SPEED    <= clk_reg_out;
+        sotsigs_in.PS2_KEYB_Int <= sPS2_BTRDY; --active high
+        sotsigs_in.PS2_DATA     <= PS2_DATA_OUT;
+        sotsigs_in.CPU_SPEED    <= clk_reg_out;
+        sotsigs_in.FrameStart   <= '1' when video_timing.h_cnt=0 and video_timing.v_cnt=1 else '0';
+
+        --only for zx spec
+        sPS2_READ <= sotsigs_out.PS2_KEYB_READ  when system_selection="0011" else '0'; --active high signal to get another key from ps/2
+        
 
         nINTMMU         <= master_out.MMU_nMAP_REG_N;
         nINTMMU_ro      <= master_out.MMU_nSET_RO_N;
@@ -956,7 +1013,8 @@ begin
         CLK          => CLK_in,
         nRESET       => nRESET,
         PS2_DS_N     => PS2_DSn,       -- Your decoded signal from top-level
-        PS2_BT_RDY   => sPS2_BTRDY,  -- Active Low  
+        PS2_BT_RDY   => sPS2_BTRDY,  -- Active high 
+        FPGA_READ    => sPS2_READ, -- Active high
         Z80_IO_ADDR  => Z80_LA_BUS_INT(7 downto 0),   -- Connect to Z80 address bus
         Z80_RD_N     => nRD_CPU_r,       -- Connect to Z80 RD signal
         Z80_WR_N     => nWR_CPU_r,       -- Connect to Z80 WR signal
@@ -968,6 +1026,8 @@ begin
 
     LKB_CLOCK <= sKB_CLOCK;
     LKB_DATA <= sKB_DATA;
+
+
 
     --****************************************************************
     -- i2c
@@ -1109,6 +1169,21 @@ begin
             VRAM_DATA  => VRAM_DATA_TO_VCTRL,
             VRAM_ADDR  => VNB_ADDR_BUS,
             VDRegs     => nb_regs
+        );
+
+    U_PRODUCER_ZXSPEC : SpectrumVideo
+        port map(
+            V_IN       => video_timing,
+            V_OUT      => zx_bus_out,
+            FPGA_CLK   => CLK_IN,
+            Z80_CLK    => CLK_Z80_INT,
+            Z80_WR_N   => nWR_CPU_r,
+            Z80_ADDR   => Z80_LA_BUS_INT(3 downto 0),
+            Z80_DATA   => Z80_DATA_IN_INT,
+            REG_SEL_N  => '1', 
+            VRAM_DATA  => VRAM_DATA_TO_VCTRL,
+            VRAM_ADDR  => VZX_ADDR_BUS,
+            VDRegs     => zx_regs
         );
 
     -- Video handler

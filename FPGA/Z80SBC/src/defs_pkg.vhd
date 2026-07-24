@@ -90,12 +90,19 @@ PACKAGE defs_pkg IS
     END RECORD;
 
 
-   TYPE t_ot_sigs_to_system IS RECORD      
-        --Main system 
-        PS2_KEYB_Int : STD_LOGIC;
-   --     PS2_DATA : : std_logic_vector(7 downto 0);
+   TYPE t_ot_sigs_to_system IS RECORD  
+         --Main system 
         CPU_SPEED : std_logic_vector(7 downto 0); --as a number
+       
+        PS2_KEYB_Int : STD_LOGIC;
+        PS2_DATA :  std_logic_vector(7 downto 0);
+
+        FrameStart : STD_LOGIC;
     END RECORD;
+
+   TYPE t_ot_sigs_from_system IS RECORD  
+        PS2_KEYB_READ : STD_LOGIC;
+   END RECORD;
 
    TYPE t_video_regs IS RECORD      
         --video system 
