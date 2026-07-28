@@ -620,12 +620,12 @@ end process;
 -- Map the system-generated input display signals straight to video out outputs
 -- VRAM bus arbitration: config-register reads (regread) have top priority,
 -- then the sprite loader (sprread), then the per-pixel fetch logic.
-VRAM_ADDR    <= std_logic_vector(to_unsigned(vram_addr_reg, 16)) when regread = '1' else
+    VRAM_ADDR    <= std_logic_vector(to_unsigned(vram_addr_reg, 16)) when regread = '1' else
                 std_logic_vector(to_unsigned(vram_addr_spr, 16)) when sprread = '1' else
                 std_logic_vector(to_unsigned(vram_addr_pxl, 16));
-V_OUT.h_sync <= '1';
-V_OUT.v_sync <= '1';
-V_OUT.de     <= '1';
+    V_OUT.de <= V_IN.de ;
+    V_OUT.h_sync <= V_IN.h_sync ;
+    V_OUT.v_sync <= V_IN.h_sync ;
 
 
 end architecture;

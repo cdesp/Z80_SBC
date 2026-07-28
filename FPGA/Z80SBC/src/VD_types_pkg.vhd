@@ -37,5 +37,8 @@ package VD_types_pkg is
         nreset    : std_logic;
         h_cnt     : integer range 0 to 2047;
         v_cnt     : integer range 0 to 2047;
+        h_sync    : std_logic;
+        v_sync    : std_logic;
+        de        : std_logic; -- Data Enable (Active Video)
     end record;
 end package;

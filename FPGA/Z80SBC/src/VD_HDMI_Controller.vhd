@@ -71,6 +71,9 @@ begin
     VIDEO_BUS_TIMING.nreset    <= nRESET;
     VIDEO_BUS_TIMING.h_cnt     <= h_cnt;
     VIDEO_BUS_TIMING.v_cnt     <= v_cnt;
+    VIDEO_BUS_TIMING.h_sync    <= h_sync;
+    VIDEO_BUS_TIMING.v_sync    <= v_sync;
+    VIDEO_BUS_TIMING.de        <= de; 
 
     -- 2. DVI Core Instantiation
     U_DVI : DVI_TX_Top

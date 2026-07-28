@@ -6,7 +6,7 @@ ENTITY MMU IS
     PORT
     (
         -- New Mandatory Clock Input for Synchronous Registers
-        CLK             :  IN  STD_LOGIC;     -- Z80 System Clock
+        CLK             :  IN  STD_LOGIC;     -- fpga System Clock
         A13             :  IN  STD_LOGIC;
         A14             :  IN  STD_LOGIC;
         A15             :  IN  STD_LOGIC;
@@ -19,6 +19,10 @@ ENTITY MMU IS
         DATA            :  IN  std_logic_vector(7 downto 0);  -- Data bus from CPU (PgNo for protection or mapping)
         EA              :  OUT std_logic_vector(20 downto 13);    -- Extended Address bus to mem chips (Page Number)
         nWR_OUT         :  OUT STD_LOGIC;     -- Protected Write Strobe to physical memory
+        -- NEW: Internal FPGA Interface for Bank Switching
+        FPGA_BANK_WE    :  IN  STD_LOGIC;                     -- '1' = FPGA writes to a bank
+        FPGA_BANK_SEL   :  IN  STD_LOGIC_VECTOR(2 downto 0);  -- Selects which bank (0 to 7) to write to
+        FPGA_BANK_PAGE  :  IN  STD_LOGIC_VECTOR(7 downto 0);   -- The physical page number to map
         -- ROM/RAM CHIPS ENABLE SIGNALS (physical mapping below)
         nCE0            :  OUT STD_LOGIC; -- map to AS6C8008 LRAMEN3_N (SRAM, 1MB)
         nCE1            :  OUT STD_LOGIC; -- map to SST39LF040 LRAMEN2_N (Flash, 512KB)
@@ -67,6 +71,9 @@ ARCHITECTURE behavioral OF MMU IS
     signal BANKNUM: std_logic_vector(2 downto 0);
     signal EXTADDR: std_logic_vector(20 downto 13);
     signal nRST: STD_LOGIC;
+
+    -- Signal for multiplexing Z80 DATA and FPGA_BANK_DATA
+    SIGNAL Muxed_Bank_Data : std_logic_vector(7 downto 0);
 
     -- -------------------------------------------------------------
     -- Λογική Προστασίας Σελίδων (256 x 1-bit flags)
@@ -118,48 +125,53 @@ BEGIN
     -- -------------------------------------------------------------
     -- 2. Page Mapping Registers (8-bit)
     -- -------------------------------------------------------------
-    -- Generate write strobes for each bank when CPU writes to Page Mapping port (nINTMMU='0' and nWR_CPU='0')
-    nSetBANK0 <= '0' WHEN BANKNUM="000" and nINTMMU ='0' AND nWR_CPU='0' ELSE '1';
-    nSetBANK1 <= '0' WHEN BANKNUM="001" and nINTMMU ='0' AND nWR_CPU='0' ELSE '1';
-    nSetBANK2 <= '0' WHEN BANKNUM="010" and nINTMMU ='0' AND nWR_CPU='0' ELSE '1';
-    nSetBANK3 <= '0' WHEN BANKNUM="011" and nINTMMU ='0' AND nWR_CPU='0' ELSE '1';
-    nSetBANK4 <= '0' WHEN BANKNUM="100" and nINTMMU ='0' AND nWR_CPU='0' ELSE '1';
-    nSetBANK5 <= '0' WHEN BANKNUM="101" and nINTMMU ='0' AND nWR_CPU='0' ELSE '1';
-    nSetBANK6 <= '0' WHEN BANKNUM="110" and nINTMMU ='0' AND nWR_CPU='0' ELSE '1';
-    nSetBANK7 <= '0' WHEN BANKNUM="111" and nINTMMU ='0' AND nWR_CPU='0' ELSE '1';
+    -- MUX the data: If FPGA is writing, use FPGA data. Otherwise, use Z80 data.
+    Muxed_Bank_Data <= FPGA_BANK_PAGE WHEN FPGA_BANK_WE = '1' ELSE DATA;
+
+-- Generate write strobes (Active Low). 
+    -- Triggers if Z80 does an I/O write OR if FPGA asserts FPGA_BANK_WE for that specific bank.
+    nSetBANK0 <= '0' WHEN (BANKNUM="000" AND nINTMMU='0' AND nWR_CPU='0') OR (FPGA_BANK_WE='1' AND FPGA_BANK_SEL="000") ELSE '1';
+    nSetBANK1 <= '0' WHEN (BANKNUM="001" AND nINTMMU='0' AND nWR_CPU='0') OR (FPGA_BANK_WE='1' AND FPGA_BANK_SEL="001") ELSE '1';
+    nSetBANK2 <= '0' WHEN (BANKNUM="010" AND nINTMMU='0' AND nWR_CPU='0') OR (FPGA_BANK_WE='1' AND FPGA_BANK_SEL="010") ELSE '1';
+    nSetBANK3 <= '0' WHEN (BANKNUM="011" AND nINTMMU='0' AND nWR_CPU='0') OR (FPGA_BANK_WE='1' AND FPGA_BANK_SEL="011") ELSE '1';
+    nSetBANK4 <= '0' WHEN (BANKNUM="100" AND nINTMMU='0' AND nWR_CPU='0') OR (FPGA_BANK_WE='1' AND FPGA_BANK_SEL="100") ELSE '1';
+    nSetBANK5 <= '0' WHEN (BANKNUM="101" AND nINTMMU='0' AND nWR_CPU='0') OR (FPGA_BANK_WE='1' AND FPGA_BANK_SEL="101") ELSE '1';
+    nSetBANK6 <= '0' WHEN (BANKNUM="110" AND nINTMMU='0' AND nWR_CPU='0') OR (FPGA_BANK_WE='1' AND FPGA_BANK_SEL="110") ELSE '1';
+    nSetBANK7 <= '0' WHEN (BANKNUM="111" AND nINTMMU='0' AND nWR_CPU='0') OR (FPGA_BANK_WE='1' AND FPGA_BANK_SEL="111") ELSE '1';
 
     -- Instantiate 8-bit bank registers. (Synchronous, Load controlled by nSetBANKx)
+
     Bankreg0 : regn
         generic map ( N => 8, INIT => x"80")
-        PORT MAP( D => DATA, Resetn => nRST, Loadn => nSetBANK0, Clock => CLK, Q => Bank0 );
+        PORT MAP( D => Muxed_Bank_Data, Resetn => nRST, Loadn => nSetBANK0, Clock => CLK, Q => Bank0 );
 
     Bankreg1 : regn
         generic map ( N => 8, INIT => x"81")
-        PORT MAP( D => DATA, Resetn => nRST, Loadn => nSetBANK1, Clock => CLK, Q => Bank1 );
+        PORT MAP( D => Muxed_Bank_Data, Resetn => nRST, Loadn => nSetBANK1, Clock => CLK, Q => Bank1 );
 
     Bankreg2 : regn
         generic map ( N => 8, INIT => x"82")
-        PORT MAP( D => DATA, Resetn => nRST, Loadn => nSetBANK2, Clock => CLK, Q => Bank2 );
+        PORT MAP( D => Muxed_Bank_Data, Resetn => nRST, Loadn => nSetBANK2, Clock => CLK, Q => Bank2 );
 
     Bankreg3 : regn
         generic map ( N => 8, INIT => x"83")
-        PORT MAP( D => DATA, Resetn => nRST, Loadn => nSetBANK3, Clock => CLK, Q => Bank3 );
+        PORT MAP( D => Muxed_Bank_Data, Resetn => nRST, Loadn => nSetBANK3, Clock => CLK, Q => Bank3 );
 
     Bankreg4 : regn
         generic map ( N => 8, INIT => x"84")
-        PORT MAP( D => DATA, Resetn => nRST, Loadn => nSetBANK4, Clock => CLK, Q => Bank4 );
+        PORT MAP( D => Muxed_Bank_Data, Resetn => nRST, Loadn => nSetBANK4, Clock => CLK, Q => Bank4 );
 
     Bankreg5 : regn
         generic map ( N => 8, INIT => x"85")
-        PORT MAP( D => DATA, Resetn => nRST, Loadn => nSetBANK5, Clock => CLK, Q => Bank5 );
+        PORT MAP( D => Muxed_Bank_Data, Resetn => nRST, Loadn => nSetBANK5, Clock => CLK, Q => Bank5 );
 
     Bankreg6 : regn
         generic map ( N => 8, INIT => x"86")
-        PORT MAP( D => DATA, Resetn => nRST, Loadn => nSetBANK6, Clock => CLK, Q => Bank6 );
+        PORT MAP( D => Muxed_Bank_Data, Resetn => nRST, Loadn => nSetBANK6, Clock => CLK, Q => Bank6 );
 
     Bankreg7 : regn
         generic map ( N => 8, INIT => x"87")
-        PORT MAP( D => DATA, Resetn => nRST, Loadn => nSetBANK7, Clock => CLK, Q => Bank7 );
+        PORT MAP( D => Muxed_Bank_Data, Resetn => nRST, Loadn => nSetBANK7, Clock => CLK, Q => Bank7 );
 
     -- -------------------------------------------------------------
     -- 3. Extended Address (EA) Mapping

@@ -92,17 +92,28 @@ PACKAGE defs_pkg IS
 
    TYPE t_ot_sigs_to_system IS RECORD  
          --Main system 
-        CPU_SPEED : std_logic_vector(7 downto 0); --as a number
+        CPU_SPEED   : std_logic_vector(7 downto 0); --as a number
+        SYS_SEL     : unsigned(3 downto 0); --current system selection
        
-        PS2_KEYB_Int : STD_LOGIC;
-        PS2_DATA :  std_logic_vector(7 downto 0);
+        PS2_KEYB_Int: STD_LOGIC;
+        PS2_DATA    :  std_logic_vector(7 downto 0);
 
-        FrameStart : STD_LOGIC;
+        FrameStart  : STD_LOGIC;
+        vsync       : STD_LOGIC;
     END RECORD;
 
    TYPE t_ot_sigs_from_system IS RECORD  
-        PS2_KEYB_READ : STD_LOGIC;
+        PS2_KEYB_READ : STD_LOGIC; --this flags that we have read the key to the ps.2 module
+        
+        lower_rom_en : std_logic;
+        upper_rom_en : std_logic;
+        ram_page_bank0 : std_logic_vector(2 downto 0);
+        ram_page_bank1 : std_logic_vector(2 downto 0);
+        ram_page_bank2 : std_logic_vector(2 downto 0);
+        ram_page_bank3 : std_logic_vector(2 downto 0);
    END RECORD;
+
+   type t_pen_array is array (0 to 15) of std_logic_vector(4 downto 0); --for amstrad
 
    TYPE t_video_regs IS RECORD      
         --video system 
@@ -111,6 +122,8 @@ PACKAGE defs_pkg IS
         Reg3 : std_logic_vector(7 downto 0); --generic video register
         Reg4 : std_logic_vector(7 downto 0); --generic video register
         Reg5 : std_logic_vector(7 downto 0); --generic video register
+
+        pen_palette  : t_pen_array;
     END RECORD;
 
     constant DUMMY_VDREGS : t_video_regs := (
@@ -118,7 +131,8 @@ PACKAGE defs_pkg IS
         Reg2 => (others => '0'),
         Reg3 => (others => '0'),
         Reg4 => (others => '0'),
-        Reg5 => (others => '0')
+        Reg5 => (others => '0'),
+        pen_palette => (others => (others => '0')) -- Fills all 16 array slots with "00000"
     );
 
 END defs_pkg;

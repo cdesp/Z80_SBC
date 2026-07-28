@@ -14,6 +14,7 @@
         <File path="src/DP_VideoRam/DPVRAM.vhd" type="file.vhdl" enable="1"/>
         <File path="src/MMU.vhd" type="file.vhdl" enable="1"/>
         <File path="src/RegisterN.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/VD_Amstrad.vhd" type="file.vhdl" enable="1"/>
         <File path="src/VD_Atlas_video.vhd" type="file.vhdl" enable="1"/>
         <File path="src/VD_Bootloader.vhd" type="file.vhdl" enable="1"/>
         <File path="src/VD_GenericZ80_module.vhd" type="file.vhdl" enable="1"/>
@@ -21,6 +22,8 @@
         <File path="src/VD_NEWBRAIN.vhd" type="file.vhdl" enable="1"/>
         <File path="src/VD_SPECTRUM.vhd" type="file.vhdl" enable="1"/>
         <File path="src/VD_types_pkg.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/Z80_BA_AMSTRAD.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/Z80_BA_AMSTRAD_MMU.vhd" type="file.vhdl" enable="1"/>
         <File path="src/Z80_BA_Atlas.vhd" type="file.vhdl" enable="1"/>
         <File path="src/Z80_BA_Newbrain.vhd" type="file.vhdl" enable="1"/>
         <File path="src/Z80_BA_SPECTRUM.vhd" type="file.vhdl" enable="1"/>

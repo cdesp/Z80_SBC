@@ -85,8 +85,11 @@ begin
     V_OUT.b_8 <= b;
     -- Note: Sync generation usually happens in the HDMI controller, 
     -- but here we pass them through to allow systems to define their own timing if necessary.
-    V_OUT.h_sync <= '1'; -- Defaulting high, usually driven by master timing
-    V_OUT.v_sync <= '1';
-    V_OUT.de     <= '1'; -- Active
+    V_OUT.de <= V_IN.de ;
+    V_OUT.h_sync <= V_IN.h_sync ;
+    V_OUT.v_sync <= V_IN.h_sync ;
+--    V_OUT.h_sync <= '1'; -- Defaulting high, usually driven by master timing
+--    V_OUT.v_sync <= '1';
+--    V_OUT.de     <= '1'; -- Active
 
 end architecture RTL;

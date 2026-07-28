@@ -328,11 +328,9 @@ begin
         end case;
     end process;
 
-    V_OUT.de <= '1' ;
-
-    V_OUT.h_sync <= '1' ;
-
-    V_OUT.v_sync <= '1' ;
+    V_OUT.de <= V_IN.de ;
+    V_OUT.h_sync <= V_IN.h_sync ;
+    V_OUT.v_sync <= V_IN.h_sync ;
 
     VRAM_ADDR <= std_logic_vector(vram_addr_pxl);
 

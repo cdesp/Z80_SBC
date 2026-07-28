@@ -2,7 +2,7 @@
 <GAO_CONFIG>
     <Version>3.0</Version>
     <Mode>Standard</Mode>
-    <AoCore index="0" sample_clock="CLK_IN" trig_type="0" storage_depth="2048" window_num="1" capture_amount="2048" implementation="0" trigger_pos="20" module_name="Z80_FPGA_SYSTEM" force_trigger_by_falling_edge="false" capture_init_data_enabled="false">
+    <AoCore index="0" sample_clock="CLK_IN" trig_type="0" storage_depth="1024" window_num="1" capture_amount="1024" implementation="0" trigger_pos="20" module_name="Z80_FPGA_SYSTEM" force_trigger_by_falling_edge="false" capture_init_data_enabled="false">
         <SignalList>
             <Bus capture_enable="true" name="system_selection[3:0]">
                 <Signal>system_selection[3]</Signal>
@@ -10,53 +10,210 @@
                 <Signal>system_selection[1]</Signal>
                 <Signal>system_selection[0]</Signal>
             </Bus>
-            <Bus capture_enable="true" name="BA_Spectrum/Z80_IO_ADDR[7:0]">
-                <Signal>BA_Spectrum/Z80_IO_ADDR[7]</Signal>
-                <Signal>BA_Spectrum/Z80_IO_ADDR[6]</Signal>
-                <Signal>BA_Spectrum/Z80_IO_ADDR[5]</Signal>
-                <Signal>BA_Spectrum/Z80_IO_ADDR[4]</Signal>
-                <Signal>BA_Spectrum/Z80_IO_ADDR[3]</Signal>
-                <Signal>BA_Spectrum/Z80_IO_ADDR[2]</Signal>
-                <Signal>BA_Spectrum/Z80_IO_ADDR[1]</Signal>
-                <Signal>BA_Spectrum/Z80_IO_ADDR[0]</Signal>
+            <Bus capture_enable="true" name="BA_Amstrad/Z80_IO_ADDR[15:0]">
+                <Signal>BA_Amstrad/Z80_IO_ADDR[15]</Signal>
+                <Signal>BA_Amstrad/Z80_IO_ADDR[14]</Signal>
+                <Signal>BA_Amstrad/Z80_IO_ADDR[13]</Signal>
+                <Signal>BA_Amstrad/Z80_IO_ADDR[12]</Signal>
+                <Signal>BA_Amstrad/Z80_IO_ADDR[11]</Signal>
+                <Signal>BA_Amstrad/Z80_IO_ADDR[10]</Signal>
+                <Signal>BA_Amstrad/Z80_IO_ADDR[9]</Signal>
+                <Signal>BA_Amstrad/Z80_IO_ADDR[8]</Signal>
+                <Signal>BA_Amstrad/Z80_IO_ADDR[7]</Signal>
+                <Signal>BA_Amstrad/Z80_IO_ADDR[6]</Signal>
+                <Signal>BA_Amstrad/Z80_IO_ADDR[5]</Signal>
+                <Signal>BA_Amstrad/Z80_IO_ADDR[4]</Signal>
+                <Signal>BA_Amstrad/Z80_IO_ADDR[3]</Signal>
+                <Signal>BA_Amstrad/Z80_IO_ADDR[2]</Signal>
+                <Signal>BA_Amstrad/Z80_IO_ADDR[1]</Signal>
+                <Signal>BA_Amstrad/Z80_IO_ADDR[0]</Signal>
             </Bus>
-            <Signal capture_enable="true">BA_Spectrum/Z80_In.Z80_IORQ_N</Signal>
-            <Signal capture_enable="true">BA_Spectrum/Z80_In.Z80_WR_N</Signal>
-            <Bus capture_enable="true" name="BA_Spectrum/Z80_In.Z80_Data[7:0]">
-                <Signal>BA_Spectrum/Z80_In.Z80_Data[7]</Signal>
-                <Signal>BA_Spectrum/Z80_In.Z80_Data[6]</Signal>
-                <Signal>BA_Spectrum/Z80_In.Z80_Data[5]</Signal>
-                <Signal>BA_Spectrum/Z80_In.Z80_Data[4]</Signal>
-                <Signal>BA_Spectrum/Z80_In.Z80_Data[3]</Signal>
-                <Signal>BA_Spectrum/Z80_In.Z80_Data[2]</Signal>
-                <Signal>BA_Spectrum/Z80_In.Z80_Data[1]</Signal>
-                <Signal>BA_Spectrum/Z80_In.Z80_Data[0]</Signal>
+            <Signal capture_enable="true">BA_Amstrad/Z80_In.Z80_IORQ_N</Signal>
+            <Signal capture_enable="true">BA_Amstrad/Z80_In.Z80_WR_N</Signal>
+            <Signal capture_enable="true">BA_Amstrad/lower_rom_en_reg</Signal>
+            <Signal capture_enable="true">BA_Amstrad/upper_rom_en_reg</Signal>
+            <Bus capture_enable="true" name="Z80_LA_BUS_INT[15:0]">
+                <Signal>Z80_LA_BUS_INT[15]</Signal>
+                <Signal>Z80_LA_BUS_INT[14]</Signal>
+                <Signal>Z80_LA_BUS_INT[13]</Signal>
+                <Signal>Z80_LA_BUS_INT[12]</Signal>
+                <Signal>Z80_LA_BUS_INT[11]</Signal>
+                <Signal>Z80_LA_BUS_INT[10]</Signal>
+                <Signal>Z80_LA_BUS_INT[9]</Signal>
+                <Signal>Z80_LA_BUS_INT[8]</Signal>
+                <Signal>Z80_LA_BUS_INT[7]</Signal>
+                <Signal>Z80_LA_BUS_INT[6]</Signal>
+                <Signal>Z80_LA_BUS_INT[5]</Signal>
+                <Signal>Z80_LA_BUS_INT[4]</Signal>
+                <Signal>Z80_LA_BUS_INT[3]</Signal>
+                <Signal>Z80_LA_BUS_INT[2]</Signal>
+                <Signal>Z80_LA_BUS_INT[1]</Signal>
+                <Signal>Z80_LA_BUS_INT[0]</Signal>
             </Bus>
-            <Bus capture_enable="true" name="BA_Spectrum/Z80_Out.DataOut[7:0]">
-                <Signal>BA_Spectrum/Z80_Out.DataOut[7]</Signal>
-                <Signal>BA_Spectrum/Z80_Out.DataOut[6]</Signal>
-                <Signal>BA_Spectrum/Z80_Out.DataOut[5]</Signal>
-                <Signal>BA_Spectrum/Z80_Out.DataOut[4]</Signal>
-                <Signal>BA_Spectrum/Z80_Out.DataOut[3]</Signal>
-                <Signal>BA_Spectrum/Z80_Out.DataOut[2]</Signal>
-                <Signal>BA_Spectrum/Z80_Out.DataOut[1]</Signal>
-                <Signal>BA_Spectrum/Z80_Out.DataOut[0]</Signal>
+            <Signal capture_enable="true">nMREQ_r</Signal>
+            <Bus capture_enable="true" name="mmu_inst/Bank0[7:0]">
+                <Signal>mmu_inst/Bank0[7]</Signal>
+                <Signal>mmu_inst/Bank0[6]</Signal>
+                <Signal>mmu_inst/Bank0[5]</Signal>
+                <Signal>mmu_inst/Bank0[4]</Signal>
+                <Signal>mmu_inst/Bank0[3]</Signal>
+                <Signal>mmu_inst/Bank0[2]</Signal>
+                <Signal>mmu_inst/Bank0[1]</Signal>
+                <Signal>mmu_inst/Bank0[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="mmu_inst/Bank1[7:0]">
+                <Signal>mmu_inst/Bank1[7]</Signal>
+                <Signal>mmu_inst/Bank1[6]</Signal>
+                <Signal>mmu_inst/Bank1[5]</Signal>
+                <Signal>mmu_inst/Bank1[4]</Signal>
+                <Signal>mmu_inst/Bank1[3]</Signal>
+                <Signal>mmu_inst/Bank1[2]</Signal>
+                <Signal>mmu_inst/Bank1[1]</Signal>
+                <Signal>mmu_inst/Bank1[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="mmu_inst/Bank2[7:0]">
+                <Signal>mmu_inst/Bank2[7]</Signal>
+                <Signal>mmu_inst/Bank2[6]</Signal>
+                <Signal>mmu_inst/Bank2[5]</Signal>
+                <Signal>mmu_inst/Bank2[4]</Signal>
+                <Signal>mmu_inst/Bank2[3]</Signal>
+                <Signal>mmu_inst/Bank2[2]</Signal>
+                <Signal>mmu_inst/Bank2[1]</Signal>
+                <Signal>mmu_inst/Bank2[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="mmu_inst/Bank3[7:0]">
+                <Signal>mmu_inst/Bank3[7]</Signal>
+                <Signal>mmu_inst/Bank3[6]</Signal>
+                <Signal>mmu_inst/Bank3[5]</Signal>
+                <Signal>mmu_inst/Bank3[4]</Signal>
+                <Signal>mmu_inst/Bank3[3]</Signal>
+                <Signal>mmu_inst/Bank3[2]</Signal>
+                <Signal>mmu_inst/Bank3[1]</Signal>
+                <Signal>mmu_inst/Bank3[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="mmu_inst/Bank4[7:0]">
+                <Signal>mmu_inst/Bank4[7]</Signal>
+                <Signal>mmu_inst/Bank4[6]</Signal>
+                <Signal>mmu_inst/Bank4[5]</Signal>
+                <Signal>mmu_inst/Bank4[4]</Signal>
+                <Signal>mmu_inst/Bank4[3]</Signal>
+                <Signal>mmu_inst/Bank4[2]</Signal>
+                <Signal>mmu_inst/Bank4[1]</Signal>
+                <Signal>mmu_inst/Bank4[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="mmu_inst/Bank5[7:0]">
+                <Signal>mmu_inst/Bank5[7]</Signal>
+                <Signal>mmu_inst/Bank5[6]</Signal>
+                <Signal>mmu_inst/Bank5[5]</Signal>
+                <Signal>mmu_inst/Bank5[4]</Signal>
+                <Signal>mmu_inst/Bank5[3]</Signal>
+                <Signal>mmu_inst/Bank5[2]</Signal>
+                <Signal>mmu_inst/Bank5[1]</Signal>
+                <Signal>mmu_inst/Bank5[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="mmu_inst/Bank6[7:0]">
+                <Signal>mmu_inst/Bank6[7]</Signal>
+                <Signal>mmu_inst/Bank6[6]</Signal>
+                <Signal>mmu_inst/Bank6[5]</Signal>
+                <Signal>mmu_inst/Bank6[4]</Signal>
+                <Signal>mmu_inst/Bank6[3]</Signal>
+                <Signal>mmu_inst/Bank6[2]</Signal>
+                <Signal>mmu_inst/Bank6[1]</Signal>
+                <Signal>mmu_inst/Bank6[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="mmu_inst/Bank7[7:0]">
+                <Signal>mmu_inst/Bank7[7]</Signal>
+                <Signal>mmu_inst/Bank7[6]</Signal>
+                <Signal>mmu_inst/Bank7[5]</Signal>
+                <Signal>mmu_inst/Bank7[4]</Signal>
+                <Signal>mmu_inst/Bank7[3]</Signal>
+                <Signal>mmu_inst/Bank7[2]</Signal>
+                <Signal>mmu_inst/Bank7[1]</Signal>
+                <Signal>mmu_inst/Bank7[0]</Signal>
+            </Bus>
+            <Signal capture_enable="true">LWR_CPU_N</Signal>
+            <Signal capture_enable="true">L_RD_N</Signal>
+            <Bus capture_enable="true" name="mmu_inst/FPGA_BANK_SEL[2:0]">
+                <Signal>mmu_inst/FPGA_BANK_SEL[2]</Signal>
+                <Signal>mmu_inst/FPGA_BANK_SEL[1]</Signal>
+                <Signal>mmu_inst/FPGA_BANK_SEL[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="mmu_inst/FPGA_BANK_PAGE[7:0]">
+                <Signal>mmu_inst/FPGA_BANK_PAGE[7]</Signal>
+                <Signal>mmu_inst/FPGA_BANK_PAGE[6]</Signal>
+                <Signal>mmu_inst/FPGA_BANK_PAGE[5]</Signal>
+                <Signal>mmu_inst/FPGA_BANK_PAGE[4]</Signal>
+                <Signal>mmu_inst/FPGA_BANK_PAGE[3]</Signal>
+                <Signal>mmu_inst/FPGA_BANK_PAGE[2]</Signal>
+                <Signal>mmu_inst/FPGA_BANK_PAGE[1]</Signal>
+                <Signal>mmu_inst/FPGA_BANK_PAGE[0]</Signal>
+            </Bus>
+            <Signal capture_enable="true">mmu_inst/FPGA_BANK_WE</Signal>
+            <Bus capture_enable="true" name="master_in.Z80_ADDR[15:0]">
+                <Signal>master_in.Z80_ADDR[15]</Signal>
+                <Signal>master_in.Z80_ADDR[14]</Signal>
+                <Signal>master_in.Z80_ADDR[13]</Signal>
+                <Signal>master_in.Z80_ADDR[12]</Signal>
+                <Signal>master_in.Z80_ADDR[11]</Signal>
+                <Signal>master_in.Z80_ADDR[10]</Signal>
+                <Signal>master_in.Z80_ADDR[9]</Signal>
+                <Signal>master_in.Z80_ADDR[8]</Signal>
+                <Signal>master_in.Z80_ADDR[7]</Signal>
+                <Signal>master_in.Z80_ADDR[6]</Signal>
+                <Signal>master_in.Z80_ADDR[5]</Signal>
+                <Signal>master_in.Z80_ADDR[4]</Signal>
+                <Signal>master_in.Z80_ADDR[3]</Signal>
+                <Signal>master_in.Z80_ADDR[2]</Signal>
+                <Signal>master_in.Z80_ADDR[1]</Signal>
+                <Signal>master_in.Z80_ADDR[0]</Signal>
             </Bus>
         </SignalList>
         <Triggers>
             <Trigger index="0">
                 <SignalList>
-                    <Bus restorename="BA_Spectrum/ZXSpec_KEYB[4:0]">
-                        <Signal>BA_Spectrum/ZXSpec_KEYB[4]</Signal>
-                        <Signal>BA_Spectrum/ZXSpec_KEYB[3]</Signal>
-                        <Signal>BA_Spectrum/ZXSpec_KEYB[2]</Signal>
-                        <Signal>BA_Spectrum/ZXSpec_KEYB[1]</Signal>
-                        <Signal>BA_Spectrum/ZXSpec_KEYB[0]</Signal>
+                    <Signal>LWR_CPU_N</Signal>
+                    <Bus restorename="system_selection[3:0]">
+                        <Signal>system_selection[3]</Signal>
+                        <Signal>system_selection[2]</Signal>
+                        <Signal>system_selection[1]</Signal>
+                        <Signal>system_selection[0]</Signal>
+                    </Bus>
+                    <Signal>L_MREQ_N</Signal>
+                </SignalList>
+            </Trigger>
+            <Trigger index="1">
+                <SignalList>
+                    <Signal>BA_Amstrad/capture1</Signal>
+                    <Bus restorename="system_selection[3:0]">
+                        <Signal>system_selection[3]</Signal>
+                        <Signal>system_selection[2]</Signal>
+                        <Signal>system_selection[1]</Signal>
+                        <Signal>system_selection[0]</Signal>
                     </Bus>
                 </SignalList>
             </Trigger>
-            <Trigger index="1"/>
-            <Trigger index="2"/>
+            <Trigger index="2">
+                <SignalList>
+                    <Bus restorename="master_in.Z80_ADDR[15:0]">
+                        <Signal>master_in.Z80_ADDR[15]</Signal>
+                        <Signal>master_in.Z80_ADDR[14]</Signal>
+                        <Signal>master_in.Z80_ADDR[13]</Signal>
+                        <Signal>master_in.Z80_ADDR[12]</Signal>
+                        <Signal>master_in.Z80_ADDR[11]</Signal>
+                        <Signal>master_in.Z80_ADDR[10]</Signal>
+                        <Signal>master_in.Z80_ADDR[9]</Signal>
+                        <Signal>master_in.Z80_ADDR[8]</Signal>
+                        <Signal>master_in.Z80_ADDR[7]</Signal>
+                        <Signal>master_in.Z80_ADDR[6]</Signal>
+                        <Signal>master_in.Z80_ADDR[5]</Signal>
+                        <Signal>master_in.Z80_ADDR[4]</Signal>
+                        <Signal>master_in.Z80_ADDR[3]</Signal>
+                        <Signal>master_in.Z80_ADDR[2]</Signal>
+                        <Signal>master_in.Z80_ADDR[1]</Signal>
+                        <Signal>master_in.Z80_ADDR[0]</Signal>
+                    </Bus>
+                </SignalList>
+            </Trigger>
             <Trigger index="3"/>
             <Trigger index="4"/>
             <Trigger index="5"/>
@@ -72,9 +229,9 @@
             <Trigger index="15"/>
         </Triggers>
         <MatchUnits>
-            <MatchUnit index="0" enabled="1" match_type="0" counter_enable="0" counter_width="5" counter="6" countinuous="0" func="1" value0="11111" value1="00000" trigger="0"/>
-            <MatchUnit index="1" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
-            <MatchUnit index="2" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="0" enabled="1" match_type="0" counter_enable="0" counter_width="5" counter="6" countinuous="0" func="0" value0="001000" value1="000000" trigger="0"/>
+            <MatchUnit index="1" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="10100" value1="00000" trigger="1"/>
+            <MatchUnit index="2" enabled="1" match_type="4" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="2" value0="1100000000000000" value1="0000000000000000" trigger="2"/>
             <MatchUnit index="3" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
             <MatchUnit index="4" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
             <MatchUnit index="5" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
@@ -90,8 +247,8 @@
             <MatchUnit index="15" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
         </MatchUnits>
         <Expressions type="Static">
-            <Expression>M0</Expression>
+            <Expression>M0&amp;M2</Expression>
         </Expressions>
     </AoCore>
-    <GAO_ID>0101001110101110</GAO_ID>
+    <GAO_ID>1010001110010111</GAO_ID>
 </GAO_CONFIG>

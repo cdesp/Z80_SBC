@@ -88,10 +88,8 @@ architecture RTL of NewbrainVideo is
     signal addrrow_meta : std_logic_vector(7 downto 0);
     signal sVideo9_meta : std_logic;
 
-  --  signal sVideo9 : std_logic;
-  --  signal addrrow : std_logic_vector(7 downto 0);
-alias addrrow : std_logic_vector(7 downto 0) is sync_addrrow;
-alias sVideo9 : std_logic is sync_sVideo9;
+
+
     signal addrcol : std_logic_vector(6 downto 0);
    
 
@@ -143,7 +141,7 @@ begin
             -- Only grab the Z80 ports when the beam is at the very top of the screen
             if V_IN.v_cnt = 0 and V_IN.h_cnt = 0 then
                 -- sVideo9 from Port 8 automatically provides the +64 byte offset when set
-                latched_video_addr <= unsigned("0" & addrrow & sVideo9 & "000000");
+                latched_video_addr <= unsigned(std_logic_vector'("0" & sync_addrrow & sync_sVideo9 & "000000"));
             end if;
         end if;
     end process;
@@ -238,7 +236,7 @@ begin
                         
                     when S_INIT =>
                         
-                        base_temp := unsigned("0" & sync_addrrow & sync_sVideo9 & "000000");
+                        base_temp := unsigned(std_logic_vector'("0" & sync_addrrow & sync_sVideo9 & "000000"));
 
                         -- Apply the mode offset (+4 or +2)
                         if s80L = '1' then
@@ -474,12 +472,14 @@ begin
                     V_OUT.r_8 <= (others => '1'); V_OUT.g_8 <= (others => '0'); V_OUT.b_8 <= (others => '0');
                 end if;
 
-            V_OUT.h_sync <= '1';
-            V_OUT.v_sync <= '1';
-            V_OUT.de     <= '1';
+
             end if;
         end if;
     end process;
+
+    V_OUT.de <= V_IN.de ;
+    V_OUT.h_sync <= V_IN.h_sync ;
+    V_OUT.v_sync <= V_IN.h_sync ;
 
     VRAM_ADDR <= std_logic_vector(memaddr_reg);
 
