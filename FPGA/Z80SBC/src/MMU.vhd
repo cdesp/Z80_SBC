@@ -28,7 +28,16 @@ ENTITY MMU IS
         nCE1            :  OUT STD_LOGIC; -- map to SST39LF040 LRAMEN2_N (Flash, 512KB)
         nCE2            :  OUT STD_LOGIC; -- internal dual-port video RAM (64KB)
         nCE3            :  OUT STD_LOGIC;
-        nCE4            :  OUT STD_LOGIC
+        nCE4            :  OUT STD_LOGIC;
+        --Page_Banks
+        MMU_BANK0_PAGE  : OUT std_logic_vector(7 downto 0);
+        MMU_BANK1_PAGE  : OUT std_logic_vector(7 downto 0);
+        MMU_BANK2_PAGE  : OUT std_logic_vector(7 downto 0);
+        MMU_BANK3_PAGE  : OUT std_logic_vector(7 downto 0);
+        MMU_BANK4_PAGE  : OUT std_logic_vector(7 downto 0);
+        MMU_BANK5_PAGE  : OUT std_logic_vector(7 downto 0);
+        MMU_BANK6_PAGE  : OUT std_logic_vector(7 downto 0);
+        MMU_BANK7_PAGE  : OUT std_logic_vector(7 downto 0)
     );
 END MMU;
 
@@ -172,6 +181,15 @@ BEGIN
     Bankreg7 : regn
         generic map ( N => 8, INIT => x"87")
         PORT MAP( D => Muxed_Bank_Data, Resetn => nRST, Loadn => nSetBANK7, Clock => CLK, Q => Bank7 );
+
+    MMU_BANK0_PAGE <= Bank0;
+    MMU_BANK1_PAGE <= Bank1;
+    MMU_BANK2_PAGE <= Bank2;
+    MMU_BANK3_PAGE <= Bank3;
+    MMU_BANK4_PAGE <= Bank4;
+    MMU_BANK5_PAGE <= Bank5;
+    MMU_BANK6_PAGE <= Bank6;
+    MMU_BANK7_PAGE <= Bank7;
 
     -- -------------------------------------------------------------
     -- 3. Extended Address (EA) Mapping

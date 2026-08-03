@@ -1,0 +1,153 @@
+		ORG $0000 ;40960 FOR PAGE $85
+
+                @DEVSER EQU $20
+                @DEVSYS EQU $E1
+                @DEVSND EQU $40 ;FOR SN76489
+		
+		DI
+		JP DBMENU
+		DS 0066H-$
+
+		JP ENTRY
+		
+ENTRY:	;NO NEED TO INITIALIZE DEVICES ALREADY DONE ON BOOTLOADER
+		PUSH HL
+		PUSH BC
+                PUSH DE
+                PUSH AF
+                PUSH IX
+                PUSH IY
+                IN A,(DEVSYS)           ;current system should be saved and
+                PUSH AF
+                XOR A
+                OUT (DEVSYS),A          ;SET NEW SYSTEM  0 AS BOOTLOADER 
+                ;TODO      BRING IN A RAM PAGE FOR OUR VARS NOW ASSUME F000 IS ALREADY RAM
+                JP DBMENU
+DBEXIT:         POP AF
+                OUT (DEVSYS),A          ;SET SYSTEM BACK
+                POP IY
+                POP IX
+                POP AF
+                POP DE
+                POP BC
+                POP HL
+                RETN
+
+DBMENU:         LD HL, MSG1
+                CALL RS_TXT
+		
+		CALL RS_RX	; WAIT FOR A CHAR IN RS232
+		PUSH AF
+		CALL SND_BEEP
+		POP AF
+		CP 'U' 								;UPLOAD PROGRAM
+		CALL Z, UPLOD
+		CP 'X'
+		JP Z, EXEC
+		CP 'J'
+		CALL Z, DNLOD
+		CP 'R'
+		JP Z, DBEXIT
+		
+		JP DBMENU
+
+
+EXEC:		LD DE, PRGEX
+		LD A, (DE)
+		LD L, A
+		INC DE
+		LD A, (DE)
+		LD H, A
+		JP (HL)
+		
+UPLOD:		CALL RS_RX 							;HL HAS RAM ADDRESS
+		LD L, A
+		CALL RS_RX
+		LD H, A
+		CALL RS_RX 							;BC HAS TOTAL DATA TO BE SEND
+		LD C, A
+		CALL RS_RX
+		LD B, A
+		
+		LD DE, PRGEX 							;SAVE TO PRGEX THE PROG EXEC ADDR=HL
+		LD A, L
+		LD (DE), A
+		INC DE
+		LD A, H
+		LD (DE), A
+									
+		PUSH HL
+NXB:		CALL RS_RX
+		LD (HL), A
+		INC HL
+		DEC BC
+		LD A, B
+		OR C
+		JR NZ, NXB 							;LOOP ALL BYTES
+				
+		POP HL
+		
+		RET
+					
+		
+DNLOD:		CALL RS_RX 							;HL HAS RAM ADDRESS
+		LD L, A
+		CALL RS_RX
+		LD H, A
+		CALL RS_RX 							;BC HAS TOTAL DATA TO BE SEND
+		LD C, A
+		CALL RS_RX
+		LD B, A
+		
+NXB3:		LD A, (HL)
+		CALL RS_TX 							;SEND BYTE
+		INC HL
+		DEC BC
+		LD A, B
+		OR C
+		JR NZ, NXB3 							;LOOP ALL BYTES			
+		RET
+
+
+
+MSG1:           DEFM "ATLAS DEBUGGER"
+                DB 10,13,0
+MSG_MNU:        DEFM "U:UPL,X:RUN,J:DOWNL,R:RETURN"
+		DB 10,13,0
+
+INCLUDE ..\Bootloader\ATL_SERIAL.Z80
+INCLUDE ..\Bootloader\ATL_SOUND.Z80
+INCLUDE ..\Bootloader\ATL_UTILS.Z80
+
+
+ORG $F200	;PARAMS
+BLSTACKP	DEFS 1
+OSVARS  EQU $
+	;SERIAL
+	@SERERR 	DEFS 1
+        @STRGBUFF 	DEFS 40 						;USED FOR DIRECTORY AND FILENAME
+        	;UTILS
+	@B2DINV 	DEFS 8		;BINARY NUMBER TO BE CONVERTED
+	@B2DBUF 	DEFS 20		;ASCCI STRING OF THE NUMBER	
+	@B2DEND 	DEFS 1		;0 FOR TERMINATE THE STRING
+	@LINESTR:	DEFS 2		;ADDRESS OF LINEBUF FOR PRINTING ON STRING
+	@LINEPOS	DEFS 1
+	@RNDseed 	DEFS 1		;RANDOM SEED
+	@NUMBUF		DEFS 7
+	@STRG_STAT	DEFS 1
+	@PRGEX		DEFS 2		;PROGRAM EXECUTE ADDRESS
+	@DIRNM		DEFS 20		;DIRECTORY NAME
+       ;----SOUND MODULE
+	@CHANDATA:       ;SONG DATA ADDRESS 0 FOR NO DATA
+        DEFS 2
+        DEFS 2
+        DEFS 2
+        DEFS 2
+	@CHANDEL:	;CHANNEL DELAY TO MUTE
+        DEFS 1
+        DEFS 1
+        DEFS 1
+        DEFS 1
+	@CHANST         DEFS 1    ;CHANNEL STATUS  BITS 0-3 SET MEANS DISABLED        
+
+

@@ -1,0 +1,7 @@
+10 Reserve top-24576
+20 For i=0 to 12
+30 Read a:poke 24576+i,a
+40 next i
+50 ?"type CALL TOP to run your code."
+100 END
+10000 DATA 195,3,96,62,133,6,4,205,168,9

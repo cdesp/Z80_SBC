@@ -10,28 +10,26 @@
                 <Signal>system_selection[1]</Signal>
                 <Signal>system_selection[0]</Signal>
             </Bus>
-            <Bus capture_enable="true" name="BA_Amstrad/Z80_IO_ADDR[15:0]">
-                <Signal>BA_Amstrad/Z80_IO_ADDR[15]</Signal>
-                <Signal>BA_Amstrad/Z80_IO_ADDR[14]</Signal>
-                <Signal>BA_Amstrad/Z80_IO_ADDR[13]</Signal>
-                <Signal>BA_Amstrad/Z80_IO_ADDR[12]</Signal>
-                <Signal>BA_Amstrad/Z80_IO_ADDR[11]</Signal>
-                <Signal>BA_Amstrad/Z80_IO_ADDR[10]</Signal>
-                <Signal>BA_Amstrad/Z80_IO_ADDR[9]</Signal>
-                <Signal>BA_Amstrad/Z80_IO_ADDR[8]</Signal>
-                <Signal>BA_Amstrad/Z80_IO_ADDR[7]</Signal>
-                <Signal>BA_Amstrad/Z80_IO_ADDR[6]</Signal>
-                <Signal>BA_Amstrad/Z80_IO_ADDR[5]</Signal>
-                <Signal>BA_Amstrad/Z80_IO_ADDR[4]</Signal>
-                <Signal>BA_Amstrad/Z80_IO_ADDR[3]</Signal>
-                <Signal>BA_Amstrad/Z80_IO_ADDR[2]</Signal>
-                <Signal>BA_Amstrad/Z80_IO_ADDR[1]</Signal>
-                <Signal>BA_Amstrad/Z80_IO_ADDR[0]</Signal>
+            <Bus capture_enable="true" name="Z80_DATA_OUT_INT[7:0]">
+                <Signal>Z80_DATA_OUT_INT[7]</Signal>
+                <Signal>Z80_DATA_OUT_INT[6]</Signal>
+                <Signal>Z80_DATA_OUT_INT[5]</Signal>
+                <Signal>Z80_DATA_OUT_INT[4]</Signal>
+                <Signal>Z80_DATA_OUT_INT[3]</Signal>
+                <Signal>Z80_DATA_OUT_INT[2]</Signal>
+                <Signal>Z80_DATA_OUT_INT[1]</Signal>
+                <Signal>Z80_DATA_OUT_INT[0]</Signal>
             </Bus>
-            <Signal capture_enable="true">BA_Amstrad/Z80_In.Z80_IORQ_N</Signal>
-            <Signal capture_enable="true">BA_Amstrad/Z80_In.Z80_WR_N</Signal>
-            <Signal capture_enable="true">BA_Amstrad/lower_rom_en_reg</Signal>
-            <Signal capture_enable="true">BA_Amstrad/upper_rom_en_reg</Signal>
+            <Bus capture_enable="true" name="Z80_DATA_IN_INT[7:0]">
+                <Signal>Z80_DATA_IN_INT[7]</Signal>
+                <Signal>Z80_DATA_IN_INT[6]</Signal>
+                <Signal>Z80_DATA_IN_INT[5]</Signal>
+                <Signal>Z80_DATA_IN_INT[4]</Signal>
+                <Signal>Z80_DATA_IN_INT[3]</Signal>
+                <Signal>Z80_DATA_IN_INT[2]</Signal>
+                <Signal>Z80_DATA_IN_INT[1]</Signal>
+                <Signal>Z80_DATA_IN_INT[0]</Signal>
+            </Bus>
             <Bus capture_enable="true" name="Z80_LA_BUS_INT[15:0]">
                 <Signal>Z80_LA_BUS_INT[15]</Signal>
                 <Signal>Z80_LA_BUS_INT[14]</Signal>
@@ -50,105 +48,6 @@
                 <Signal>Z80_LA_BUS_INT[1]</Signal>
                 <Signal>Z80_LA_BUS_INT[0]</Signal>
             </Bus>
-            <Signal capture_enable="true">nMREQ_r</Signal>
-            <Bus capture_enable="true" name="mmu_inst/Bank0[7:0]">
-                <Signal>mmu_inst/Bank0[7]</Signal>
-                <Signal>mmu_inst/Bank0[6]</Signal>
-                <Signal>mmu_inst/Bank0[5]</Signal>
-                <Signal>mmu_inst/Bank0[4]</Signal>
-                <Signal>mmu_inst/Bank0[3]</Signal>
-                <Signal>mmu_inst/Bank0[2]</Signal>
-                <Signal>mmu_inst/Bank0[1]</Signal>
-                <Signal>mmu_inst/Bank0[0]</Signal>
-            </Bus>
-            <Bus capture_enable="true" name="mmu_inst/Bank1[7:0]">
-                <Signal>mmu_inst/Bank1[7]</Signal>
-                <Signal>mmu_inst/Bank1[6]</Signal>
-                <Signal>mmu_inst/Bank1[5]</Signal>
-                <Signal>mmu_inst/Bank1[4]</Signal>
-                <Signal>mmu_inst/Bank1[3]</Signal>
-                <Signal>mmu_inst/Bank1[2]</Signal>
-                <Signal>mmu_inst/Bank1[1]</Signal>
-                <Signal>mmu_inst/Bank1[0]</Signal>
-            </Bus>
-            <Bus capture_enable="true" name="mmu_inst/Bank2[7:0]">
-                <Signal>mmu_inst/Bank2[7]</Signal>
-                <Signal>mmu_inst/Bank2[6]</Signal>
-                <Signal>mmu_inst/Bank2[5]</Signal>
-                <Signal>mmu_inst/Bank2[4]</Signal>
-                <Signal>mmu_inst/Bank2[3]</Signal>
-                <Signal>mmu_inst/Bank2[2]</Signal>
-                <Signal>mmu_inst/Bank2[1]</Signal>
-                <Signal>mmu_inst/Bank2[0]</Signal>
-            </Bus>
-            <Bus capture_enable="true" name="mmu_inst/Bank3[7:0]">
-                <Signal>mmu_inst/Bank3[7]</Signal>
-                <Signal>mmu_inst/Bank3[6]</Signal>
-                <Signal>mmu_inst/Bank3[5]</Signal>
-                <Signal>mmu_inst/Bank3[4]</Signal>
-                <Signal>mmu_inst/Bank3[3]</Signal>
-                <Signal>mmu_inst/Bank3[2]</Signal>
-                <Signal>mmu_inst/Bank3[1]</Signal>
-                <Signal>mmu_inst/Bank3[0]</Signal>
-            </Bus>
-            <Bus capture_enable="true" name="mmu_inst/Bank4[7:0]">
-                <Signal>mmu_inst/Bank4[7]</Signal>
-                <Signal>mmu_inst/Bank4[6]</Signal>
-                <Signal>mmu_inst/Bank4[5]</Signal>
-                <Signal>mmu_inst/Bank4[4]</Signal>
-                <Signal>mmu_inst/Bank4[3]</Signal>
-                <Signal>mmu_inst/Bank4[2]</Signal>
-                <Signal>mmu_inst/Bank4[1]</Signal>
-                <Signal>mmu_inst/Bank4[0]</Signal>
-            </Bus>
-            <Bus capture_enable="true" name="mmu_inst/Bank5[7:0]">
-                <Signal>mmu_inst/Bank5[7]</Signal>
-                <Signal>mmu_inst/Bank5[6]</Signal>
-                <Signal>mmu_inst/Bank5[5]</Signal>
-                <Signal>mmu_inst/Bank5[4]</Signal>
-                <Signal>mmu_inst/Bank5[3]</Signal>
-                <Signal>mmu_inst/Bank5[2]</Signal>
-                <Signal>mmu_inst/Bank5[1]</Signal>
-                <Signal>mmu_inst/Bank5[0]</Signal>
-            </Bus>
-            <Bus capture_enable="true" name="mmu_inst/Bank6[7:0]">
-                <Signal>mmu_inst/Bank6[7]</Signal>
-                <Signal>mmu_inst/Bank6[6]</Signal>
-                <Signal>mmu_inst/Bank6[5]</Signal>
-                <Signal>mmu_inst/Bank6[4]</Signal>
-                <Signal>mmu_inst/Bank6[3]</Signal>
-                <Signal>mmu_inst/Bank6[2]</Signal>
-                <Signal>mmu_inst/Bank6[1]</Signal>
-                <Signal>mmu_inst/Bank6[0]</Signal>
-            </Bus>
-            <Bus capture_enable="true" name="mmu_inst/Bank7[7:0]">
-                <Signal>mmu_inst/Bank7[7]</Signal>
-                <Signal>mmu_inst/Bank7[6]</Signal>
-                <Signal>mmu_inst/Bank7[5]</Signal>
-                <Signal>mmu_inst/Bank7[4]</Signal>
-                <Signal>mmu_inst/Bank7[3]</Signal>
-                <Signal>mmu_inst/Bank7[2]</Signal>
-                <Signal>mmu_inst/Bank7[1]</Signal>
-                <Signal>mmu_inst/Bank7[0]</Signal>
-            </Bus>
-            <Signal capture_enable="true">LWR_CPU_N</Signal>
-            <Signal capture_enable="true">L_RD_N</Signal>
-            <Bus capture_enable="true" name="mmu_inst/FPGA_BANK_SEL[2:0]">
-                <Signal>mmu_inst/FPGA_BANK_SEL[2]</Signal>
-                <Signal>mmu_inst/FPGA_BANK_SEL[1]</Signal>
-                <Signal>mmu_inst/FPGA_BANK_SEL[0]</Signal>
-            </Bus>
-            <Bus capture_enable="true" name="mmu_inst/FPGA_BANK_PAGE[7:0]">
-                <Signal>mmu_inst/FPGA_BANK_PAGE[7]</Signal>
-                <Signal>mmu_inst/FPGA_BANK_PAGE[6]</Signal>
-                <Signal>mmu_inst/FPGA_BANK_PAGE[5]</Signal>
-                <Signal>mmu_inst/FPGA_BANK_PAGE[4]</Signal>
-                <Signal>mmu_inst/FPGA_BANK_PAGE[3]</Signal>
-                <Signal>mmu_inst/FPGA_BANK_PAGE[2]</Signal>
-                <Signal>mmu_inst/FPGA_BANK_PAGE[1]</Signal>
-                <Signal>mmu_inst/FPGA_BANK_PAGE[0]</Signal>
-            </Bus>
-            <Signal capture_enable="true">mmu_inst/FPGA_BANK_WE</Signal>
             <Bus capture_enable="true" name="master_in.Z80_ADDR[15:0]">
                 <Signal>master_in.Z80_ADDR[15]</Signal>
                 <Signal>master_in.Z80_ADDR[14]</Signal>
@@ -167,29 +66,142 @@
                 <Signal>master_in.Z80_ADDR[1]</Signal>
                 <Signal>master_in.Z80_ADDR[0]</Signal>
             </Bus>
+            <Signal capture_enable="true">L_MREQ_N</Signal>
+            <Signal capture_enable="true">L_RD_N</Signal>
+            <Signal capture_enable="true">LWR_CPU_N</Signal>
+            <Signal capture_enable="true">L_IORQ_N</Signal>
+            <Signal capture_enable="true">L_M1_N</Signal>
+            <Signal capture_enable="true">LINT_N</Signal>
+            <Signal capture_enable="true">L_NMI_N</Signal>
+            <Bus capture_enable="true" name="sDataout[7:0]">
+                <Signal>sDataout[7]</Signal>
+                <Signal>sDataout[6]</Signal>
+                <Signal>sDataout[5]</Signal>
+                <Signal>sDataout[4]</Signal>
+                <Signal>sDataout[3]</Signal>
+                <Signal>sDataout[2]</Signal>
+                <Signal>sDataout[1]</Signal>
+                <Signal>sDataout[0]</Signal>
+            </Bus>
+            <Signal capture_enable="true">sISDout</Signal>
+            <Signal capture_enable="true">U_Z80_NMI_HANDLER/tool_request</Signal>
+            <Bus capture_enable="true" name="U_Z80_NMI_HANDLER/seq_state[5:0]">
+                <Signal>U_Z80_NMI_HANDLER/seq_state.seq_idle</Signal>
+                <Signal>U_Z80_NMI_HANDLER/seq_state.seq_save_ctx</Signal>
+                <Signal>U_Z80_NMI_HANDLER/seq_state.seq_wr_bank0</Signal>
+                <Signal>U_Z80_NMI_HANDLER/seq_state.seq_wait_vector</Signal>
+                <Signal>U_Z80_NMI_HANDLER/seq_state.seq_wait_retn</Signal>
+                <Signal>U_Z80_NMI_HANDLER/seq_state.seq_restore</Signal>
+            </Bus>
+            <Signal capture_enable="true">sTools_Act</Signal>
+            <Signal capture_enable="true">flash_prog</Signal>
+            <Bus capture_enable="true" name="sBANK0_PAGE[7:0]">
+                <Signal>sBANK0_PAGE[7]</Signal>
+                <Signal>sBANK0_PAGE[6]</Signal>
+                <Signal>sBANK0_PAGE[5]</Signal>
+                <Signal>sBANK0_PAGE[4]</Signal>
+                <Signal>sBANK0_PAGE[3]</Signal>
+                <Signal>sBANK0_PAGE[2]</Signal>
+                <Signal>sBANK0_PAGE[1]</Signal>
+                <Signal>sBANK0_PAGE[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="sBANK1_PAGE[7:0]">
+                <Signal>sBANK1_PAGE[7]</Signal>
+                <Signal>sBANK1_PAGE[6]</Signal>
+                <Signal>sBANK1_PAGE[5]</Signal>
+                <Signal>sBANK1_PAGE[4]</Signal>
+                <Signal>sBANK1_PAGE[3]</Signal>
+                <Signal>sBANK1_PAGE[2]</Signal>
+                <Signal>sBANK1_PAGE[1]</Signal>
+                <Signal>sBANK1_PAGE[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="sBANK2_PAGE[7:0]">
+                <Signal>sBANK2_PAGE[7]</Signal>
+                <Signal>sBANK2_PAGE[6]</Signal>
+                <Signal>sBANK2_PAGE[5]</Signal>
+                <Signal>sBANK2_PAGE[4]</Signal>
+                <Signal>sBANK2_PAGE[3]</Signal>
+                <Signal>sBANK2_PAGE[2]</Signal>
+                <Signal>sBANK2_PAGE[1]</Signal>
+                <Signal>sBANK2_PAGE[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="sBANK3_PAGE[7:0]">
+                <Signal>sBANK3_PAGE[7]</Signal>
+                <Signal>sBANK3_PAGE[6]</Signal>
+                <Signal>sBANK3_PAGE[5]</Signal>
+                <Signal>sBANK3_PAGE[4]</Signal>
+                <Signal>sBANK3_PAGE[3]</Signal>
+                <Signal>sBANK3_PAGE[2]</Signal>
+                <Signal>sBANK3_PAGE[1]</Signal>
+                <Signal>sBANK3_PAGE[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="sBANK4_PAGE[7:0]">
+                <Signal>sBANK4_PAGE[7]</Signal>
+                <Signal>sBANK4_PAGE[6]</Signal>
+                <Signal>sBANK4_PAGE[5]</Signal>
+                <Signal>sBANK4_PAGE[4]</Signal>
+                <Signal>sBANK4_PAGE[3]</Signal>
+                <Signal>sBANK4_PAGE[2]</Signal>
+                <Signal>sBANK4_PAGE[1]</Signal>
+                <Signal>sBANK4_PAGE[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="sBANK5_PAGE[7:0]">
+                <Signal>sBANK5_PAGE[7]</Signal>
+                <Signal>sBANK5_PAGE[6]</Signal>
+                <Signal>sBANK5_PAGE[5]</Signal>
+                <Signal>sBANK5_PAGE[4]</Signal>
+                <Signal>sBANK5_PAGE[3]</Signal>
+                <Signal>sBANK5_PAGE[2]</Signal>
+                <Signal>sBANK5_PAGE[1]</Signal>
+                <Signal>sBANK5_PAGE[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="sBANK6_PAGE[7:0]">
+                <Signal>sBANK6_PAGE[7]</Signal>
+                <Signal>sBANK6_PAGE[6]</Signal>
+                <Signal>sBANK6_PAGE[5]</Signal>
+                <Signal>sBANK6_PAGE[4]</Signal>
+                <Signal>sBANK6_PAGE[3]</Signal>
+                <Signal>sBANK6_PAGE[2]</Signal>
+                <Signal>sBANK6_PAGE[1]</Signal>
+                <Signal>sBANK6_PAGE[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="sBANK7_PAGE[7:0]">
+                <Signal>sBANK7_PAGE[7]</Signal>
+                <Signal>sBANK7_PAGE[6]</Signal>
+                <Signal>sBANK7_PAGE[5]</Signal>
+                <Signal>sBANK7_PAGE[4]</Signal>
+                <Signal>sBANK7_PAGE[3]</Signal>
+                <Signal>sBANK7_PAGE[2]</Signal>
+                <Signal>sBANK7_PAGE[1]</Signal>
+                <Signal>sBANK7_PAGE[0]</Signal>
+            </Bus>
         </SignalList>
         <Triggers>
             <Trigger index="0">
                 <SignalList>
-                    <Signal>LWR_CPU_N</Signal>
                     <Bus restorename="system_selection[3:0]">
                         <Signal>system_selection[3]</Signal>
                         <Signal>system_selection[2]</Signal>
                         <Signal>system_selection[1]</Signal>
                         <Signal>system_selection[0]</Signal>
                     </Bus>
-                    <Signal>L_MREQ_N</Signal>
+                    <Signal>nIORQ_r</Signal>
+                    <Signal>nRD_CPU_r</Signal>
+                    <Signal>nWR_CPU_r</Signal>
+                    <Signal>nMREQ_r</Signal>
+                    <Signal>L_M1_N</Signal>
                 </SignalList>
             </Trigger>
             <Trigger index="1">
                 <SignalList>
-                    <Signal>BA_Amstrad/capture1</Signal>
                     <Bus restorename="system_selection[3:0]">
                         <Signal>system_selection[3]</Signal>
                         <Signal>system_selection[2]</Signal>
                         <Signal>system_selection[1]</Signal>
                         <Signal>system_selection[0]</Signal>
                     </Bus>
+                    <Signal>BA_Amstrad/int_reg</Signal>
+                    <Signal>BA_Amstrad/crtc_vsync</Signal>
                 </SignalList>
             </Trigger>
             <Trigger index="2">
@@ -214,41 +226,107 @@
                     </Bus>
                 </SignalList>
             </Trigger>
-            <Trigger index="3"/>
-            <Trigger index="4"/>
-            <Trigger index="5"/>
-            <Trigger index="6"/>
-            <Trigger index="7"/>
+            <Trigger index="3">
+                <SignalList>
+                    <Bus restorename="BA_Amstrad/dOUT_PPI[7:0]">
+                        <Signal>BA_Amstrad/dOUT_PPI[7]</Signal>
+                        <Signal>BA_Amstrad/dOUT_PPI[6]</Signal>
+                        <Signal>BA_Amstrad/dOUT_PPI[5]</Signal>
+                        <Signal>BA_Amstrad/dOUT_PPI[4]</Signal>
+                        <Signal>BA_Amstrad/dOUT_PPI[3]</Signal>
+                        <Signal>BA_Amstrad/dOUT_PPI[2]</Signal>
+                        <Signal>BA_Amstrad/dOUT_PPI[1]</Signal>
+                        <Signal>BA_Amstrad/dOUT_PPI[0]</Signal>
+                    </Bus>
+                </SignalList>
+            </Trigger>
+            <Trigger index="4">
+                <SignalList>
+                    <Bus restorename="master_in.Z80_ADDR[15:0]">
+                        <Signal>master_in.Z80_ADDR[15]</Signal>
+                        <Signal>master_in.Z80_ADDR[14]</Signal>
+                        <Signal>master_in.Z80_ADDR[13]</Signal>
+                        <Signal>master_in.Z80_ADDR[12]</Signal>
+                        <Signal>master_in.Z80_ADDR[11]</Signal>
+                        <Signal>master_in.Z80_ADDR[10]</Signal>
+                        <Signal>master_in.Z80_ADDR[9]</Signal>
+                        <Signal>master_in.Z80_ADDR[8]</Signal>
+                        <Signal>master_in.Z80_ADDR[7]</Signal>
+                        <Signal>master_in.Z80_ADDR[6]</Signal>
+                        <Signal>master_in.Z80_ADDR[5]</Signal>
+                        <Signal>master_in.Z80_ADDR[4]</Signal>
+                        <Signal>master_in.Z80_ADDR[3]</Signal>
+                        <Signal>master_in.Z80_ADDR[2]</Signal>
+                        <Signal>master_in.Z80_ADDR[1]</Signal>
+                        <Signal>master_in.Z80_ADDR[0]</Signal>
+                    </Bus>
+                </SignalList>
+            </Trigger>
+            <Trigger index="5">
+                <SignalList>
+                    <Signal>LINT_N</Signal>
+                </SignalList>
+            </Trigger>
+            <Trigger index="6">
+                <SignalList>
+                    <Signal>nMREQ_r</Signal>
+                    <Signal>nRD_CPU_r</Signal>
+                    <Bus restorename="system_selection[3:0]">
+                        <Signal>system_selection[3]</Signal>
+                        <Signal>system_selection[2]</Signal>
+                        <Signal>system_selection[1]</Signal>
+                        <Signal>system_selection[0]</Signal>
+                    </Bus>
+                </SignalList>
+            </Trigger>
+            <Trigger index="7">
+                <SignalList>
+                    <Signal>sTools_Act</Signal>
+                </SignalList>
+            </Trigger>
             <Trigger index="8"/>
-            <Trigger index="9"/>
+            <Trigger index="9">
+                <SignalList>
+                    <Signal>U_PRODUCER_AMSTRAD/cpc_vsync</Signal>
+                    <Signal>U_PRODUCER_AMSTRAD/cpc_hsync</Signal>
+                </SignalList>
+            </Trigger>
             <Trigger index="10"/>
             <Trigger index="11"/>
             <Trigger index="12"/>
             <Trigger index="13"/>
-            <Trigger index="14"/>
-            <Trigger index="15"/>
+            <Trigger index="14">
+                <SignalList>
+                    <Signal>U_Z80_NMI_HANDLER/MMU_WE</Signal>
+                </SignalList>
+            </Trigger>
+            <Trigger index="15">
+                <SignalList>
+                    <Signal>sTools_Act</Signal>
+                </SignalList>
+            </Trigger>
         </Triggers>
         <MatchUnits>
-            <MatchUnit index="0" enabled="1" match_type="0" counter_enable="0" counter_width="5" counter="6" countinuous="0" func="0" value0="001000" value1="000000" trigger="0"/>
-            <MatchUnit index="1" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="10100" value1="00000" trigger="1"/>
-            <MatchUnit index="2" enabled="1" match_type="4" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="2" value0="1100000000000000" value1="0000000000000000" trigger="2"/>
-            <MatchUnit index="3" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
-            <MatchUnit index="4" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
-            <MatchUnit index="5" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
-            <MatchUnit index="6" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
-            <MatchUnit index="7" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="0" enabled="1" match_type="0" counter_enable="0" counter_width="5" counter="6" countinuous="0" func="0" value0="010011001" value1="000000000" trigger="0"/>
+            <MatchUnit index="1" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="010000" value1="000000" trigger="1"/>
+            <MatchUnit index="2" enabled="1" match_type="4" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="4" value0="1011000100000000" value1="0000000000000000" trigger="2"/>
+            <MatchUnit index="3" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="11111111" value1="00000000" trigger="3"/>
+            <MatchUnit index="4" enabled="1" match_type="4" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="5" value0="1011001101001011" value1="0000000000000000" trigger="4"/>
+            <MatchUnit index="5" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="0" value1="0" trigger="5"/>
+            <MatchUnit index="6" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="000100" value1="000000" trigger="6"/>
+            <MatchUnit index="7" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="1" value1="0" trigger="7"/>
             <MatchUnit index="8" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
-            <MatchUnit index="9" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="9" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="10" value1="00" trigger="9"/>
             <MatchUnit index="10" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
             <MatchUnit index="11" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
             <MatchUnit index="12" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
             <MatchUnit index="13" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
-            <MatchUnit index="14" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
-            <MatchUnit index="15" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="14" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="1" value1="0" trigger="14"/>
+            <MatchUnit index="15" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="1" value1="0" trigger="15"/>
         </MatchUnits>
         <Expressions type="Static">
-            <Expression>M0&amp;M2</Expression>
+            <Expression>M0&amp;M2&amp;M4</Expression>
         </Expressions>
     </AoCore>
-    <GAO_ID>1010001110010111</GAO_ID>
+    <GAO_ID>1110111100011011</GAO_ID>
 </GAO_CONFIG>

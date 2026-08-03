@@ -76,7 +76,26 @@ architecture RTL of AmstradVideo is
         30 => (x"80", x"80", x"00"), 31 => (x"80", x"80", x"FF")
     );
 
+   signal cpc_hsync : std_logic;
+   signal cpc_vsync : std_logic;
+   signal cpc_line : integer range 0 to 311 := 0;
+   signal cpc_hsyncpre : std_logic;
+
+    signal dbgvideooff: unsigned(15 downto 0);
+    signal dbgcrtcstart: unsigned(13 downto 0);
+
 begin
+  
+    cpc_hsync <= '1' when 
+                  (V_IN.h_cnt >= BORDER_H + ACTIVE_W - 1 and V_IN.h_cnt <= BORDER_H + ACTIVE_W + 80 - 1)
+                 else '0';
+
+    cpc_vsync <= '1' when cpc_line=300 else '0';
+
+    --cpc_vsync <= '1' when 
+      --            (V_IN.v_cnt = BORDER_V + ACTIVE_H - 1)
+        --         else '0';
+
     video_mode   <= VDRegs.Reg1(1 downto 0);
     border_color <= VDRegs.Reg2(4 downto 0); 
 
@@ -92,6 +111,7 @@ begin
 
     vram_data_reg <= VRAM_DATA;
 
+
     ----------------------------------------------------------------------
     -- PIPELINED VRAM FETCH & RENDER ENGINE
     ----------------------------------------------------------------------
@@ -102,41 +122,74 @@ begin
         variable bit_idx     : integer range 0 to 7;
         variable hw_color    : integer range 0 to 31;
         variable sub_px      : integer range 0 to 7;
-        variable col_cnt     : integer range 0 to 63;
-        variable phase       : integer range 0 to 15;
+        variable col_cnt     : integer range 0 to 127; -- Increased range for 80 columns
+        variable phase       : integer range 0 to 7;   -- 8-clock phase
+        variable pen_idx_v   : integer range 0 to 15;
+
+        variable R12 : unsigned(7 downto 0);
+        variable R13 : unsigned(7 downto 0);
+
+
+variable crtc_start : unsigned(13 downto 0);
+variable video_offset : unsigned(15 downto 0);
+variable base_addr : unsigned(15 downto 0);
+
+
     begin
         if rising_edge(V_IN.clk_pixel) then
+           
+
+            R12 := unsigned(std_logic_vector'(VDRegs.CRTC_R12));
+            R13 := unsigned(std_logic_vector'(VDRegs.CRTC_R13));
+            crtc_start :=  ("00" & R12(3 downto 0) & R13) ;
+            video_offset := shift_left(resize(crtc_start, 16), 1) and x"3FFF";
+            base_addr := R12(5 downto 4)&"00000000000000"; -- C000 for R12=30
+            dbgvideooff <= unsigned(video_offset);
+            dbgcrtcstart <= crtc_start;
+                         
+            
+            if cpc_hsyncpre='0' and cpc_hsync='1' then
+                if cpc_line=311 then
+                    cpc_line <= 0;
+                else
+                    cpc_line <= cpc_line+1;
+                end if;
+            end if;
+
 
             char_row    := fetch_y / 8;
             line_in_row := fetch_y mod 8;
 
             ------------------------------------------------------------
-            -- 1. EXACT PREFETCH PIPELINE (Starts at BORDER_H - 16)
+            -- 1. EXACT PREFETCH PIPELINE (Starts at BORDER_H - 8)
             ------------------------------------------------------------
-            -- Column 0 prefetch starts at (BORDER_H - 16).
-            -- Each column takes 16 clock ticks (8 CPC pixels @ 2x ZOOM).
-            if (V_IN.h_cnt >= BORDER_H - 16) and (V_IN.h_cnt < BORDER_H + ACTIVE_W) and
+            -- Column 0 prefetch starts 8 clocks before the active area.
+            -- Each column takes 8 clock ticks.
+            if (V_IN.h_cnt >= BORDER_H - 8) and (V_IN.h_cnt < BORDER_H + ACTIVE_W) and
                (V_IN.v_cnt >= BORDER_V) and (V_IN.v_cnt < BORDER_V + ACTIVE_H) then
 
-                col_cnt := (V_IN.h_cnt - (BORDER_H - 16)) / 16;
-                phase   := (V_IN.h_cnt - (BORDER_H - 16)) mod 16;
+                col_cnt := (V_IN.h_cnt - (BORDER_H - 8)) / 8;
+                phase   := (V_IN.h_cnt - (BORDER_H - 8)) mod 8;
 
-                if col_cnt <= 39 then
+                if col_cnt <= 79 then  -- 80 bytes per CPC line
                     case phase is
                         when 0 =>
                             -- Step A: Set Address for current block/column
-                            -- Kept base address at "000" as requested
-                            bm_addr := "000" & 
-                                       to_unsigned(line_in_row, 3) & 
-                                       to_unsigned(char_row, 5) & 
-                                       to_unsigned(col_cnt, 5);
-                            vram_addr_pxl <= bm_addr;
+                              bm_addr := 
+                                to_unsigned(
+                                    (line_in_row * 2048) + 
+                                    (char_row * 80) + 
+                                    col_cnt, 
+                                    16
+                                )+ video_offset;
+
+                                    vram_addr_pxl <= bm_addr;
 
                         when 4 =>
                             -- Step B: Latch VRAM data from bus
                             bitmap_next <= vram_data_reg;
 
-                        when 15 =>
+                        when 7 =>
                             -- Step C: Pass to active shifter right at byte boundary
                             bitmap_shift <= bitmap_next;
 
@@ -148,46 +201,46 @@ begin
             ------------------------------------------------------------
             -- 2. PIXEL DECODER & PALETTE LOOKUP
             ------------------------------------------------------------
-            if in_active = '1' then
-                sub_px := fetch_x mod 8;
-
+             if in_active = '1' then
+                -- Use x_rel instead of fetch_x. The 640px base width means 
+                -- 8 host pixels = 1 CPC byte. The mode decoders below will 
+                -- naturally handle the horizontal zoom.
+                sub_px := x_rel mod 8; 
+                
                 case video_mode is
                     -- MODE 0 (160x200, 16 Colors)
                     when "00" =>
                         if sub_px < 4 then
-                            pen_index <= to_integer(unsigned'(
-                                bitmap_shift(0) & bitmap_shift(2) & bitmap_shift(4) & bitmap_shift(6)
-                            ));
+                            pen_idx_v := to_integer(unsigned'(bitmap_shift(0) & bitmap_shift(2) & bitmap_shift(4) & bitmap_shift(6)));
                         else
-                            pen_index <= to_integer(unsigned'(
-                                bitmap_shift(1) & bitmap_shift(3) & bitmap_shift(5) & bitmap_shift(7)
-                            ));
+                            pen_idx_v := to_integer(unsigned'(bitmap_shift(1) & bitmap_shift(3) & bitmap_shift(5) & bitmap_shift(7)));
                         end if;
 
                     -- MODE 1 (320x200, 4 Colors)
                     when "01" =>
                         bit_idx := 3 - (sub_px / 2);
                         case bit_idx is
-                            when 3 => pen_index <= to_integer(unsigned'(bitmap_shift(3) & bitmap_shift(7)));
-                            when 2 => pen_index <= to_integer(unsigned'(bitmap_shift(2) & bitmap_shift(6)));
-                            when 1 => pen_index <= to_integer(unsigned'(bitmap_shift(1) & bitmap_shift(5)));
-                            when 0 => pen_index <= to_integer(unsigned'(bitmap_shift(0) & bitmap_shift(4)));
+                            when 3 => pen_idx_v := to_integer(unsigned'(bitmap_shift(3) & bitmap_shift(7)));
+                            when 2 => pen_idx_v := to_integer(unsigned'(bitmap_shift(2) & bitmap_shift(6)));
+                            when 1 => pen_idx_v := to_integer(unsigned'(bitmap_shift(1) & bitmap_shift(5)));
+                            when 0 => pen_idx_v := to_integer(unsigned'(bitmap_shift(0) & bitmap_shift(4)));
                         end case;
 
                     -- MODE 2 (640x200, 2 Colors)
                     when "10" =>
                         bit_idx := 7 - sub_px;
                         if bitmap_shift(bit_idx) = '1' then
-                            pen_index <= 1;
+                            pen_idx_v := 1;
                         else
-                            pen_index <= 0;
+                            pen_idx_v := 0;
                         end if;
 
                     when others =>
-                        pen_index <= 0;
+                        pen_idx_v := 0;
                 end case;
-
-                hw_color := to_integer(unsigned(VDRegs.pen_palette(pen_index)));
+                
+                pen_index <= pen_idx_v;  
+                hw_color  := to_integer(unsigned(VDRegs.pen_palette(pen_idx_v)));
 
             else
                 hw_color := to_integer(unsigned(border_color));

@@ -130,6 +130,14 @@ architecture structural of Z80_FPGA_SYSTEM is
     signal nINTMMU              : std_logic := '1'; -- Port 0: Map Registers (Active Low)
     signal nINTMMU_ro           : std_logic := '1'; -- Port 1: Set RO (Active Low)
     signal nINTMMU_rw           : std_logic := '1'; -- Port 2: Set RW (Active Low)
+    signal sBANK0_PAGE          : std_logic_vector(7 downto 0);
+    signal sBANK1_PAGE          : std_logic_vector(7 downto 0);
+    signal sBANK2_PAGE          : std_logic_vector(7 downto 0);
+    signal sBANK3_PAGE          : std_logic_vector(7 downto 0);
+    signal sBANK4_PAGE          : std_logic_vector(7 downto 0);
+    signal sBANK5_PAGE          : std_logic_vector(7 downto 0);
+    signal sBANK6_PAGE          : std_logic_vector(7 downto 0);
+    signal sBANK7_PAGE          : std_logic_vector(7 downto 0);
     
     -- General Control Signals
     signal nINT_REQ_PERIPH      : std_logic := '1'; -- Master Interrupt Request from all peripherals (Active Low)
@@ -300,8 +308,21 @@ architecture structural of Z80_FPGA_SYSTEM is
     signal am_out           : t_system_to_z80;
     signal VAM_ADDR_BUS     : std_logic_vector(15 downto 0) := (others => '0'); -- Address from the Video Controller
     signal sAMSigs_out      : t_ot_sigs_from_system;
+    signal sCPC_BANK_PAGE   : std_logic_vector(7 downto 0) := (others => '0');    
+    signal sCPC_BANK_SEL    : std_logic_vector(2 downto 0) := (others => '0'); --bank selection 0-7
     signal sCPC_BANK_WE     : std_logic;
     signal sAmstradEN       : std_logic :='0'; --active high 
+
+
+        --NMI tools
+    signal sTools_Act       : std_logic := '0'; -- active high
+    signal sNMI_PS2_Read    : std_logic := '0'; -- active high
+    signal sNMI_NMI_n       : std_logic := '1'; -- active low
+    signal sNMI_BANK_PAGE   : std_logic_vector(7 downto 0); -- page to put in bank
+    signal sNMI_BANK_SEL    : std_logic_vector(2 downto 0); --bank select 0-7
+    signal sNMI_BANK_WE     : std_logic := '0'; -- active high
+
+
 
 --debug signals
     signal capturedata : std_logic := '0';
@@ -315,6 +336,12 @@ architecture structural of Z80_FPGA_SYSTEM is
 
 
     signal AM_CAPTURE     :std_logic :='0';
+    signal amcap          : integer range 0 to 700 := 0;
+    signal L_MREQ_N_pre   :std_logic :='1';
+    signal RDING          :std_logic :='0';
+
+
+
     
 
 
@@ -475,7 +502,16 @@ architecture structural of Z80_FPGA_SYSTEM is
             nCE1    : out std_logic;
             nCE2    : out std_logic;
             nCE3    : out std_logic;
-            nCE4    : out std_logic
+            nCE4    : out std_logic;
+            --Page_Banks
+            MMU_BANK0_PAGE  : OUT std_logic_vector(7 downto 0);
+            MMU_BANK1_PAGE  : OUT std_logic_vector(7 downto 0);
+            MMU_BANK2_PAGE  : OUT std_logic_vector(7 downto 0);
+            MMU_BANK3_PAGE  : OUT std_logic_vector(7 downto 0);
+            MMU_BANK4_PAGE  : OUT std_logic_vector(7 downto 0);
+            MMU_BANK5_PAGE  : OUT std_logic_vector(7 downto 0);
+            MMU_BANK6_PAGE  : OUT std_logic_vector(7 downto 0);
+            MMU_BANK7_PAGE  : OUT std_logic_vector(7 downto 0);
         );
     end component;
 
@@ -487,6 +523,7 @@ architecture structural of Z80_FPGA_SYSTEM is
             
             -- Z80 Bus Controls
             Z80_MREQ_N      : in  std_logic;   
+            Z80_RD_N        : in  std_logic;                     
             Z80_WR_N        : in  std_logic;
             Z80_ADDR        : in  std_logic_vector(15 downto 0);
             
@@ -581,25 +618,6 @@ architecture structural of Z80_FPGA_SYSTEM is
     --------------------------------------------------------------------------------
     -- i2c inteface
     --------------------------------------------------------------------------------
-
---    component pca9665_wrapper
---    port(
---        clk     : in  std_logic;
---        reset_n : in  std_logic;
-
-        ------------------------------------------------
- --        Z80 interface
-        ------------------------------------------------
---        cs      : in  std_logic;
---        rd      : in  std_logic;
---        wr      : in  std_logic;
---        din     : in  std_logic_vector(7 downto 0);
---        addr    : in  std_logic_vector(1 downto 0);       
---        dout    : out std_logic_vector(7 downto 0);
---        SCL     : inout std_logic;
---        SDA     : inout std_logic
---    );
---    end component;
 
   --------------------------------------------------------------------
     -- Gowin I2C IP
@@ -743,6 +761,45 @@ architecture structural of Z80_FPGA_SYSTEM is
         );
     end component;
 
+
+    component Z80_NMI_Handler is
+        generic (
+            NMI_PULSE_CYCLES : integer := 4
+        );
+        port (
+            CLK_IN        : in  std_logic;
+            reset_n       : in  std_logic;
+     
+            sPS2_BTRDY    : in  std_logic;
+            sPS2_DATA     : in  std_logic_vector(7 downto 0);
+            sPS2_READ     : out std_logic;
+     
+            oKey_Consumed : out std_logic;
+     
+            CPU_A         : in  std_logic_vector(15 downto 0);
+            CPU_D         : in  std_logic_vector(7 downto 0);
+            CPU_M1_n      : in  std_logic;
+            CPU_MREQ_n    : in  std_logic;
+            CPU_RD_n      : in  std_logic;
+     
+            NMI_n         : out std_logic;
+            TOOLS_ACTIVE  : out std_logic;
+     
+            MMU_ADDR      : out std_logic_vector(2 downto 0);
+            MMU_DATA      : out std_logic_vector(7 downto 0);
+            MMU_WE        : out std_logic;
+     
+            MMU_BANK0_IN  : in  std_logic_vector(7 downto 0);
+            MMU_BANK1_IN  : in  std_logic_vector(7 downto 0);
+            MMU_BANK2_IN  : in  std_logic_vector(7 downto 0);
+            MMU_BANK3_IN  : in  std_logic_vector(7 downto 0);
+            MMU_BANK4_IN  : in  std_logic_vector(7 downto 0);
+            MMU_BANK5_IN  : in  std_logic_vector(7 downto 0);
+            MMU_BANK6_IN  : in  std_logic_vector(7 downto 0);
+            MMU_BANK7_IN  : in  std_logic_vector(7 downto 0)
+        );
+    end component Z80_NMI_Handler;
+
 begin
 
 -- ***************************************************************
@@ -815,10 +872,10 @@ begin
         
             Z80_DATA_IN_INT <= LD7 & LD6 & LD5 & LD4 & LD3 & LD2 & LD1 & LD0;
 
-        nIORQ_r <= L_IORQ_N; 
-        nMREQ_r <= L_MREQ_N;
-        nWR_CPU_r <= LWR_CPU_N;
-        nRD_CPU_r <= L_RD_N;
+            nIORQ_r <= L_IORQ_N; 
+            nMREQ_r <= L_MREQ_N;
+            nWR_CPU_r <= LWR_CPU_N;
+            nRD_CPU_r <= L_RD_N;
         END IF;
      
     END PROCESS;
@@ -959,13 +1016,14 @@ begin
             Z80_In            => master_in,
             Z80_Out           => am_out,
             OTSigs_in         => sotsigs_in,
-            OTSigs_out        => samsigs_out,
+            OTSigs_out        => sAMsigs_out,
             VDRegs_out        => am_regs
         );
 
 
         master_in.Z80_DATA    <= Z80_DATA_IN_INT;
         master_in.Z80_IORQ_N  <= nIORQ_r;
+        master_in.Z80_M1_N      <= l_m1_n;
         master_in.Z80_WR_N    <= nWR_CPU_r;
         master_in.Z80_RD_N    <= nRD_CPU_r;
         master_in.Z80_ADDR    <= Z80_LA_BUS_INT;
@@ -974,13 +1032,10 @@ begin
         sotsigs_in.PS2_KEYB_Int <= sPS2_BTRDY; --active high
         sotsigs_in.PS2_DATA     <= PS2_DATA_OUT;
         sotsigs_in.CPU_SPEED    <= clk_reg_out;
+        sotsigs_in.ToolActive   <= sTools_Act;
         sotsigs_in.SYS_SEL      <= system_selection;
         sotsigs_in.FrameStart   <= '1' when video_timing.h_cnt=0 and video_timing.v_cnt=1 else '0';
-        sotsigs_in.vsync        <= selected_video.v_sync;
-
-        --only for zx spec
-        sPS2_READ <= sotsigs_out.PS2_KEYB_READ  when system_selection="0011" else '0'; --active high signal to get another key from ps/2
-        
+       
 
         nINTMMU         <= master_out.MMU_nMAP_REG_N;
         nINTMMU_ro      <= master_out.MMU_nSET_RO_N;
@@ -989,12 +1044,12 @@ begin
         BADEV2          <= master_out.DEV2;
         nCLK_SEL        <= master_out.CLK_SEL_RG_N;
         UART_nCS        <= master_out.UART_CS_N;
-        PS2_DSn         <= master_out.PS2_DS_N;
+        PS2_DSn         <= master_out.PS2_DS_N when sTools_Act='0' else '1'; -- disable keyboard when on debugger;
         VD_DSn          <= master_out.VD_DS_N ;
         I2C_CSn         <= master_out.I2C_CS_N;
         SYS_CSn         <= master_out.SYS_CS_N;
         L_BA_WAIT_N     <= master_out.Z80_WAIT_N;
-        LINT_N          <= master_out.Z80_INT_N; --temp disable
+        LINT_N          <= master_out.Z80_INT_N; 
         sISDout         <= master_out.isDOut;
         sDataout        <= master_out.DataOut;
 
@@ -1014,11 +1069,56 @@ begin
                       sAMsigs_out    WHEN "0100",
                       sDMsigs_out WHEN OTHERS;
 
-
-
+    
+    --active high signal to get another key from ps/2
+     sPS2_READ <=    sNMI_PS2_Read when sTools_Act='1' 
+                else sotsigs_out.PS2_KEYB_READ  when system_selection="0011" or system_selection="0100" --for zx spec or cpc 464
+                else '0';
 
     -- ***************************************************************
-    -- ** 4. MMU INSTANTIATION **
+    -- **  NMI MODULE INSTANTIATION **
+    -- ***************************************************************
+
+
+    U_Z80_NMI_HANDLER : Z80_NMI_Handler
+        generic map (
+            NMI_PULSE_CYCLES => 4
+        )
+        port map (
+            CLK_IN        => CLK_IN,
+            reset_n       => nReset,
+     
+            sPS2_BTRDY    => sPS2_BTRDY,
+            sPS2_DATA     => PS2_DATA_OUT,
+            sPS2_READ     => sNMI_PS2_Read,
+     
+            oKey_Consumed => open, --probably not needed same as ps2read
+     
+            CPU_A         => Z80_LA_BUS_INT,
+            CPU_D         => Z80_DATA_IN_INT,
+            CPU_M1_n      => L_M1_N,
+            CPU_MREQ_n    => nMREQ_r,
+            CPU_RD_n      => nRD_CPU_r,
+     
+            NMI_n         => sNMI_NMI_n,
+            TOOLS_ACTIVE  => sTools_Act, --active high
+     
+            MMU_ADDR      => sNMI_BANK_SEL,
+            MMU_DATA      => sNMI_BANK_PAGE,
+            MMU_WE        => sNMI_BANK_WE,
+     
+            MMU_BANK0_IN  => sBANK0_PAGE,
+            MMU_BANK1_IN  => sBANK1_PAGE,
+            MMU_BANK2_IN  => sBANK2_PAGE,
+            MMU_BANK3_IN  => sBANK3_PAGE,
+            MMU_BANK4_IN  => sBANK4_PAGE,
+            MMU_BANK5_IN  => sBANK5_PAGE,
+            MMU_BANK6_IN  => sBANK6_PAGE,
+            MMU_BANK7_IN  => sBANK7_PAGE
+        );
+
+    -- ***************************************************************
+    -- **  MMU INSTANTIATION **
     -- ***************************************************************
 
     mmu_inst: MMU
@@ -1034,7 +1134,7 @@ begin
             nWR_CPU => nWR_CPU_r,                      -- Z80 Write Strobe (RAW Input)
             nRESET  => reset_n_sync2,                       -- Global System Reset
             DATA    => Z80_DATA_IN_INT,                -- Data to write to MMU registers (Page Number)
-            FPGA_BANK_WE    => sFPGA_BANK_WE,
+            FPGA_BANK_WE    => sFPGA_BANK_WE,          -- active high
             FPGA_BANK_SEL   => sFPGA_BANK_SEL,
             FPGA_BANK_PAGE  => sFPGA_BANK_PAGE,
             
@@ -1045,7 +1145,15 @@ begin
             nCE1    => MMU_nCE1,                       -- CE for 512KB Flash
             nCE2    => MMU_nCE2,                       -- CE for 64KB Video RAM (used internally)
             nCE3    => open,                           -- Unconnected
-            nCE4    => open                            -- Unconnected
+            nCE4    => open,                           -- Unconnected
+            MMU_BANK0_PAGE => sBANK0_PAGE,
+            MMU_BANK1_PAGE => sBANK1_PAGE,
+            MMU_BANK2_PAGE => sBANK2_PAGE,
+            MMU_BANK3_PAGE => sBANK3_PAGE,
+            MMU_BANK4_PAGE => sBANK4_PAGE,
+            MMU_BANK5_PAGE => sBANK5_PAGE,
+            MMU_BANK6_PAGE => sBANK6_PAGE,
+            MMU_BANK7_PAGE => sBANK7_PAGE
         );
 
     -- Calculate VRAM Chip Enable (cea) based on MMU output (Active High required by Port A)
@@ -1056,11 +1164,12 @@ begin
     CPC_MMU_Inst : entity work.CPC_MMU_Bank_Sequencer 
         Port map (
             clk             => CLK_IN,                   -- 50 MHz FPGA Clock
-            reset_n         => reset_n_sync2,
+            reset_n         => nReset,
             
             -- Z80 Bus Controls
             Z80_MREQ_N      => L_MREQ_N,
-            Z80_WR_N        => nWR_CPU_r,
+            Z80_RD_N        => L_RD_N,          --raw signals we need to be quick
+            Z80_WR_N        => LWR_CPU_N,       --raw signals we need to be quick
             Z80_ADDR        => Z80_LA_BUS_INT,
             
             -- Config inputs from Gate Array
@@ -1073,13 +1182,49 @@ begin
 
             -- Interface to your MMU controller
             FPGA_BANK_WE    => sCPC_BANK_WE,                   -- '1' when writing to MMU
-            FPGA_BANK_SEL   => sFPGA_BANK_SEL,                  -- Bank index (0 to 7)
-            FPGA_BANK_PAGE  => sFPGA_BANK_PAGE,                  -- Physical page number (0x00, 0x02, etc.)
+            FPGA_BANK_SEL   => sCPC_BANK_SEL,                  -- Bank index (0 to 7)
+            FPGA_BANK_PAGE  => sCPC_BANK_PAGE,                  -- Physical page number (0x00, 0x02, etc.)
             UPDATE_ACTIVE   => open                             -- '1' while sequence is running
         );
  
-    sFPGA_BANK_WE <= sCPC_BANK_WE when system_selection=4 else '0'; --enable only for cpc
-    AM_CAPTURE <= '1' WHEN system_selection=4 AND L_MREQ_N='0' AND Z80_LA_BUS_INT>=x"C000"  ELSE '0';
+    sFPGA_BANK_WE   <=  sNMI_BANK_WE   when sTools_Act='1'  
+                   else sCPC_BANK_WE   when system_selection=4 
+                   else '0'; 
+    sFPGA_BANK_SEL  <=  sNMI_BANK_SEL  when sTools_Act='1'
+                   else sCPC_BANK_SEL  when system_selection=4 
+                   else (Others=>'0'); 
+    sFPGA_BANK_PAGE <=  sNMI_BANK_PAGE when sTools_Act='1'
+                   else sCPC_BANK_PAGE when system_selection=4 
+                   else (Others=>'0');  
+
+
+--    AM_CAPTURE <= '0' WHEN system_selection=4 AND L_MREQ_N='0' and L_RD_N='0' AND Z80_LA_BUS_INT=x"C3AC"  ELSE '0';
+
+    process(CLK_IN,nreset)
+    begin
+        if nReset='0' then
+            amcap<=0;
+            am_Capture <='0';
+            L_MREQ_N_pre <='1';
+            RDING <='0';
+        elsif rising_edge(CLK_IN) then
+          L_MREQ_N_pre <= nMREQ_r;  
+          IF   L_MREQ_N_pre='1' and nMREQ_r='0' THEN
+            RDING <='1';
+          ELSIF L_MREQ_N_pre='1' and nMREQ_r='1' THEN
+            RDING <='0';
+          END IF;
+--Z80_LA_BUS_INT=x"C0BB" OR
+          if system_selection=4 AND RDING='1'  and nRD_CPU_r='0' and l_m1_n='0' AND ( Z80_LA_BUS_INT=x"11dd") then
+            amcap <= amcap + 1;
+            RDING <='0'; --ONLY ONE
+          end if;
+          if amcap=1 then
+            am_Capture <='0';
+          end if;  
+        end if;
+    end process;
+
 
     DPVRAM_Inst : entity work.DPVRAM
     port map (
@@ -1390,8 +1535,10 @@ begin
     process(CLK_IN,reset_n_sync2)   
     begin   
        if rising_edge(CLK_IN) then            
-            -- We want to run the clock only if NOT (Freeze Condition)   
-            if (l_wait_n = '0') then
+            -- We want to run the clock only if NOT (Freeze Condition) 
+            if AM_CAPTURE='1' then
+                LCLOCK <= '1'; -- FREEZE: CPU stops mid-access
+            elsif (l_wait_n = '0') then
                 LCLOCK <= '1'; -- FREEZE: CPU stops mid-access
             else
                 LCLOCK <= CLK_Z80_INT; -- RUN: Normal operation
@@ -1502,12 +1649,13 @@ begin
                 clk_reg_out           when nCLK_SEL='0' and nRD_CPU_r = '0' else
                 i2c_data_out          when I2C_CSn ='0' and nRD_CPU_r = '0' else
                 sDataout              when sIsDout ='0' and nRD_CPU_r = '0' else --system specific dataout to z80
+                "0000" & std_logic_vector(system_selection)      when SYS_CSn ='0' and nRD_CPU_r = '0' else
                 (others => 'Z');                           -- Default if no device is selected for read
         END IF;
     END PROCESS;
          
     sEnableDataOut <= '1' when flash_prog='0' 
-           else '0' when ( UART_nCS = '0' or PS2_DSn ='0' or VRAM_CE_CPU_N = '0' or nCLK_SEL='0' or I2C_CSn ='0' or sIsDout ='0') and nRD_CPU_r = '0'--add i2c when it works
+           else '0' when ( UART_nCS = '0' or PS2_DSn ='0' or VRAM_CE_CPU_N = '0' or nCLK_SEL='0' or I2C_CSn ='0' or sIsDout ='0' or SYS_CSn ='0') and nRD_CPU_r = '0'--add i2c when it works
            else '1';
     LWR_N <= 'Z' when flash_prog='0' else MMU_WR; --FlRam and Sram control
     L_RD_N <= 'Z'; --read only make the signal in
@@ -1581,9 +1729,10 @@ begin
         end if;
     end process;
 
-    LBUSREQ_N <= '0' when flash_prog='0' else '1'; -- Low to force Z80 into Tristate (Bus Acknowledgment requested)
+    LBUSREQ_N <= '0' when flash_prog='0' and sTools_Act='0' else '1'; -- Low to force Z80 into Tristate (Bus Acknowledgment requested)
     nmi_input_clean <= L_NMI_N;
     L_NMI_N <= '0' when fpga_drive_nmi_low = '1' else 'Z';
 
+    fpga_drive_nmi_low <= not sNMI_NMI_n; 
 
 end structural;

@@ -60,6 +60,8 @@ architecture RTL of Z80_PS2_Bridge is
     signal fifo_rd_ptr : integer range 0 to 15 := 0;
     signal fifo_count  : integer range 0 to 16 := 0;
 
+    signal OnlyForFPGA : std_logic :='0';
+
 begin
 
     -- Instantiate your original controller
@@ -150,8 +152,8 @@ begin
         end if;
     end process;
 
-    -- Pulses high for exactly 1 clock cycle when the Z80 FINISHES reading
-    z80_rd_done <= '1' when (z80_rd_sync_2 = '1' and z80_rd_sync_1 = '0') or FPGA_READ='1' else '0';
+    -- Pulses high for exactly 1 clock cycle when the Z80 FINISHES reading    
+    z80_rd_done <= '1' when ((z80_rd_sync_2 = '1' and z80_rd_sync_1 = '0') and OnlyForFPGA='0')or FPGA_READ='1' else '0';
 
     -- =========================================================
     -- NEW LOGIC: 16-Byte FIFO for capturing PS/2 Data
@@ -214,7 +216,12 @@ begin
         Z80_DATA_OUT <= (others => 'Z'); -- Default high-impedance
         PS2_BT_RDY <= byte_ready;
         if byte_ready='1' then      --always on
-           Z80_DATA_OUT <= byte_reg;
+           Z80_DATA_OUT <= byte_reg;          
+           if byte_reg = 0x"05" or byte_reg = 0x"06" or byte_reg = 0x"04" or byte_reg = 0x"0c" or byte_reg = 0x"03" then--f1-f5
+             OnlyForFPGA<='1';
+           else 
+             OnlyForFPGA<='0';
+           end if; 
         end if;
         if (PS2_DS_N = '0' and Z80_RD_N = '0') then
             if (Z80_IO_ADDR(0) = '0') then

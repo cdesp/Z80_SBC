@@ -1,0 +1,5 @@
+420)   6000 C3 03 60    		jp start	;
+423)   6003 3E 85       		      ld a,$85	;
+424)   6005 06 04       		      LD B,4	;
+425)   6007 CD A8 09    		      CALL PUTPGINBANK	;
+426)   600A C3 93 08    		      JP BOOTMENU  	;

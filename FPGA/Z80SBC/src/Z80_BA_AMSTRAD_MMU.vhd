@@ -9,6 +9,7 @@ entity CPC_MMU_Bank_Sequencer is
         
         -- Z80 Bus Controls
         Z80_MREQ_N      : in  std_logic;                     -- Memory Request
+        Z80_RD_N        : in  std_logic;                     -- Read enable
         Z80_WR_N        : in  std_logic;                     -- Write enable
         Z80_ADDR        : in  std_logic_vector(15 downto 0); -- Z80 Address Bus
         
@@ -30,7 +31,7 @@ end CPC_MMU_Bank_Sequencer;
 
 architecture Behavioral of CPC_MMU_Bank_Sequencer is
 
-    type state_type is (IDLE, SETUP_BANK, STROBE_BANK, WAIT_BUS_RELEASE);
+    type state_type is (IDLE, SETUP_ADDR, SETUP_ADDR1, SETUP_ADDR2, SETUP_ADDR3, SETUP_BANK, STROBE_BANK, WAIT_BUS_RELEASE);
     signal state : state_type := IDLE;
 
     -- Latched signals for current cycle
@@ -91,29 +92,41 @@ begin
             when others => active_cfg := "000";
         end case;
 
-        -- Resolve Physical Page Number
-        if (Z80_ADDR(15 downto 14) = "00" and lower_rom_en = '1' and Z80_WR_N = '1') then
-            -- Lower OS ROM Override (Read-Only)
-            if Z80_ADDR(13) = '0' then
-                target_page <= X"00"; -- Slot 0 -> ROM Page 0
-            else
-                target_page <= X"01"; -- Slot 1 -> ROM Page 1
-            end if;
-
-        elsif (Z80_ADDR(15 downto 14) = "11" and upper_rom_en = '1' and Z80_WR_N = '1') then
-            -- Upper BASIC ROM Override (Read-Only)
-            if Z80_ADDR(13) = '0' then
-                target_page <= X"08"; -- Slot 6 -> ROM Page 8
-            else
-                target_page <= X"09"; -- Slot 7 -> ROM Page 9
-            end if;
-
-        else
-            -- Standard RAM mapping
+    -- Resolve Physical Page Number
+        -- Rule: If it's a WRITE (Z80_WR_N = '0'), ignore ROM overlays completely and map to RAM.
+        if Z80_WR_N = '0' then
+            -- Standard RAM Write Mapping
             if Z80_ADDR(13) = '0' then
                 target_page <= get_low_8k_page(active_cfg);
             else
                 target_page <= get_high_8k_page(active_cfg);
+            end if;
+
+        else
+            -- READ CYCLES: Check if ROM overlays are active
+            if (Z80_ADDR(15 downto 14) = "00" and lower_rom_en = '1') then
+                -- Lower OS ROM Read
+                if Z80_ADDR(13) = '0' then
+                    target_page <= X"00";
+                else
+                    target_page <= X"01";
+                end if;
+
+            elsif (Z80_ADDR(15 downto 14) = "11" and upper_rom_en = '1') then
+                -- Upper BASIC ROM Read
+                if Z80_ADDR(13) = '0' then
+                    target_page <= X"08";
+                else
+                    target_page <= X"09";
+                end if;
+
+            else
+                -- Standard RAM Read Mapping
+                if Z80_ADDR(13) = '0' then
+                    target_page <= get_low_8k_page(active_cfg);
+                else
+                    target_page <= get_high_8k_page(active_cfg);
+                end if;
             end if;
         end if;
     end process;
@@ -128,10 +141,10 @@ begin
             state         <= IDLE;
             FPGA_BANK_WE  <= '0';
             UPDATE_ACTIVE <= '0';
-            z80_mreq_d    <= '1';
+        --    z80_mreq_d    <= '1';
         elsif rising_edge(clk) then
             
-            z80_mreq_d <= Z80_MREQ_N;
+         --   z80_mreq_d <= Z80_MREQ_N;
 
             case state is
 
@@ -139,11 +152,32 @@ begin
                     FPGA_BANK_WE  <= '0';
                     UPDATE_ACTIVE <= '0';
 
-                    -- Detect falling edge of MREQ (Z80 starting a memory cycle)
-                    if (z80_mreq_d = '1' and Z80_MREQ_N = '0') then
-                        state         <= SETUP_BANK;
+                    -- Detect start of memory cycle: MREQ goes low, 
+                    -- AND either RD or WR has stabilized to low.
+                    if (Z80_MREQ_N = '0') and (Z80_RD_N = '0' or Z80_WR_N = '0') then
+                        if Z80_RD_N = '0' then
+                           state         <= SETUP_ADDR;
+                        else
+                           state         <= SETUP_ADDR2; 
+                        end if;
                         UPDATE_ACTIVE <= '1';
                     end if;
+
+                when SETUP_ADDR =>
+
+                    state         <= SETUP_ADDR1;
+
+                when SETUP_ADDR1 =>
+
+                    state         <= SETUP_ADDR2;
+
+                when SETUP_ADDR2 =>
+
+                    state         <= SETUP_ADDR3;
+
+                when SETUP_ADDR3 =>
+
+                    state         <= SETUP_BANK;
 
                 when SETUP_BANK =>
                     -- Clock Tick 1: Output Slot, Page, and assert WE

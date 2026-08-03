@@ -56,6 +56,7 @@ PACKAGE defs_pkg IS
         -- Z80 Side    
         Z80_Data    : STD_LOGIC_VECTOR(7 DOWNTO 0);
         Z80_IORQ_N  : STD_LOGIC;
+        Z80_M1_N    : STD_LOGIC;
         Z80_WR_N    : STD_LOGIC;
         Z80_RD_N    : STD_LOGIC;
         Z80_ADDR    : STD_LOGIC_VECTOR(15 DOWNTO 0);
@@ -94,12 +95,12 @@ PACKAGE defs_pkg IS
          --Main system 
         CPU_SPEED   : std_logic_vector(7 downto 0); --as a number
         SYS_SEL     : unsigned(3 downto 0); --current system selection
+        ToolActive  : std_logic;
        
         PS2_KEYB_Int: STD_LOGIC;
         PS2_DATA    :  std_logic_vector(7 downto 0);
 
         FrameStart  : STD_LOGIC;
-        vsync       : STD_LOGIC;
     END RECORD;
 
    TYPE t_ot_sigs_from_system IS RECORD  
@@ -111,6 +112,8 @@ PACKAGE defs_pkg IS
         ram_page_bank1 : std_logic_vector(2 downto 0);
         ram_page_bank2 : std_logic_vector(2 downto 0);
         ram_page_bank3 : std_logic_vector(2 downto 0);
+
+
    END RECORD;
 
    type t_pen_array is array (0 to 15) of std_logic_vector(4 downto 0); --for amstrad
@@ -124,6 +127,8 @@ PACKAGE defs_pkg IS
         Reg5 : std_logic_vector(7 downto 0); --generic video register
 
         pen_palette  : t_pen_array;
+        CRTC_R12: std_logic_vector(7 downto 0);
+        CRTC_R13: std_logic_vector(7 downto 0);
     END RECORD;
 
     constant DUMMY_VDREGS : t_video_regs := (
@@ -132,8 +137,12 @@ PACKAGE defs_pkg IS
         Reg3 => (others => '0'),
         Reg4 => (others => '0'),
         Reg5 => (others => '0'),
-        pen_palette => (others => (others => '0')) -- Fills all 16 array slots with "00000"
+        pen_palette => (others => (others => '0')), -- Fills all 16 array slots with "00000"
+        CRTC_R12 => (others => '0'),
+        CRTC_R13 => (others => '0')
     );
+
+    type crtc_reg_array is array (0 to 17) of std_logic_vector(7 downto 0);
 
 END defs_pkg;
 

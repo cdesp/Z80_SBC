@@ -1,0 +1,1027 @@
+  7)   0000 F3          		 DI	;
+  8)   0001 C3 87 00    		 JP DBMENU	;
+  9)   0004 00 00 00 00 		 DS 0066H-$	;
+  9)   0008 00 00 00 00 		 DS 0066H-$	;
+  9)   000C 00 00 00 00 		 DS 0066H-$	;
+  9)   0010 00 00 00 00 		 DS 0066H-$	;
+  9)   0014 00 00 00 00 		 DS 0066H-$	;
+  9)   0018 00 00 00 00 		 DS 0066H-$	;
+  9)   001C 00 00 00 00 		 DS 0066H-$	;
+  9)   0020 00 00 00 00 		 DS 0066H-$	;
+  9)   0024 00 00 00 00 		 DS 0066H-$	;
+  9)   0028 00 00 00 00 		 DS 0066H-$	;
+  9)   002C 00 00 00 00 		 DS 0066H-$	;
+  9)   0030 00 00 00 00 		 DS 0066H-$	;
+  9)   0034 00 00 00 00 		 DS 0066H-$	;
+  9)   0038 00 00 00 00 		 DS 0066H-$	;
+  9)   003C 00 00 00 00 		 DS 0066H-$	;
+  9)   0040 00 00 00 00 		 DS 0066H-$	;
+  9)   0044 00 00 00 00 		 DS 0066H-$	;
+  9)   0048 00 00 00 00 		 DS 0066H-$	;
+  9)   004C 00 00 00 00 		 DS 0066H-$	;
+  9)   0050 00 00 00 00 		 DS 0066H-$	;
+  9)   0054 00 00 00 00 		 DS 0066H-$	;
+  9)   0058 00 00 00 00 		 DS 0066H-$	;
+  9)   005C 00 00 00 00 		 DS 0066H-$	;
+  9)   0060 00 00 00 00 		 DS 0066H-$	;
+  9)   0064 00 00       		 DS 0066H-$	;
+ 11)   0066 C3 69 00    		 JP ENTRY	;
+ 14)   0069 E5          		 PUSH HL	;
+ 15)   006A C5          		 PUSH BC	;
+ 16)   006B D5          		               PUSH DE	;
+ 17)   006C F5          		               PUSH AF	;
+ 18)   006D DD E5       		               PUSH IX	;
+ 19)   006F FD E5       		               PUSH IY	;
+ 20)   0071 DB E1       		               IN A,(DEVSYS)           ;current system should be saved and	;current system should be saved and
+ 21)   0073 F5          		               PUSH AF	;
+ 22)   0074 AF          		               XOR A	;
+ 23)   0075 D3 E1       		               OUT (DEVSYS),A          ;SET NEW SYSTEM  0 AS BOOTLOADER 	;SET NEW SYSTEM  0 AS BOOTLOADER
+ 25)   0077 C3 87 00    		               JP DBMENU	;
+ 26)   007A F1          		DBEXIT:        POP AF	;
+ 27)   007B D3 E1       		               OUT (DEVSYS),A          ;SET SYSTEM BACK	;SET SYSTEM BACK
+ 28)   007D FD E1       		               POP IY	;
+ 29)   007F DD E1       		               POP IX	;
+ 30)   0081 F1          		               POP AF	;
+ 31)   0082 D1          		               POP DE	;
+ 32)   0083 C1          		               POP BC	;
+ 33)   0084 E1          		               POP HL	;
+ 34)   0085 ED 45       		               RETN	;
+ 36)   0087 21 F5 00    		DBMENU:        LD HL, MSG1	;
+ 37)   008A CD 4D 01    		               CALL RS_TXT	;
+ 39)   008D CD 75 01    		 CALL RS_RX ; WAIT FOR A CHAR IN RS232	; WAIT FOR A CHAR IN RS232
+ 40)   0090 F5          		 PUSH AF	;
+ 41)   0091 CD 75 02    		 CALL SND_BEEP	;
+ 42)   0094 F1          		 POP AF	;
+ 43)   0095 FE 55       		 CP 'U'         ;UPLOAD PROGRAM	;UPLOAD PROGRAM
+ 44)   0097 CC B5 00    		 CALL Z, UPLOD	;
+ 45)   009A FE 58       		 CP 'X'	;
+ 46)   009C CA AC 00    		 JP Z, EXEC	;
+ 47)   009F FE 4A       		 CP 'J'	;
+ 48)   00A1 CC DA 00    		 CALL Z, DNLOD	;
+ 49)   00A4 FE 52       		 CP 'R'	;
+ 50)   00A6 CA 7A 00    		 JP Z, DBEXIT	;
+ 52)   00A9 C3 87 00    		 JP DBMENU	;
+ 55)   00AC 11 53 F2    		EXEC: LD DE, PRGEX	;
+ 56)   00AF 1A          		 LD A, (DE)	;
+ 57)   00B0 6F          		 LD L, A	;
+ 58)   00B1 13          		 INC DE	;
+ 59)   00B2 1A          		 LD A, (DE)	;
+ 60)   00B3 67          		 LD H, A	;
+ 61)   00B4 E9          		 JP (HL)	;
+ 63)   00B5 CD 75 01    		UPLOD: CALL RS_RX        ;HL HAS RAM ADDRESS	;HL HAS RAM ADDRESS
+ 64)   00B8 6F          		 LD L, A	;
+ 65)   00B9 CD 75 01    		 CALL RS_RX	;
+ 66)   00BC 67          		 LD H, A	;
+ 67)   00BD CD 75 01    		 CALL RS_RX        ;BC HAS TOTAL DATA TO BE SEND	;BC HAS TOTAL DATA TO BE SEND
+ 68)   00C0 4F          		 LD C, A	;
+ 69)   00C1 CD 75 01    		 CALL RS_RX	;
+ 70)   00C4 47          		 LD B, A	;
+ 72)   00C5 11 53 F2    		 LD DE, PRGEX        ;SAVE TO PRGEX THE PROG EXEC ADDR=HL	;SAVE TO PRGEX THE PROG EXEC ADDR=HL
+ 73)   00C8 7D          		 LD A, L	;
+ 74)   00C9 12          		 LD (DE), A	;
+ 75)   00CA 13          		 INC DE	;
+ 76)   00CB 7C          		 LD A, H	;
+ 77)   00CC 12          		 LD (DE), A	;
+ 79)   00CD E5          		 PUSH HL	;
+ 80)   00CE CD 75 01    		NXB: CALL RS_RX	;
+ 81)   00D1 77          		 LD (HL), A	;
+ 82)   00D2 23          		 INC HL	;
+ 83)   00D3 0B          		 DEC BC	;
+ 84)   00D4 78          		 LD A, B	;
+ 85)   00D5 B1          		 OR C	;
+ 86)   00D6 20 F6       		 JR NZ, NXB        ;LOOP ALL BYTES	;LOOP ALL BYTES
+ 88)   00D8 E1          		 POP HL	;
+ 90)   00D9 C9          		 RET	;
+ 93)   00DA CD 75 01    		DNLOD: CALL RS_RX        ;HL HAS RAM ADDRESS	;HL HAS RAM ADDRESS
+ 94)   00DD 6F          		 LD L, A	;
+ 95)   00DE CD 75 01    		 CALL RS_RX	;
+ 96)   00E1 67          		 LD H, A	;
+ 97)   00E2 CD 75 01    		 CALL RS_RX        ;BC HAS TOTAL DATA TO BE SEND	;BC HAS TOTAL DATA TO BE SEND
+ 98)   00E5 4F          		 LD C, A	;
+ 99)   00E6 CD 75 01    		 CALL RS_RX	;
+100)   00E9 47          		 LD B, A	;
+102)   00EA 7E          		NXB3: LD A, (HL)	;
+103)   00EB CD 3E 01    		 CALL RS_TX        ;SEND BYTE	;SEND BYTE
+104)   00EE 23          		 INC HL	;
+105)   00EF 0B          		 DEC BC	;
+106)   00F0 78          		 LD A, B	;
+107)   00F1 B1          		 OR C	;
+108)   00F2 20 F6       		 JR NZ, NXB3        ;LOOP ALL BYTES   	;LOOP ALL BYTES
+109)   00F4 C9          		 RET	;
+113)   00F5 41 54 4C 41 		MSG1:          DEFM "ATLAS DEBUGGER"	;
+113)   00F9 53 20 44 45 		MSG1:          DEFM "ATLAS DEBUGGER"	;
+113)   00FD 42 55 47 47 		MSG1:          DEFM "ATLAS DEBUGGER"	;
+113)   0101 45 52       		MSG1:          DEFM "ATLAS DEBUGGER"	;
+114)   0103 0A 0D 00    		               DB 10,13,0	;
+115)   0106 55 3A 55 50 		MSG_MNU:       DEFM "U:UPL,X:RUN,J:DOWNL,R:RETURN"	;
+115)   010A 4C 2C 58 3A 		MSG_MNU:       DEFM "U:UPL,X:RUN,J:DOWNL,R:RETURN"	;
+115)   010E 52 55 4E 2C 		MSG_MNU:       DEFM "U:UPL,X:RUN,J:DOWNL,R:RETURN"	;
+115)   0112 4A 3A 44 4F 		MSG_MNU:       DEFM "U:UPL,X:RUN,J:DOWNL,R:RETURN"	;
+115)   0116 57 4E 4C 2C 		MSG_MNU:       DEFM "U:UPL,X:RUN,J:DOWNL,R:RETURN"	;
+115)   011A 52 3A 52 45 		MSG_MNU:       DEFM "U:UPL,X:RUN,J:DOWNL,R:RETURN"	;
+115)   011E 54 55 52 4E 		MSG_MNU:       DEFM "U:UPL,X:RUN,J:DOWNL,R:RETURN"	;
+116)   0122 0A 0D 00    		 DB 10,13,0	;
+189)   0125 F5          		RS_INI:        PUSH AF	;
+190)   0126 3E 80       		               LD A, $80                 ; Mask to set DLAB on	; Mask to set DLAB on
+191)   0128 D3 23       		               OUT (LCR), A              ; Send to LINe Control Register	; Send to LINe Control Register
+192)   012A F1          		               POP AF	;
+193)   012B D3 20       		               OUT (DLL), A              ; Set LSB of divisor	; Set LSB of divisor
+194)   012D 3E 00       		               LD A, 00                  ; This will be the MSB of the divisior	; This will be the MSB of the divisior
+195)   012F D3 21       		               OUT (DLM), A              ; Send to the MSB register	; Send to the MSB register
+196)   0131 3E 03       		               LD A, $03                 ; 8 bits, 1 stop, no parity (and clear DLAB)	; 8 bits, 1 stop, no parity (and clear DLAB)
+197)   0133 D3 23       		               OUT (LCR), A              ; Write new value to LCR	; Write new value to LCR
+198)   0135 3E 00       		               LD A, 0	;
+199)   0137 D3 22       		               OUT (FCR), A	;
+200)   0139 3E 00       		               LD A, $00                 ; Disable all interrupts	; Disable all interrupts
+201)   013B D3 21       		               OUT (IER), A              ; Send to INterrupt Enable Register	; Send to INterrupt Enable Register
+202)   013D C9          		               RET	;
+216)   013E CD 44 01    		RS_TX:         CALL RSTXRD	;
+217)   0141 D3 20       		               OUT (THR), A	;
+218)   0143 C9          		               RET	;
+232)   0144 F5          		RSTXRD:        PUSH AF	;
+233)   0145 DB 25       		RSTXLP:        IN A, (LSR)               ; fetch the control register	; fetch the control register
+234)   0147 CB 6F       		               BIT 5, A                  ; bit will be set if UART is ready	; bit will be set if UART is ready
+235)   0149 28 FA       		               JR Z, RSTXLP	;
+236)   014B F1          		               POP AF	;
+237)   014C C9          		               RET	;
+252)   014D 7E          		RS_TXT:        LD A, (HL)	;
+253)   014E 23          		               INC HL	;
+254)   014F FE 00       		               CP 0	;
+255)   0151 C8          		               RET Z	;
+256)   0152 CD 3E 01    		               CALL RS_TX	;
+257)   0155 18 F6       		               JR RS_TXT	;
+274)   0157 E5          		RS_MESG:       PUSH HL	;
+275)   0158 C5          		               PUSH BC	;
+276)   0159 D5          		               PUSH DE	;
+277)   015A F5          		               PUSH AF	;
+278)   015B 21 09 00    		               LD HL,9 ;POINTS TO RET ADDRESS +10 FROM SP = OUR STRING	;POINTS TO RET ADDRESS +10 FROM SP = OUR STRING
+279)   015E 39          		               ADD HL,SP	;
+280)   015F 46          		               LD B,(HL)	;
+281)   0160 2B          		               DEC HL	;
+282)   0161 4E          		               LD C,(HL)	;
+283)   0162 60          		               LD H,B	;
+284)   0163 69          		               LD L,C	;
+285)   0164 CD 4D 01    		               CALL RS_TXT	;
+286)   0167 F1          		               POP AF	;
+287)   0168 D1          		               POP DE	;
+288)   0169 44          		               LD B,H        ;NEW RET ADDRESS	;NEW RET ADDRESS
+289)   016A 4D          		               LD C,L	;
+290)   016B 21 05 00    		               LD HL,5 ;POINTS TO RET ADDRESS +6 FROM SP	;POINTS TO RET ADDRESS +6 FROM SP
+291)   016E 39          		               ADD HL,SP	;
+292)   016F 70          		               LD (HL),B	;
+293)   0170 2B          		               DEC HL	;
+294)   0171 71          		               LD (HL),C	;
+295)   0172 C1          		               POP BC	;
+296)   0173 E1          		               POP HL	;
+297)   0174 C9          		               RET	;
+315)   0175 ED 57       		RS_RX:         LD A,I                    ;SETS PV IF INTS ARE ENABLED	;SETS PV IF INTS ARE ENABLED
+316)   0177 F5          		               PUSH AF	;
+317)   0178 D1          		               POP DE	;
+318)   0179 F3          		               DI	;
+319)   017A 3E 01       		               LD A, 1                   ;ready to receive SIGNAL DSR 1	;ready to receive SIGNAL DSR 1
+320)   017C D3 24       		               OUT (MCR), A	;
+321)   017E CD 9C 01    		               CALL RSRXRD	;
+322)   0181 AF          		RS_GTCH:       XOR A                     ;NOT ready to receive SIGNAL DSR 0	;NOT ready to receive SIGNAL DSR 0
+323)   0182 D3 24       		               OUT (MCR), A	;
+324)   0184 DB 20       		               IN A, (RBR)	;
+325)   0186 D5          		               PUSH DE	;
+326)   0187 57          		               LD D,A	;
+327)   0188 F1          		               POP AF	;
+328)   0189 7A          		               LD A,D	;
+329)   018A E0          		               RET PO	;
+330)   018B FB          		               EI	;
+331)   018C C9          		               RET	;
+349)   018D 3E 01       		RS_RXNW:       LD A, 1                   ;ready to receive SIGNAL DSR 1	;ready to receive SIGNAL DSR 1
+350)   018F D3 24       		               OUT (MCR), A	;
+351)   0191 DB 25       		               IN A, (LSR)               ; fetch the conrtol register	; fetch the conrtol register
+352)   0193 CB 47       		               BIT 0, A	;
+353)   0195 28 03       		               JR Z, RS_NOCHAR	;
+354)   0197 F3          		               DI	;
+355)   0198 18 E7       		               JR RS_GTCH	;
+356)   019A AF          		RS_NOCHAR:     XOR A                     ;RETURN ZERO	;RETURN ZERO
+357)   019B C9          		               RET	;
+373)   019C F5          		RSRXRD:        PUSH AF	;
+374)   019D DB 25       		RSRXLP:        IN A, (LSR)               ; fetch the control register	; fetch the control register
+375)   019F CB 47       		               BIT 0, A                  ; bit will be set if UART has data	; bit will be set if UART has data
+376)   01A1 28 FA       		               JR Z, RSRXLP	;
+377)   01A3 F1          		RSRXEX:        POP AF	;
+378)   01A4 C9          		               RET	;
+396)   01A5 DB 25       		RS_KEYRD:      IN A, (LSR)               ; fetch the conrtol register	; fetch the conrtol register
+397)   01A7 CB 47       		               BIT 0, A                  ; bit will be set if UART has data	; bit will be set if UART has data
+398)   01A9 C9          		               RET	;
+401)   01AA F5          		SHLCD: PUSH AF	;
+402)   01AB F1          		       POP AF	;
+403)   01AC C9          		       RET	;
+417)   01AD F5          		RS_NEWLINE:    PUSH AF	;
+418)   01AE 3E 0D       		               LD A,13	;
+419)   01B0 CD 3E 01    		               CALL RS_TX	;
+420)   01B3 3E 0A       		               LD A,10	;
+421)   01B5 CD 3E 01    		               CALL RS_TX	;
+422)   01B8 F1          		               POP AF	;
+423)   01B9 C9          		               RET	;
+440)   01BA F5          		CHKERR:        PUSH AF	;
+441)   01BB E5          		               PUSH HL	;
+442)   01BC C5          		               PUSH BC	;
+443)   01BD DB 25       		               IN A, (LSR)               ;FETCH LINE STATUS REGISTER	;FETCH LINE STATUS REGISTER
+444)   01BF CB 67       		               BIT 4, A	;
+445)   01C1 28 04       		               JR Z, LBLPE	;
+446)   01C3 3E 42       		               LD A, 'B'                 ;BREAK	;BREAK
+447)   01C5 18 1A       		               JR EXIT	;
+448)   01C7 CB 57       		LBLPE:         BIT 2, A	;
+449)   01C9 28 04       		               JR Z, LBLFE	;
+450)   01CB 3E 50       		               LD A, 'P'                 ;PARITY	;PARITY
+451)   01CD 18 12       		               JR EXIT	;
+452)   01CF CB 5F       		LBLFE:         BIT 3, A	;
+453)   01D1 28 04       		               JR Z, LBLOE	;
+454)   01D3 3E 46       		               LD A, 'F'                 ;FRAME	;FRAME
+455)   01D5 18 0A       		               JR EXIT	;
+456)   01D7 CB 4F       		LBLOE:         BIT 1, A	;
+457)   01D9 28 04       		               JR Z, LBLNE	;
+458)   01DB 3E 4F       		               LD A, 'O'                 ;OVERRUN	;OVERRUN
+459)   01DD 18 02       		               JR EXIT	;
+460)   01DF 3E 4E       		LBLNE:         LD A, 'N'                 ;NO ERROR	;NO ERROR
+461)   01E1 21 01 F2    		EXIT:          LD HL, SERERR	;
+462)   01E4 77          		               LD (HL), A	;
+463)   01E5 C1          		               POP BC	;
+464)   01E6 E1          		               POP HL	;
+465)   01E7 F1          		               POP AF	;
+466)   01E8 C9          		               RET	;
+606)   01E9 ED 44       		DELAYABIT: NEG        ;8 CLOCK CYCLES	;8 CLOCK CYCLES
+607)   01EB ED 44       		 NEG	;
+608)   01ED ED 44       		 NEG	;
+609)   01EF ED 44       		 NEG	;
+610)   01F1 ED 44       		 NEG	;
+611)   01F3 ED 44       		 NEG	;
+612)   01F5 ED 44       		 NEG	;
+613)   01F7 ED 44       		 NEG	;
+614)   01F9 C9          		 RET	;
+633)   01FA D3 40       		SND_OUT: OUT (DEVSND), A      ;SEND TO SOUND	;SEND TO SOUND
+649)   01FC CD E9 01    		 CALL DELAYABIT	;
+650)   01FF C9          		 RET	;
+667)   0200 3E 9F       		SND_MUTEALL: LD A, $9F       ;MUTE CHANNEL 0	;MUTE CHANNEL 0
+668)   0202 CD FA 01    		 CALL SND_OUT	;
+669)   0205 3E BF       		 LD A, $BF        ;MUTE CHANNEL 1	;MUTE CHANNEL 1
+670)   0207 CD FA 01    		 CALL SND_OUT	;
+671)   020A 3E DF       		 LD A, $DF        ;MUTE CHANNEL 2	;MUTE CHANNEL 2
+672)   020C CD FA 01    		 CALL SND_OUT	;
+673)   020F 3E FF       		 LD A, $FF        ;MUTE CHANNEL NOISE	;MUTE CHANNEL NOISE
+674)   0211 CD FA 01    		 CALL SND_OUT	;
+675)   0214 C9          		 RET	;
+694)   0215 CD 00 02    		SND_INIT: CALL SND_MUTEALL	;
+695)   0218 AF          		 XOR A	;
+696)   0219 32 75 F2    		 LD (CHANST), A	;
+697)   021C AF          		SND_CLRDAT: XOR A	;
+698)   021D 21 69 F2    		 LD HL, CHANDATA	;
+699)   0220 77          		 LD (HL), A	;
+700)   0221 54          		 LD D, H	;
+701)   0222 5D          		 LD E, L	;
+702)   0223 13          		 INC DE	;
+703)   0224 01 0B 00    		 LD BC, 11	;
+704)   0227 ED B0       		 LDIR	;
+705)   0229 C9          		 RET	;
+731)   022A F5          		SND_NOTE:  PUSH AF	;
+732)   022B C5          		           PUSH BC	;
+733)   022C E5          		           PUSH HL             	;
+736)   022D E6 03       		           AND $03             ; Keep channel 0-3	; Keep channel 0-3
+737)   022F 07          		           RLCA	;
+738)   0230 07          		           RLCA	;
+739)   0231 07          		           RLCA	;
+740)   0232 07          		           RLCA	;
+741)   0233 07          		           RLCA                ; Channel is now at bits 6 and 5	; Channel is now at bits 6 and 5
+742)   0234 F6 80       		           OR $80              ; Force Bit 7 to 1 (SN76489 Latch Command)	; Force Bit 7 to 1 (SN76489 Latch Command)
+743)   0236 47          		           LD B, A             ; Save this base command byte in B	; Save this base command byte in B
+746)   0237 7D          		           LD A, L	;
+747)   0238 E6 0F       		           AND $0F             ; Keep lowest 4 bits	; Keep lowest 4 bits
+748)   023A B0          		           OR B                ; Merge with channel and Latch command flag	; Merge with channel and Latch command flag
+749)   023B CD FA 01    		           CALL SND_OUT        ; Send 1st Byte (1 C1 C0 0 D3 D2 D1 D0)	; Send 1st Byte (1 C1 C0 0 D3 D2 D1 D0)
+753)   023E E1          		           POP HL              ; Retrieve HL to read original value	; Retrieve HL to read original value
+754)   023F E5          		           PUSH HL             ; Keep it pushed to satisfy "Preserved" constraint	; Keep it pushed to satisfy "Preserved" constraint
+756)   0240 CB 3C       		           SRL H               ; Shift HL right by 4 bits	; Shift HL right by 4 bits
+757)   0242 CB 1D       		           RR L	;
+758)   0244 CB 3C       		           SRL H	;
+759)   0246 CB 1D       		           RR L	;
+760)   0248 CB 3C       		           SRL H	;
+761)   024A CB 1D       		           RR L	;
+762)   024C CB 3C       		           SRL H	;
+763)   024E CB 1D       		           RR L                ; L now holds the upper 6 bits in its lower 6 slots	; L now holds the upper 6 bits in its lower 6 slots
+765)   0250 7D          		           LD A, L	;
+766)   0251 E6 3F       		           AND $3F             ; Ensure bits 6 and 7 are 0 (Bit 7 must be 0)	; Ensure bits 6 and 7 are 0 (Bit 7 must be 0)
+767)   0253 CD FA 01    		           CALL SND_OUT        ; Send 2nd Byte (0 0 D9 D8 D7 D6 D5 D4)	; Send 2nd Byte (0 0 D9 D8 D7 D6 D5 D4)
+769)   0256 E1          		           POP HL	;
+770)   0257 C1          		           POP BC	;
+771)   0258 F1          		           POP AF	;
+772)   0259 C9          		           RET	;
+791)   025A F5          		SND_DOBEEP: PUSH AF	;
+792)   025B C5          		       PUSH BC	;
+793)   025C 3E 02       		 LD A, DEFCHN	;
+794)   025E 0E 00       		 LD C, SNDVOLHI	;
+795)   0260 CD 87 02    		 CALL SND_SETVOLUME	;
+796)   0263 3E 02       		 LD A, DEFCHN	;
+797)   0265 CD 2A 02    		 CALL SND_NOTE	;
+798)   0268 C1          		 POP BC	;
+799)   0269 CD DA 03    		 CALL DELAYMILI	;
+800)   026C 3E 02       		 LD A, DEFCHN	;
+801)   026E 0E 04       		 LD C, SNDMUTE	;
+802)   0270 CD 87 02    		 CALL SND_SETVOLUME	;
+803)   0273 F1          		 POP AF	;
+804)   0274 C9          		 RET	;
+821)   0275 21 9F 00    		SND_BEEP: LD HL, nG4       ;NOTE G4 ON CHANNEL2	;NOTE G4 ON CHANNEL2
+822)   0278 06 A0       		       LD B, 160	;
+823)   027A CD 5A 02    		 CALL SND_DOBEEP	;
+824)   027D C9          		 RET	;
+841)   027E 21 35 00    		SND_BEEP2: LD HL, nD6       ;NOTE D6 ON CHANNEL2	;NOTE D6 ON CHANNEL2
+842)   0281 06 3C       		       LD B, 60	;
+843)   0283 CD 5A 02    		 CALL SND_DOBEEP	;
+844)   0286 C9          		 RET	;
+864)   0287 F5          		SND_SETVOLUME: PUSH AF	;
+865)   0288 C5          		 PUSH BC	;
+866)   0289 D5          		 PUSH DE	;
+867)   028A 07          		 RLCA         ;DOUBLE CHANNEL 0-3 --> 0,2,4,6	;DOUBLE CHANNEL 0-3 --> 0,2,4,6
+868)   028B 3C          		 INC A         ;E=A+1	;E=A+1
+869)   028C 5F          		 LD E, A        ;SAVE CHANNEL INFO	;SAVE CHANNEL INFO
+870)   028D 79          		 LD A, C	;
+871)   028E FE 04       		 CP SNDMUTE	;
+872)   0290 3E 0F       		 LD A, $F	;
+873)   0292 28 09       		 JR Z, SV_DOIT        ;SNDMUTE=4 MEANS NO VOLUME = MUTE	;SNDMUTE=4 MEANS NO VOLUME = MUTE
+874)   0294 3E 01       		 LD A, 1        ;VOLUME 0-3 --> 1,2,4,8 SET THE CORRESPONDING BIT 0-3	;VOLUME 0-3 --> 1,2,4,8 SET THE CORRESPONDING BIT 0-3
+875)   0296 0C          		 INC C	;
+876)   0297 0D          		SV_AGN: DEC C	;
+877)   0298 28 03       		 JR Z, SV_DOIT	;
+878)   029A 07          		 RLCA	;
+879)   029B 18 FA       		 JR SV_AGN	;
+880)   029D 57          		SV_DOIT: LD D, A       ;D THE VOLUME , E THE CHANNEL 1&CCC&VVVV	;D THE VOLUME , E THE CHANNEL 1&CCC&VVVV
+881)   029E 3E 80       		 LD A, $80	;
+882)   02A0 CB 03       		 RLC E	;
+883)   02A2 CB 03       		 RLC E	;
+884)   02A4 CB 03       		 RLC E	;
+885)   02A6 CB 03       		 RLC E	;
+886)   02A8 B2          		 OR D	;
+887)   02A9 B3          		 OR E	;
+888)   02AA CD FA 01    		 CALL SND_OUT 	;
+889)   02AD D1          		 POP DE 	;
+890)   02AE C1          		 POP BC      ;SET THE VOLUME	;SET THE VOLUME
+891)   02AF F1          		 POP AF	;
+892)   02B0 C9          		 RET	;
+911)   02B1 F5          		SND_DISABLE: PUSH AF	;
+912)   02B2 CD DA 02    		 CALL SND_GETCHMASK	;
+913)   02B5 47          		 LD B, A	;
+914)   02B6 3A 75 F2    		 LD A, (CHANST)	;
+915)   02B9 B0          		 OR B	;
+916)   02BA 32 75 F2    		 LD (CHANST), A	;
+917)   02BD F1          		 POP AF	;
+918)   02BE 0E 04       		 LD C, SNDMUTE	;
+919)   02C0 CD 87 02    		 CALL SND_SETVOLUME	;
+920)   02C3 C9          		 RET	;
+939)   02C4 F5          		SND_ENABLE: PUSH AF	;
+940)   02C5 CD DA 02    		 CALL SND_GETCHMASK	;
+941)   02C8 ED 44       		 NEG	;
+942)   02CA 3D          		 DEC A	;
+943)   02CB 47          		 LD B, A	;
+944)   02CC 3A 75 F2    		 LD A, (CHANST)	;
+945)   02CF A0          		 AND B	;
+946)   02D0 32 75 F2    		 LD (CHANST), A	;
+947)   02D3 F1          		 POP AF	;
+948)   02D4 0E 00       		 LD C, SNDVOLHI        ;TODO: KEEP RECORD OF THE VOLUME IN EACH CHANNEL	;TODO: KEEP RECORD OF THE VOLUME IN EACH CHANNEL
+949)   02D6 CD 87 02    		 CALL SND_SETVOLUME	;
+950)   02D9 C9          		 RET	;
+968)   02DA 3C          		SND_GETCHMASK: INC A	;
+969)   02DB 4F          		 LD C, A	;
+970)   02DC AF          		 XOR A	;
+971)   02DD 3C          		 INC A	;
+972)   02DE 0D          		GMCAGN: DEC C	;
+973)   02DF C8          		 RET Z	;
+974)   02E0 07          		 RLCA	;
+975)   02E1 18 FB       		 JR GMCAGN	;
+999)   02E3 FD 21 69 F2 		   LD IY, CHANDATA     ; IY points to current data address array	; IY points to current data address array
+1000)   02E7 DD 21 71 F2 		   LD IX, CHANDEL      ; IX points to duration array	; IX points to duration array
+1001)   02EB 0E 00       		   LD C, 0             ; Start with Channel 0	; Start with Channel 0
+1002)   02ED 06 00       		   LD B, 0	;
+1004)   02EF C5          		   PUSH BC	;
+1006)   02F0 FD 6E 00    		   LD L, (IY+0)	;
+1007)   02F3 FD 66 01    		   LD H, (IY+1)	;
+1009)   02F6 7C          		   LD A, H	;
+1010)   02F7 B5          		   OR L	;
+1011)   02F8 28 06       		   JR Z, NEXT_CHANNEL	;
+1013)   02FA CD 10 03    		   CALL PROCESS_CHANNEL	;
+1014)   02FD C1          		   POP BC	;
+1015)   02FE 04          		   INC B	;
+1016)   02FF C5          		   PUSH BC	;
+1019)   0300 C1          		   POP BC	;
+1020)   0301 FD 23       		   INC IY	;
+1021)   0303 FD 23       		   INC IY              ; Advance CHANDATA by 2	; Advance CHANDATA by 2
+1022)   0305 DD 23       		   INC IX              ; Advance CHANDEL by 1	; Advance CHANDEL by 1
+1023)   0307 0C          		   INC C	;
+1024)   0308 79          		   LD A, C	;
+1025)   0309 FE 04       		   CP 4	;
+1026)   030B 20 E2       		   JR NZ, PLAYER_LOOP	;
+1027)   030D 78          		   LD A,B	;
+1028)   030E B7          		   OR A  ;ZF IF NO CHANNEL IS PLAYING CHECK TO STOP	;ZF IF NO CHANNEL IS PLAYING CHECK TO STOP
+1029)   030F C9          		   RET	;
+1037)   0310 DD 7E 00    		   LD A, (IX+0)        	;
+1038)   0313 B7          		   OR A	;
+1039)   0314 28 05       		   JR Z, FETCH_NEXT	;
+1040)   0316 3D          		   DEC A               	;
+1041)   0317 DD 77 00    		   LD (IX+0), A        	;
+1042)   031A C0          		   RET NZ              ; Return immediately if note is still sustaining. 	; Return immediately if note is still sustaining.
+1046)   031B 7E          		   LD A, (HL)	;
+1047)   031C FE 09       		   CP $09              	;
+1048)   031E 28 26       		   JR Z, HANDLE_COMMAND	;
+1051)   0320 5F          		   LD E, A             	;
+1052)   0321 23          		   INC HL	;
+1053)   0322 E5          		   PUSH HL	;
+1054)   0323 66          		   LD H, (HL)          	;
+1055)   0324 6B          		   LD L, E            	;
+1057)   0325 59          		   LD E,C 	;
+1058)   0326 79          		   LD A, C ;CHANNEL NO	;CHANNEL NO
+1059)   0327 0E 00       		   LD C, SNDVOLHI  ; TODO SAVE LAST VOLUME OF EACH CHANNEL	; TODO SAVE LAST VOLUME OF EACH CHANNEL
+1060)   0329 CD 87 02    		   CALL SND_SETVOLUME 	;
+1061)   032C 4B          		   LD C,E	;
+1064)   032D FD E5       		   PUSH IY             ; Protect IY array pointer from hardware corruption	; Protect IY array pointer from hardware corruption
+1065)   032F DD E5       		   PUSH IX             ; Protect IX duration pointer from hardware corruption	; Protect IX duration pointer from hardware corruption
+1066)   0331 CD 2A 02    		   CALL SND_NOTE       	;
+1067)   0334 DD E1       		   POP IX	;
+1068)   0336 FD E1       		   POP IY	;
+1070)   0338 E1          		   POP HL 	;
+1071)   0339 23          		   INC HL    	;
+1073)   033A 7E          		   LD A, (HL)	;
+1074)   033B DD 77 00    		   LD (IX+0), A        	;
+1075)   033E 23          		   INC HL	;
+1078)   033F FD 75 00    		   LD (IY+0), L	;
+1079)   0342 FD 74 01    		   LD (IY+1), H	;
+1080)   0345 C9          		   RET	;
+1084)   0346 23          		   INC HL	;
+1085)   0347 7E          		   LD A, (HL)          	;
+1086)   0348 23          		   INC HL	;
+1088)   0349 FE 09       		   CP $09              ; nEND	; nEND
+1089)   034B 28 09       		   JR Z, CMD_END	;
+1090)   034D FE 08       		   CP $08              ; nPAUSE	; nPAUSE
+1091)   034F 28 13       		   JR Z, CMD_PAUSE	;
+1092)   0351 FE 07       		   CP $07              ; nVOLUME	; nVOLUME
+1093)   0353 28 1F       		   JR Z, CMD_VOLUME	;
+1094)   0355 C9          		   RET                 	;
+1097)   0356 21 00 00    		   LD HL, 0	;
+1098)   0359 FD 75 00    		   LD (IY+0), L        ; Save the deactivated state immediately	; Save the deactivated state immediately
+1099)   035C FD 74 01    		   LD (IY+1), H	;
+1100)   035F 79          		   LD A, C	;
+1101)   0360 CD 8F 03    		   CALL APPL_MUTE	;
+1102)   0363 C9          		   RET	;
+1105)   0364 79          		   LD A, C	;
+1106)   0365 CD 8F 03    		   CALL APPL_MUTE	;
+1107)   0368 7E          		   LD A, (HL)	;
+1108)   0369 DD 77 00    		   LD (IX+0), A	;
+1109)   036C 23          		   INC HL	;
+1112)   036D FD 75 00    		   LD (IY+0), L	;
+1113)   0370 FD 74 01    		   LD (IY+1), H	;
+1114)   0373 C9          		   RET	;
+1117)   0374 7E          		   LD A, (HL)          	;
+1118)   0375 23          		   INC HL	;
+1120)   0376 E5          		   PUSH HL	;
+1121)   0377 47          		   LD B, A             	;
+1122)   0378 79          		   LD A, C             	;
+1123)   0379 07          		   RLCA	;
+1124)   037A 07          		   RLCA	;
+1125)   037B 07          		   RLCA	;
+1126)   037C 07          		   RLCA	;
+1127)   037D 07          		   RLCA                	;
+1128)   037E E6 60       		   AND 01100000b       	;
+1129)   0380 B0          		   OR B                	;
+1130)   0381 FD E5       		   PUSH IY	;
+1131)   0383 DD E5       		   PUSH IX	;
+1132)   0385 CD FA 01    		   CALL SND_OUT        	;
+1133)   0388 DD E1       		   POP IX	;
+1134)   038A FD E1       		   POP IY	;
+1135)   038C E1          		   POP HL	;
+1137)   038D 18 8C       		   JR FETCH_NEXT	;
+1143)   038F 07          		   RLCA	;
+1144)   0390 07          		   RLCA	;
+1145)   0391 07          		   RLCA	;
+1146)   0392 07          		   RLCA	;
+1147)   0393 07          		   RLCA                ; Shift channel index into bits 6 & 5	; Shift channel index into bits 6 & 5
+1148)   0394 E6 60       		   AND 01100000b	;
+1149)   0396 F6 04       		   OR SNDMUTE          ; Combine with attenuation mute bit pattern (%1xx11111)	; Combine with attenuation mute bit pattern (%1xx11111)
+1150)   0398 C3 FA 01    		   JP SND_OUT          ; Deliver packet directly to hardware register	; Deliver packet directly to hardware register
+1194)   039B 00          		m18: nop         ; 4 cycles	; 4 cycles
+1195)   039C 00          		 nop         ; 4 cycles	; 4 cycles
+1196)   039D 00          		m16:    nop         ; 4 cycles	; 4 cycles
+1197)   039E 00          		      nop         ; 4 cycles	; 4 cycles
+1198)   039F 00          		      nop         ; 4 cycles	; 4 cycles
+1199)   03A0 00          		m14:    nop         ; 4 cycles	; 4 cycles
+1200)   03A1 00          		 nop         ; 4 cycles	; 4 cycles
+1201)   03A2 00          		m12:    nop         ; 4 cycles	; 4 cycles
+1202)   03A3 00          		      nop         ; 4 cycles	; 4 cycles
+1203)   03A4 00          		      nop         ; 4 cycles	; 4 cycles
+1204)   03A5 00          		m10:    nop         ; 4 cycles	; 4 cycles
+1205)   03A6 00          		      nop         ; 4 cycles	; 4 cycles
+1206)   03A7 00          		m8:    nop         ; 4 cycles	; 4 cycles
+1207)   03A8 00          		      nop         ; 4 cycles	; 4 cycles
+1208)   03A9 00          		    nop         ; 4 cycles	; 4 cycles
+1209)   03AA 00          		m6:     nop         ; 4 cycles	; 4 cycles
+1210)   03AB 00          		    nop         ; 4 cycles	; 4 cycles
+1211)   03AC 00          		m4: nop         ; 4 cycles	; 4 cycles
+1212)   03AD 00          		     nop         ; 4 cycles	; 4 cycles
+1213)   03AE 00          		      nop         ; 4 cycles	; 4 cycles
+1214)   03AF C3 D7 03    		 JP DM3CONT	;
+1220)   03B2 00 14 13 12 		DMHELPIDX: DB 0,20,19,18,18,17,16,16,13,13,11,11,11,08,06,06,03,03,01,00,00 ;FIXED FOR DELAYS 	;FIXED FOR DELAYS
+1220)   03B6 12 11 10 10 		DMHELPIDX: DB 0,20,19,18,18,17,16,16,13,13,11,11,11,08,06,06,03,03,01,00,00 ;FIXED FOR DELAYS 	;FIXED FOR DELAYS
+1220)   03BA 0D 0D 0B 0B 		DMHELPIDX: DB 0,20,19,18,18,17,16,16,13,13,11,11,11,08,06,06,03,03,01,00,00 ;FIXED FOR DELAYS 	;FIXED FOR DELAYS
+1220)   03BE 0B 08 06 06 		DMHELPIDX: DB 0,20,19,18,18,17,16,16,13,13,11,11,11,08,06,06,03,03,01,00,00 ;FIXED FOR DELAYS 	;FIXED FOR DELAYS
+1220)   03C2 03 03 01 00 		DMHELPIDX: DB 0,20,19,18,18,17,16,16,13,13,11,11,11,08,06,06,03,03,01,00,00 ;FIXED FOR DELAYS 	;FIXED FOR DELAYS
+1220)   03C6 00          		DMHELPIDX: DB 0,20,19,18,18,17,16,16,13,13,11,11,11,08,06,06,03,03,01,00,00 ;FIXED FOR DELAYS 	;FIXED FOR DELAYS
+1224)   03C7 DB 80       		DELAY5MICS: IN A, (128)         ; THE CPU SPEED IN MHZ e.g. 12	; THE CPU SPEED IN MHZ e.g. 12
+1225)   03C9 21 B2 03    		 LD HL,DMHELPIDX	;
+1226)   03CC 5F          		 LD E,A	;
+1227)   03CD 16 00       		 LD D,0	;
+1228)   03CF 19          		 ADD HL,DE	;
+1229)   03D0 7E          		 LD A,(HL)	;
+1230)   03D1 5F          		 LD E,A	;
+1231)   03D2 21 9B 03    		 LD HL,DELAYRTN	;
+1232)   03D5 19          		 ADD HL,DE	;
+1233)   03D6 E9          		DM3AGN: JP (HL)	;
+1234)   03D7 10 FD       		DM3CONT: DJNZ DM3AGN	;
+1235)   03D9 C9          		 RET	;
+1244)   03DA C5          		NXTMS: PUSH BC	;
+1246)   03DB 06 BE       		 LD B,950/5  ;FIX SHOULD BE 1000	;FIX SHOULD BE 1000
+1247)   03DD CD C7 03    		 CALL DELAY5MICS	;
+1248)   03E0 C1          		 POP BC	;
+1249)   03E1 10 F7       		 DJNZ NXTMS	;
+1253)   03E3 C9          		 RET	;
+1258)   03E4 C5          		DELAYSEC: PUSH BC	;
+1259)   03E5 06 FA       		 LD B,250	;
+1260)   03E7 CD DA 03    		 CALL DELAYMILI	;
+1261)   03EA 06 FA       		 LD B,250	;
+1262)   03EC CD DA 03    		 CALL DELAYMILI	;
+1263)   03EF 06 FA       		 LD B,250	;
+1264)   03F1 CD DA 03    		 CALL DELAYMILI	;
+1265)   03F4 06 FA       		 LD B,250	;
+1266)   03F6 CD DA 03    		 CALL DELAYMILI	;
+1267)   03F9 C1          		 POP BC	;
+1268)   03FA 10 E8       		 DJNZ DELAYSEC	;
+1269)   03FC C9          		 RET	;
+1275)   03FD F5          		OUTASC: PUSH AF	;
+1276)   03FE D5          		 PUSH DE	;
+1277)   03FF CD 32 04    		 CALL B2Bcd	;
+1278)   0402 D1          		 POP DE	;
+1279)   0403 CD 58 04    		 CALL BCD2HA	;
+1280)   0406 F1          		 POP AF	;
+1281)   0407 C9          		 RET	;
+1295)   0408 B7          		BCD2BN: OR A	;
+1296)   0409 47          		 LD B, A	;
+1297)   040A E6 F0       		 AND $F0	;
+1298)   040C 0F          		 RRCA	;
+1299)   040D 4F          		 LD C, A	;
+1300)   040E 0F          		 RRCA	;
+1301)   040F 0F          		 RRCA	;
+1302)   0410 81          		 ADD A, C	;
+1303)   0411 4F          		 LD C, A	;
+1304)   0412 78          		 LD A, B	;
+1305)   0413 E6 0F       		 AND $0F	;
+1306)   0415 81          		 ADD A, C	;
+1307)   0416 C9          		 RET	;
+1322)   0417 26 FF       		BN2BCD: LD H, $FF	;
+1323)   0419 24          		D100LP: INC H	;
+1324)   041A D6 64       		 SUB 100	;
+1325)   041C 30 FB       		 JR NC, D100LP	;
+1326)   041E C6 64       		 ADD A, 100	;
+1327)   0420 2E FF       		 LD L, $FF	;
+1328)   0422 2C          		D10LP: INC L	;
+1329)   0423 D6 0A       		 SUB 10	;
+1330)   0425 30 FB       		 JR NC, D10LP	;
+1331)   0427 C6 0A       		 ADD A, 10	;
+1332)   0429 4F          		 LD C, A	;
+1333)   042A 7D          		 LD A, L	;
+1334)   042B 07          		 RLCA	;
+1335)   042C 07          		 RLCA	;
+1336)   042D 07          		 RLCA	;
+1337)   042E 07          		 RLCA	;
+1338)   042F B1          		 OR C	;
+1339)   0430 6F          		 LD L, A	;
+1340)   0431 C9          		 RET	;
+1354)   0432 01 00 10    		 LD BC, 16 * 256 + 0       ; handle 16 bits, one bit per iteration	; handle 16 bits, one bit per iteration
+1355)   0435 11 00 00    		 LD DE, 0	;
+1357)   0438 29          		 ADD HL, HL	;
+1358)   0439 7B          		 LD A, E	;
+1359)   043A 8F          		 ADC A, A	;
+1360)   043B 27          		 DAA	;
+1361)   043C 5F          		 LD E, A	;
+1362)   043D 7A          		 LD A, D	;
+1363)   043E 8F          		 ADC A, A	;
+1364)   043F 27          		 DAA	;
+1365)   0440 57          		 LD D, A	;
+1366)   0441 79          		 LD A, C	;
+1367)   0442 8F          		 ADC A, A	;
+1368)   0443 27          		 DAA	;
+1369)   0444 4F          		 LD C, A	;
+1370)   0445 10 F1       		 DJNZ cvtLp	;
+1371)   0447 EB          		 EX DE, HL	;
+1372)   0448 C9          		 RET	;
+1386)   0449 B7          		BCD2BN: OR A	;
+1387)   044A 47          		 LD B, A	;
+1388)   044B E6 F0       		 AND $F0	;
+1389)   044D 0F          		 RRCA	;
+1390)   044E 4F          		 LD C, A	;
+1391)   044F 0F          		 RRCA	;
+1392)   0450 0F          		 RRCA	;
+1393)   0451 81          		 ADD A, C	;
+1394)   0452 4F          		 LD C, A	;
+1395)   0453 78          		 LD A, B	;
+1396)   0454 E6 0F       		 AND $0F	;
+1397)   0456 81          		 ADD A, C	;
+1398)   0457 C9          		 RET	;
+1410)   0458 79          		 LD A, C	;
+1411)   0459 CD 85 04    		 CALL cvtUN	;
+1412)   045C 79          		 LD A, C	;
+1413)   045D CD 89 04    		 CALL cvtLN	;
+1414)   0460 7C          		 LD A, H	;
+1415)   0461 CD 85 04    		 CALL cvtUN	;
+1416)   0464 7C          		 LD A, H	;
+1417)   0465 CD 89 04    		 CALL cvtLN	;
+1418)   0468 7D          		 LD A, L	;
+1419)   0469 CD 85 04    		 CALL cvtUN	;
+1420)   046C 7D          		 LD A, L	;
+1421)   046D 18 1A       		 JR cvtLN	;
+1423)   046F 1F          		 RRA         ; move upper nibble into lower nibble	; move upper nibble into lower nibble
+1424)   0470 1F          		 RRA	;
+1425)   0471 1F          		 RRA	;
+1426)   0472 1F          		 RRA	;
+1428)   0473 E6 0F       		 AND 0Fh        ; isolate lower nibble	; isolate lower nibble
+1429)   0475 C6 90       		 ADD A, 90h        ; old trick	; old trick
+1430)   0477 27          		 DAA         ; for converting	; for converting
+1431)   0478 CE 40       		 ADC A, 40h        ; one nibble	; one nibble
+1432)   047A 27          		 DAA         ; to hex ASCII	; to hex ASCII
+1433)   047B 12          		 LD (DE), A	;
+1434)   047C 13          		 INC DE	;
+1435)   047D C9          		 RET	;
+1447)   047E 7D          		 LD A, L	;
+1448)   047F CD 6F 04    		 CALL cvtUN	;
+1449)   0482 7D          		 LD A, L	;
+1450)   0483 18 EE       		 JR cvtLN	;
+1452)   0485 1F          		 RRA         ; move upper nibble into lower nibble	; move upper nibble into lower nibble
+1453)   0486 1F          		 RRA	;
+1454)   0487 1F          		 RRA	;
+1455)   0488 1F          		 RRA	;
+1457)   0489 E6 0F       		 AND 0Fh        ; isolate lower nibble	; isolate lower nibble
+1458)   048B C6 90       		 ADD A, 90h        ; old trick	; old trick
+1459)   048D 27          		 DAA         ; for converting	; for converting
+1460)   048E CE 40       		 ADC A, 40h        ; one nibble	; one nibble
+1461)   0490 27          		 DAA         ; to hex ASCII	; to hex ASCII
+1462)   0491 12          		 LD (DE), A	;
+1463)   0492 13          		 INC DE	;
+1464)   0493 C9          		 RET	;
+1495)   0494 26 00       		@B2D8: LD H, 0	;
+1496)   0496 6F          		 LD L, A	;
+1497)   0497 1E 00       		@B2D16: LD E, 0	;
+1498)   0499 16 00       		@B2D24: LD D, 0	;
+1499)   049B 01 00 00    		@B2D32: LD BC, 0	;
+1500)   049E DD 21 00 00 		@B2D48: LD IX, 0        ; zero all non-used bits	; zero all non-used bits
+1501)   04A2 22 2A F2    		@B2D64: LD (B2DINV), HL	;
+1502)   04A5 ED 53 2C F2 		 LD (B2DINV + 2), DE	;
+1503)   04A9 ED 43 2E F2 		 LD (B2DINV + 4), BC	;
+1504)   04AD DD 22 30 F2 		 LD (B2DINV + 6), IX       ; place full 64-bit input value in buffer	; place full 64-bit input value in buffer
+1505)   04B1 21 32 F2    		 LD HL, B2DBUF	;
+1506)   04B4 11 33 F2    		 LD DE, B2DBUF + 1	;
+1507)   04B7 36 20       		 LD (HL), ' '	;
+1509)   04B9 01 12 00    		 LD BC, 18	;
+1510)   04BC ED B0       		 LDIR         ; fill 1st 19 bytes of buffer with spaces	; fill 1st 19 bytes of buffer with spaces
+1511)   04BE ED 43 45 F2 		 LD (B2DEND - 1), BC       ;set BCD value to "0" & place terminating 0	;set BCD value to "0" & place terminating 0
+1512)   04C2 1E 01       		 LD E, 1        ; no. of bytes in BCD value	; no. of bytes in BCD value
+1513)   04C4 21 32 F2    		 LD HL, B2DINV + 8       ; (address MSB input)+1	; (address MSB input)+1
+1514)   04C7 01 09 09    		 LD BC, 0x0909	;
+1515)   04CA AF          		 XOR A	;
+1516)   04CB 05          		B2DSKP0: DEC B	;
+1517)   04CC 28 29       		 JR Z, B2DSIZ        ; all 0: continue with postprocessing	; all 0: continue with postprocessing
+1518)   04CE 2B          		 DEC HL	;
+1519)   04CF B6          		 OR (HL)        ; find first byte <>0	; find first byte <>0
+1520)   04D0 28 F9       		 JR Z, B2DSKP0	;
+1521)   04D2 0D          		B2DFND1: DEC C	;
+1522)   04D3 17          		 RLA	;
+1523)   04D4 30 FC       		 JR NC, B2DFND1        ; determine no. of most significant 1-bit	; determine no. of most significant 1-bit
+1524)   04D6 1F          		 RRA	;
+1525)   04D7 57          		 LD D, A        ; byte from binary input value	; byte from binary input value
+1526)   04D8 E5          		B2DLUS2: PUSH HL	;
+1527)   04D9 C5          		 PUSH BC	;
+1528)   04DA 21 45 F2    		B2DLUS1: LD HL, B2DEND - 1      ; address LSB of BCD value	; address LSB of BCD value
+1529)   04DD 43          		 LD B, E        ; current length of BCD value in bytes	; current length of BCD value in bytes
+1530)   04DE CB 12       		 RL D         ; highest bit from input value -> carry	; highest bit from input value -> carry
+1531)   04E0 7E          		B2DLUS0: LD A, (HL)	;
+1532)   04E1 8F          		 ADC A, A	;
+1533)   04E2 27          		 DAA	;
+1534)   04E3 77          		 LD (HL), A        ; double 1 BCD byte from intermediate result	; double 1 BCD byte from intermediate result
+1535)   04E4 2B          		 DEC HL	;
+1536)   04E5 10 F9       		 DJNZ B2DLUS0        ; and go on to double entire BCD value (+carry!)	; and go on to double entire BCD value (+carry!)
+1537)   04E7 30 03       		 JR NC, B2DNXT	;
+1538)   04E9 1C          		 INC E         ; carry at MSB -> BCD value grew 1 byte larger	; carry at MSB -> BCD value grew 1 byte larger
+1539)   04EA 36 01       		 LD (HL), 1        ; initialize new MSB of BCD value	; initialize new MSB of BCD value
+1540)   04EC 0D          		B2DNXT: DEC C	;
+1541)   04ED 20 EB       		 JR NZ, B2DLUS1        ; repeat for remaining bits from 1 input byte	; repeat for remaining bits from 1 input byte
+1542)   04EF C1          		 POP BC         ; no. of remaining bytes in input value	; no. of remaining bytes in input value
+1543)   04F0 0E 08       		 LD C, 8        ; reset bit-counter	; reset bit-counter
+1544)   04F2 E1          		 POP HL         ; pointer to byte from input value	; pointer to byte from input value
+1545)   04F3 2B          		 DEC HL	;
+1546)   04F4 56          		 LD D, (HL)        ; get next group of 8 bits	; get next group of 8 bits
+1547)   04F5 10 E1       		 DJNZ B2DLUS2        ; and repeat until last byte from input value	; and repeat until last byte from input value
+1548)   04F7 21 46 F2    		B2DSIZ: LD HL, B2DEND        ; address of terminating 0	; address of terminating 0
+1549)   04FA 4B          		 LD C, E        ; size of BCD value in bytes	; size of BCD value in bytes
+1550)   04FB B7          		 OR A	;
+1551)   04FC ED 42       		 SBC HL, BC        ; calculate address of MSB BCD	; calculate address of MSB BCD
+1552)   04FE 54          		 LD D, H	;
+1553)   04FF 5D          		 LD E, L	;
+1554)   0500 ED 42       		 SBC HL, BC	;
+1555)   0502 EB          		 EX DE, HL        ; HL=address BCD value, DE=start of decimal value	; HL=address BCD value, DE=start of decimal value
+1556)   0503 41          		 LD B, C        ; no. of bytes BCD	; no. of bytes BCD
+1557)   0504 CB 21       		 SLA C         ; no. of bytes decimal (possibly 1 too high)	; no. of bytes decimal (possibly 1 too high)
+1558)   0506 3E 30       		 LD A, '0'	;
+1559)   0508 ED 6F       		 RLD         ; shift bits 4-7 of (HL) into bit 0-3 of A	; shift bits 4-7 of (HL) into bit 0-3 of A
+1560)   050A FE 30       		 CP '0'         ; (HL) was > 9h?	; (HL) was > 9h?
+1561)   050C 20 06       		 JR NZ, B2DEXPH        ; if yes, start with recording high digit	; if yes, start with recording high digit
+1562)   050E 0D          		 DEC C         ; correct number of decimals	; correct number of decimals
+1563)   050F 13          		 INC DE         ; correct start address	; correct start address
+1564)   0510 18 04       		 JR B2DEXPL        ; continue with converting low digit	; continue with converting low digit
+1565)   0512 ED 6F       		B2DEXP: RLD         ; shift high digit (HL) into low digit of A	; shift high digit (HL) into low digit of A
+1566)   0514 12          		B2DEXPH: LD (DE), A       ; record resulting ASCII-code	; record resulting ASCII-code
+1567)   0515 13          		 INC DE	;
+1568)   0516 ED 6F       		B2DEXPL: RLD	;
+1569)   0518 12          		 LD (DE), A	;
+1570)   0519 13          		 INC DE	;
+1571)   051A 23          		 INC HL         ; next BCD-byte	; next BCD-byte
+1572)   051B 10 F5       		 DJNZ B2DEXP        ; and go on to convert each BCD-byte into 2 ASCII	; and go on to convert each BCD-byte into 2 ASCII
+1573)   051D ED 42       		 SBC HL, BC        ; return with HL pointing to 1st decimal	; return with HL pointing to 1st decimal
+1574)   051F C9          		 RET	;
+1578)   0520 EB          		 ex de, hl        ; Get destination into DE	; Get destination into DE
+1579)   0521 21 32 F2    		 ld hl, B2DBUF	;
+1580)   0524 CD 2B 05    		 call SkipWhitespace	;
+1581)   0527 ED B0       		 ldir	;
+1582)   0529 EB          		 ex de, hl        ; Get destination into DE	; Get destination into DE
+1583)   052A C9          		 ret	;
+1588)   052B 7E          		 ld a, (hl)	;
+1589)   052C FE 20       		 cp ' '	;
+1590)   052E C0          		 ret nz	;
+1591)   052F 23          		 inc hl	;
+1592)   0530 18 F9       		 jr SkipWhitespace	;
+1596)   0532 06 08       		@REVBITS: ld b, 8	;
+1597)   0534 6F          		 ld l, a	;
+1599)   0535 CB 15       		 rl l	;
+1600)   0537 1F          		 rra	;
+1601)   0538 10 FB       		 djnz REVLOOP	;
+1602)   053A C9          		 RET	;
+1612)   053B E5          		 push hl	;
+1614)   053C 7E          		 ld a, (hl)	;
+1616)   053D FE 00       		 cp  0	;
+1617)   053F 28 0E       		 jr z, IsStrDecTrue	;
+1619)   0541 FE 30       		 cp  '0'	;
+1620)   0543 38 06       		 jr c, IsStrDecFalse	;
+1622)   0545 FE 3A       		 cp  '9'+1	;
+1623)   0547 38 09       		 jr c, IsStrDecContinue	;
+1624)   0549 FE 39       		 cp  '9'	;
+1627)   054B F6 01       		 or 1         ; Reset zero flag	; Reset zero flag
+1628)   054D E1          		 pop hl	;
+1629)   054E C9          		 ret	;
+1631)   054F BF          		 cp a         ; Set zero flag	; Set zero flag
+1632)   0550 E1          		 pop hl	;
+1633)   0551 C9          		 ret	;
+1635)   0552 23          		 inc hl	;
+1636)   0553 18 E7       		 jr IsStrDec00	;
+1643)   0555 E5          		 push hl	;
+1645)   0556 7E          		 ld a, (hl)	;
+1647)   0557 FE 00       		 cp  0	;
+1648)   0559 28 14       		 jr z, IsStrHexTrue	;
+1650)   055B FE 30       		 cp  '0'	;
+1651)   055D 38 0C       		 jr c, IsStrHexFalse	;
+1653)   055F FE 3A       		 cp  '9'+1	;
+1654)   0561 38 0F       		 jr c, IsStrHexContinue	;
+1656)   0563 FE 30       		 cp  '0'	;
+1657)   0565 38 04       		 jr c, IsStrHexFalse	;
+1659)   0567 FE 47       		 cp  'F'+1	;
+1660)   0569 38 07       		 jr c, IsStrHexContinue	;
+1663)   056B F6 01       		 or 1         ; Reset zero flag	; Reset zero flag
+1664)   056D E1          		 pop hl	;
+1665)   056E C9          		 ret	;
+1667)   056F BF          		 cp a         ; Set zero flag	; Set zero flag
+1668)   0570 E1          		 pop hl	;
+1669)   0571 C9          		 ret	;
+1671)   0572 23          		 inc hl	;
+1672)   0573 18 E1       		 jr IsStrHex00	;
+1679)   0575 AF          		 xor a	;
+1680)   0576 CD 7B 05    		 call loop	;
+1681)   0579 7A          		 ld a, d	;
+1682)   057A C9          		 ret	;
+1684)   057B 57          		 ld d, a	;
+1685)   057C 7E          		 ld a, (hl)	;
+1686)   057D 23          		 inc hl	;
+1687)   057E D6 3A       		 sub '9' + 1	;
+1688)   0580 C6 0A       		 add 10	;
+1689)   0582 D0          		 ret nc	;
+1690)   0583 5F          		 ld e, a	;
+1691)   0584 7A          		 ld a, d	;
+1692)   0585 87          		 add a, a        ;double our accumulator	;double our accumulator
+1693)   0586 87          		 add a, a        ;double again (now x4)	;double again (now x4)
+1694)   0587 82          		 add a, d        ;add the original (now x5)	;add the original (now x5)
+1695)   0588 87          		 add a, a        ;double again (now x10)	;double again (now x10)
+1696)   0589 83          		 add a, e        ;add in the incoming digit	;add in the incoming digit
+1697)   058A 18 EF       		 jr loop	;
+1705)   058C 7E          		 ld a, (hl)        ; Copy first char to A	; Copy first char to A
+1706)   058D CD 9D 05    		 call Hex12        ; Convert first char	; Convert first char
+1707)   0590 87          		 add a, a        ; Multiply by 16...	; Multiply by 16...
+1708)   0591 87          		 add a, a        ; ...	; ...
+1709)   0592 87          		 add a, a        ; ...	; ...
+1710)   0593 87          		 add a, a        ; ...done!	; ...done!
+1711)   0594 57          		 ld d, a        ; Store top 4 bits in D	; Store top 4 bits in D
+1712)   0595 23          		 inc hl         ; Advance to next char	; Advance to next char
+1713)   0596 7E          		 ld a, (hl)	;
+1714)   0597 CD 9D 05    		 call Hex12        ; Convert second char	; Convert second char
+1715)   059A B2          		 or d         ; Add back top bits	; Add back top bits
+1716)   059B 23          		 inc hl         ; Advance for next guy	; Advance for next guy
+1717)   059C C9          		 ret	;
+1718)   059D D6 30       		Hex12: sub  '0'	;
+1719)   059F FE 0A       		 cp 10	;
+1720)   05A1 D8          		 ret c	;
+1721)   05A2 D6 07       		 sub 'A' - '0' - 10	;
+1722)   05A4 C9          		 ret	;
+1729)   05A5 CD 8C 05    		 call Read8bit	;
+1730)   05A8 47          		 ld b, a	;
+1731)   05A9 CD 8C 05    		 call Read8bit	;
+1732)   05AC 4F          		 ld c, a	;
+1733)   05AD C9          		 ret	;
+1741)   05AE 7E          		 ld a, (hl)	;
+1742)   05AF 23          		 inc hl	;
+1743)   05B0 D6 30       		 sub '0'	;
+1744)   05B2 CB 27       		 sla a	;
+1745)   05B4 CB 27       		 sla a	;
+1746)   05B6 CB 27       		 sla a	;
+1747)   05B8 CB 27       		 sla a	;
+1748)   05BA 47          		 ld b, a	;
+1749)   05BB 7E          		 ld a, (hl)	;
+1750)   05BC 23          		 inc hl	;
+1751)   05BD D6 30       		 sub '0'	;
+1752)   05BF B0          		 or b	;
+1753)   05C0 C9          		 ret	;
+1758)   05C1 4F          		 ld c, a        ; a = number to convert	; a = number to convert
+1759)   05C2 CD CE 05    		 call Num1	;
+1760)   05C5 77          		 ld (hl), a	;
+1761)   05C6 23          		 inc hl	;
+1762)   05C7 79          		 ld a, c	;
+1763)   05C8 CD D2 05    		 call Num2	;
+1764)   05CB 77          		 ld (hl), a	;
+1765)   05CC 23          		 inc hl	;
+1766)   05CD C9          		 ret	;
+1767)   05CE 1F          		Num1: rra	;
+1768)   05CF 1F          		 rra	;
+1769)   05D0 1F          		 rra	;
+1770)   05D1 1F          		 rra	;
+1771)   05D2 F6 F0       		Num2: or $F0	;
+1772)   05D4 27          		 daa	;
+1773)   05D5 C6 A0       		 add a, $A0	;
+1774)   05D7 CE 40       		 adc a, $40        ; Ascii hex at this point (0 to F)	; Ascii hex at this point (0 to F)
+1775)   05D9 C9          		 ret	;
+1786)   05DA 22 47 F2    		STR_SET: LD (LINESTR),HL	;
+1787)   05DD C9          		 RET	;
+1790)   05DE AF          		STR_CLR: XOR A	;
+1791)   05DF 32 49 F2    		 LD (LINEPOS),A	;
+1792)   05E2 32 47 F2    		 LD (LINESTR),A	;
+1793)   05E5 32 48 F2    		 LD (LINESTR+1),A	;
+1794)   05E8 C9          		 RET	;
+1797)   05E9 3A 47 F2    		STR_VALID: LD A,(LINESTR)	;
+1798)   05EC 47          		 LD B,A	;
+1799)   05ED 3A 48 F2    		 LD A,(LINESTR+1)	;
+1800)   05F0 80          		 ADD B	;
+1801)   05F1 B7          		 OR A	;
+1802)   05F2 C9          		 RET	;
+1808)   05F3 F5          		STR_CALCADDR: PUSH AF	;
+1809)   05F4 ED 5B 47 F2 		 LD DE,(LINESTR)	;
+1810)   05F8 EB          		 EX DE,HL	;
+1811)   05F9 3A 49 F2    		 LD A,(LINEPOS)	;
+1812)   05FC 4F          		 LD C,A	;
+1813)   05FD 06 00       		 LD B,0	;
+1814)   05FF 09          		 ADD HL,BC	;
+1815)   0600 EB          		 EX DE,HL	;
+1816)   0601 F1          		 POP AF	;
+1817)   0602 C9          		 RET	;
+1821)   0603 3A 49 F2    		STR_NEXTPOS: LD A,(LINEPOS)	;
+1822)   0606 3C          		 INC A	;
+1823)   0607 32 49 F2    		 LD (LINEPOS),A	;
+1824)   060A C9          		 RET	;
+1828)   060B CD F3 05    		STR_ADD: CALL STR_CALCADDR	;
+1829)   060E CD 03 06    		STRA_AGN: CALL STR_NEXTPOS	;
+1830)   0611 7E          		 LD A,(HL)	;
+1831)   0612 12          		 LD (DE),A	;
+1832)   0613 23          		 INC HL	;
+1833)   0614 13          		 INC DE	;
+1834)   0615 B7          		 OR A	;
+1835)   0616 C8          		 RET Z	;
+1836)   0617 18 F5       		 JR STRA_AGN	;
+1839)   0619 CD F3 05    		STR_ADDCHAR: CALL STR_CALCADDR	;
+1840)   061C 12          		 LD (DE),A	;
+1841)   061D CD 03 06    		 CALL STR_NEXTPOS	;
+1842)   0620 13          		 INC DE	;
+1843)   0621 AF          		 XOR A	;
+1844)   0622 12          		 LD (DE),A	;
+1845)   0623 C9          		 RET	;
+1853)   0624 26 00       		@PRINTNUM: LD H,0	;
+1854)   0626 6F          		 LD L,A	;
+1855)   0627 F5          		@PRINTNUM16: PUSH AF	;
+1857)   0628 11 4B F2    		 LD DE,NUMBUF	;
+1858)   062B CD 7E 04    		 CALL Bcd2ASC  ;FOR HEX	;FOR HEX
+1859)   062E 3E 68       		 LD A,'h'	;
+1860)   0630 12          		 LD (DE),A  	;
+1861)   0631 13          		 INC DE	;
+1862)   0632 AF          		 XOR A	;
+1863)   0633 12          		 LD (DE),A  	;
+1865)   0634 21 4B F2    		 LD HL,NUMBUF	;
+1866)   0637 CD 4D 01    		 CALL RS_TXT	;
+1867)   063A CD AD 01    		 CALL RS_NEWLINE	;
+1868)   063D F1          		 POP AF	;
+1869)   063E C9          		 RET	;
+1877)   063F E5          		@NUM_ADDZERO: PUSH HL	;
+1878)   0640 0E 00       		 LD C,0	;
+1879)   0642 7E          		AZ_AGN: LD A,(HL)   	;
+1880)   0643 23          		 INC HL	;
+1881)   0644 0C          		 INC C	;
+1882)   0645 FE 00       		 CP 0	;
+1883)   0647 20 F9       		 JR NZ,AZ_AGN	;
+1884)   0649 0D          		 DEC C ;EXCLUDE ZERO TERM	;EXCLUDE ZERO TERM
+1885)   064A E1          		 POP HL	;
+1886)   064B 79          		 LD A,C	;
+1887)   064C B8          		 CP B	;
+1888)   064D C8          		 RET Z	;
+1890)   064E 78          		 LD A,B	;
+1891)   064F 91          		 SUB C	;
+1892)   0650 D8          		 RET C ;RETURN IF CARRY MEANS WE HAVE MORE DIGITS	;RETURN IF CARRY MEANS WE HAVE MORE DIGITS
+1893)   0651 47          		 LD B,A	;
+1894)   0652 3E 30       		 LD A,'0'	;
+1895)   0654 2B          		AZ_AGN2: DEC HL	;
+1896)   0655 77          		 LD (HL),A	;
+1897)   0656 10 FC       		 DJNZ AZ_AGN2 	;
+1898)   0658 C9          		 RET	;
+1904)   0659 11 02 F2    		@COPYFNAME: LD DE,STRGBUFF	;
+1905)   065C 7E          		@COPYSTRING:   LD A,(HL)	;
+1906)   065D 12          		 LD (DE),A	;
+1907)   065E FE 00       		 CP 0	;
+1908)   0660 C8          		 RET Z  	;
+1909)   0661 13          		 INC DE	;
+1910)   0662 23          		 INC HL	;
+1911)   0663 18 F7       		 JR COPYSTRING	;
+1915)   0665 16 00       		@Mul8b: ld d,0                         ; clearing D and L	; clearing D and L
+1916)   0667 6A          		   ld l,d	;
+1917)   0668 06 08       		   ld b,8                         ; we have 8 bits	; we have 8 bits
+1918)   066A 29          		Mul8bLoop:  add hl,hl                      ; advancing a bit	; advancing a bit
+1919)   066B D2 6F 06    		   jp nc,Mul8bSkip                ; if zero, we skip the addition (jp is used for speed)	; if zero, we skip the addition (jp is used for speed)
+1920)   066E 19          		   add hl,de                      ; adding to the product if necessary	; adding to the product if necessary
+1921)   066F 10 F9       		Mul8bSkip: djnz Mul8bLoop	;
+1922)   0671 C9          		   ret	;
+1925)   0672 21 00 00    		MUL: LD HL, 0             ; Clear HL	; Clear HL
+1926)   0675 57          		     LD D, A              ; D = A (number of microseconds)	; D = A (number of microseconds)
+1927)   0676 59          		     LD E, C              ; E = C (CPU speed)	; E = C (CPU speed)
+1928)   0677 19          		MUL_LOOP: ADD HL, DE          ; HL = HL + DE	; HL = HL + DE
+1929)   0678 15          		     DEC D                ; Decrement D	; Decrement D
+1930)   0679 20 FC       		     JR NZ, MUL_LOOP      ; Repeat until D is zero	; Repeat until D is zero
+1931)   067B C9          		     RET	;
+1934)   067C AF          		DIV:    XOR A                ; Clear A (quotient)	; Clear A (quotient)
+1935)   067D 06 10       		     LD B, 16             ; Set bit counter (16 bits)	; Set bit counter (16 bits)
+1936)   067F 29          		DIV_LOOP:      ADD HL, HL           ; Shift HL left	; Shift HL left
+1937)   0680 CB 17       		     RL A                 ; Shift A left through carry	; Shift A left through carry
+1938)   0682 BB          		     CP E                 ; Compare A with E	; Compare A with E
+1939)   0683 38 02       		     JR C, NO_SUB         ; If A < E, skip subtraction	; If A < E, skip subtraction
+1940)   0685 93          		     SUB E                ; A = A - E	; A = A - E
+1941)   0686 2C          		     INC L                ; Increment L (part of quotient)	; Increment L (part of quotient)
+1942)   0687 10 F6       		NO_SUB: DJNZ DIV_LOOP        ; Loop 16 times	; Loop 16 times
+1943)   0689 C9          		     RET                  ; Return with quotient in A	; Return with quotient in A
+1949)   F200 00          		BLSTACKP DEFS 1	;
+1952)   F201 00          		 @SERERR DEFS 1	;
+1953)   F202 00 00 00 00 		       @STRGBUFF  DEFS 40       ;USED FOR DIRECTORY AND FILENAME	;USED FOR DIRECTORY AND FILENAME
+1953)   F206 00 00 00 00 		       @STRGBUFF  DEFS 40       ;USED FOR DIRECTORY AND FILENAME	;USED FOR DIRECTORY AND FILENAME
+1953)   F20A 00 00 00 00 		       @STRGBUFF  DEFS 40       ;USED FOR DIRECTORY AND FILENAME	;USED FOR DIRECTORY AND FILENAME
+1953)   F20E 00 00 00 00 		       @STRGBUFF  DEFS 40       ;USED FOR DIRECTORY AND FILENAME	;USED FOR DIRECTORY AND FILENAME
+1953)   F212 00 00 00 00 		       @STRGBUFF  DEFS 40       ;USED FOR DIRECTORY AND FILENAME	;USED FOR DIRECTORY AND FILENAME
+1953)   F216 00 00 00 00 		       @STRGBUFF  DEFS 40       ;USED FOR DIRECTORY AND FILENAME	;USED FOR DIRECTORY AND FILENAME
+1953)   F21A 00 00 00 00 		       @STRGBUFF  DEFS 40       ;USED FOR DIRECTORY AND FILENAME	;USED FOR DIRECTORY AND FILENAME
+1953)   F21E 00 00 00 00 		       @STRGBUFF  DEFS 40       ;USED FOR DIRECTORY AND FILENAME	;USED FOR DIRECTORY AND FILENAME
+1953)   F222 00 00 00 00 		       @STRGBUFF  DEFS 40       ;USED FOR DIRECTORY AND FILENAME	;USED FOR DIRECTORY AND FILENAME
+1953)   F226 00 00 00 00 		       @STRGBUFF  DEFS 40       ;USED FOR DIRECTORY AND FILENAME	;USED FOR DIRECTORY AND FILENAME
+1955)   F22A 00 00 00 00 		 @B2DINV DEFS 8  ;BINARY NUMBER TO BE CONVERTED	;BINARY NUMBER TO BE CONVERTED
+1955)   F22E 00 00 00 00 		 @B2DINV DEFS 8  ;BINARY NUMBER TO BE CONVERTED	;BINARY NUMBER TO BE CONVERTED
+1956)   F232 00 00 00 00 		 @B2DBUF DEFS 20  ;ASCCI STRING OF THE NUMBER 	;ASCCI STRING OF THE NUMBER
+1956)   F236 00 00 00 00 		 @B2DBUF DEFS 20  ;ASCCI STRING OF THE NUMBER 	;ASCCI STRING OF THE NUMBER
+1956)   F23A 00 00 00 00 		 @B2DBUF DEFS 20  ;ASCCI STRING OF THE NUMBER 	;ASCCI STRING OF THE NUMBER
+1956)   F23E 00 00 00 00 		 @B2DBUF DEFS 20  ;ASCCI STRING OF THE NUMBER 	;ASCCI STRING OF THE NUMBER
+1956)   F242 00 00 00 00 		 @B2DBUF DEFS 20  ;ASCCI STRING OF THE NUMBER 	;ASCCI STRING OF THE NUMBER
+1957)   F246 00          		 @B2DEND DEFS 1  ;0 FOR TERMINATE THE STRING	;0 FOR TERMINATE THE STRING
+1958)   F247 00 00       		 @LINESTR: DEFS 2 ;ADDRESS OF LINEBUF FOR PRINTING ON STRING	;ADDRESS OF LINEBUF FOR PRINTING ON STRING
+1959)   F249 00          		 @LINEPOS DEFS 1	;
+1960)   F24A 00          		 @RNDseed DEFS 1  ;RANDOM SEED	;RANDOM SEED
+1961)   F24B 00 00 00 00 		 @NUMBUF DEFS 7	;
+1961)   F24F 00 00 00    		 @NUMBUF DEFS 7	;
+1962)   F252 00          		 @STRG_STAT DEFS 1	;
+1963)   F253 00 00       		 @PRGEX DEFS 2  ;PROGRAM EXECUTE ADDRESS	;PROGRAM EXECUTE ADDRESS
+1964)   F255 00 00 00 00 		 @DIRNM DEFS 20  ;DIRECTORY NAME	;DIRECTORY NAME
+1964)   F259 00 00 00 00 		 @DIRNM DEFS 20  ;DIRECTORY NAME	;DIRECTORY NAME
+1964)   F25D 00 00 00 00 		 @DIRNM DEFS 20  ;DIRECTORY NAME	;DIRECTORY NAME
+1964)   F261 00 00 00 00 		 @DIRNM DEFS 20  ;DIRECTORY NAME	;DIRECTORY NAME
+1964)   F265 00 00 00 00 		 @DIRNM DEFS 20  ;DIRECTORY NAME	;DIRECTORY NAME
+1967)   F269 00 00       		       DEFS 2	;
+1968)   F26B 00 00       		       DEFS 2	;
+1969)   F26D 00 00       		       DEFS 2	;
+1970)   F26F 00 00       		       DEFS 2	;
+1972)   F271 00          		       DEFS 1	;
+1973)   F272 00          		       DEFS 1	;
+1974)   F273 00          		       DEFS 1	;
+1975)   F274 00          		       DEFS 1	;
+1976)   F275 00          		 @CHANST        DEFS 1    ;CHANNEL STATUS  BITS 0-3 SET MEANS DISABLED        	;CHANNEL STATUS  BITS 0-3 SET MEANS DISABLED
