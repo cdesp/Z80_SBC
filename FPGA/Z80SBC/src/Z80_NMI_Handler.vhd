@@ -124,7 +124,7 @@ architecture rtl of Z80_NMI_Handler is
     constant C_TOOL_PAGE_F3    : std_logic_vector(7 downto 0) := x"8A";
     constant C_TOOL_PAGE_F4    : std_logic_vector(7 downto 0) := x"8F";
 
-    constant C_NMI_VECTOR      : std_logic_vector(15 downto 0) := x"0066";
+    constant C_NMI_VECTOR      : std_logic_vector(15 downto 0) := x"0066"; 
 
     constant C_OPCODE_ED       : std_logic_vector(7 downto 0) := x"ED";
     constant C_OPCODE_RETN     : std_logic_vector(7 downto 0) := x"45";
@@ -173,6 +173,9 @@ architecture rtl of Z80_NMI_Handler is
     signal nmi_vector_hit  : std_logic := '0';
 
     -- Z80 opcode monitor (ED 45 / RETN)
+    signal m1_active       : std_logic := '0';
+    signal m1_active_d     : std_logic := '0';
+    signal opcode_shadow   : std_logic_vector(7 downto 0) := (others => '0');
     signal last_opcode     : std_logic_vector(7 downto 0) := (others => '0');
     signal saw_ed          : std_logic := '0';
     signal retn_detected   : std_logic := '0';
@@ -401,23 +404,35 @@ begin
     --   Watches M1 opcode fetches. Detects the two-byte sequence ED 45
     --   (RETN). Only armed while seq_state = SEQ_WAIT_RETN.
     ----------------------------------------------------------------------
+    m1_active <= '1' when (CPU_M1_n = '0' and CPU_MREQ_n = '0' and CPU_RD_n = '0')
+                 else '0';
+
     process (CLK_IN, reset_n)
     begin
         if reset_n = '0' then
             saw_ed        <= '0';
             retn_detected <= '0';
             last_opcode   <= (others => '0');
+            opcode_shadow <= (others => '0');
+            m1_active_d   <= '0';
         elsif rising_edge(CLK_IN) then
             retn_detected <= '0'; -- default: one-cycle pulse
+            m1_active_d   <= m1_active;
 
             if seq_state = SEQ_WAIT_RETN then
-                if CPU_M1_n = '0' and CPU_MREQ_n = '0' and CPU_RD_n = '0' then
-                    last_opcode <= CPU_D;
+                if m1_active = '1' then
+                    -- fetch cycle in progress; keep capturing the latest
+                    -- sample, do NOT evaluate it yet.
+                    opcode_shadow <= CPU_D;
+                elsif m1_active_d = '1' and m1_active = '0' then
+                    -- falling edge: the fetch cycle just ended, so
+                    -- opcode_shadow now holds the final, settled byte.
+                    last_opcode <= opcode_shadow;
 
-                    if saw_ed = '1' and CPU_D = C_OPCODE_RETN then
+                    if saw_ed = '1' and opcode_shadow = C_OPCODE_RETN then
                         retn_detected <= '1';
                         saw_ed        <= '0';
-                    elsif CPU_D = C_OPCODE_ED then
+                    elsif opcode_shadow = C_OPCODE_ED then
                         saw_ed <= '1';
                     else
                         saw_ed <= '0';
@@ -454,9 +469,9 @@ begin
                 else
                     restore_idx <= restore_idx + 1;
                 end if;
-            else
-                restore_active <= '0';
-                restore_idx    <= 0;
+          --  else
+          --      restore_active <= '0';
+          --      restore_idx    <= 0;
             end if;
         end if;
     end process;
@@ -477,6 +492,8 @@ begin
             MMU_DATA <= saved_banks(restore_idx);
             MMU_WE   <= '1';
         elsif seq_state = SEQ_RESTORE_W and restore_active = '1' then   --wait 1 clock to settle the address
+            MMU_ADDR <= std_logic_vector(to_unsigned(restore_idx, 3));
+            MMU_DATA <= saved_banks(restore_idx);
             MMU_WE   <= '0';
         else
             MMU_ADDR <= (others => '0');

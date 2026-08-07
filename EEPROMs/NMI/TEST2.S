@@ -1,0 +1,94 @@
+ORG $8000
+
+@DEVMMU EQU 0
+MMU_READ_PORT EQU 0
+
+LD A,$95
+LD C,0
+LD B,5 	;a000
+OUT (C),A
+
+
+CALL RS_NEWLINE
+LD B,5
+CALL MMU_READ
+PUSH AF
+LD A,'B'
+CALL RS_TX
+POP AF
+CALL SOUTAS
+CALL RS_NEWLINE
+
+LD B,6
+CALL MMU_READ
+PUSH AF
+LD A,'B'
+CALL RS_TX
+POP AF
+CALL SOUTAS
+CALL RS_NEWLINE
+
+LD B,7
+CALL MMU_READ
+PUSH AF
+LD A,'B'
+CALL RS_TX
+POP AF
+CALL SOUTAS
+CALL RS_NEWLINE
+
+
+CALL RS_NEWLINE
+
+JP $0893 ;$6000
+
+MYNUM DS 40;
+
+
+;PRINTS A NUMBER ON A AS DECIMAL
+@SOUTAS:	PUSH HL
+		PUSH BC
+		PUSH DE
+		PUSH AF 							;SERIAL PRINT ASCII IN DECIMAL
+		LD H, 0
+		LD L, A
+		LD DE, MYNUM
+		CALL OUTASC
+		
+		LD A, 10
+		LD (DE), A
+		INC DE
+		LD A, 13
+		LD (DE), A
+		INC DE
+		XOR A
+		LD (DE), A
+		
+		LD HL, MYNUM
+		CALL RS_TXT
+		POP AF
+		POP DE	
+		POP BC
+		POP HL
+		RET
+
+
+
+; READ CURRENT PAGE MAPPED TO A BANK
+; IN:  B = bank number (0-7)
+; OUT: A = current page in that bank
+MMU_READ:
+		PUSH BC
+                SLA B   ;PUT IT ON HIGH BYTES
+                SLA B
+                SLA B
+                SLA B
+                SLA B  
+                LD C,MMU_READ_PORT              
+		IN A,(C)
+		POP BC
+		RET
+
+
+INCLUDE ..\Bootloader\ATL_SERIAL.Z80 
+INCLUDE ..\Bootloader\ATL_UTILS.Z80

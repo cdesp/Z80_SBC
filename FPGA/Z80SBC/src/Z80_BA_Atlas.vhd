@@ -188,6 +188,10 @@ BEGIN
     -- Port 0: Write Page Mapping Registers (C_MMU_MAP_REG_ADDR = x"00")
     Z80_Out.MMU_nMAP_REG_N <= '0' WHEN (Z80_In.Z80_IORQ_N = '0' AND Z80_In.Z80_WR_N = '0' AND Z80_IO_ADDR = C_MMU_MAP_REG_ADDR)
                       ELSE '1';
+    -- Port 0: Read Page Mapping Registers (C_MMU_MAP_REG_ADDR = x"00")
+    Z80_Out.MMU_nMAP_RD_N <= '0' WHEN (Z80_In.Z80_IORQ_N = '0'  AND Z80_In.Z80_RD_N = '0' AND Z80_IO_ADDR = C_MMU_MAP_REG_ADDR)
+                      ELSE '1';
+
                       
     -- Port 1: Set Read-Only Protection (C_MMU_SET_RO_ADDR = x"01")
     Z80_Out.MMU_nSET_RO_N  <= '0' WHEN (Z80_In.Z80_IORQ_N = '0' AND Z80_In.Z80_WR_N = '0' AND Z80_IO_ADDR = C_MMU_SET_RO_ADDR)

@@ -84,6 +84,8 @@
                 <Signal>sDataout[0]</Signal>
             </Bus>
             <Signal capture_enable="true">sISDout</Signal>
+            <Signal capture_enable="true">U_Z80_NMI_HANDLER/saw_ed</Signal>
+            <Signal capture_enable="true">U_Z80_NMI_HANDLER/retn_detected</Signal>
             <Signal capture_enable="true">U_Z80_NMI_HANDLER/tool_request</Signal>
             <Bus capture_enable="true" name="U_Z80_NMI_HANDLER/seq_state[5:0]">
                 <Signal>U_Z80_NMI_HANDLER/seq_state.seq_idle</Signal>
@@ -297,7 +299,7 @@
             <Trigger index="13"/>
             <Trigger index="14">
                 <SignalList>
-                    <Signal>U_Z80_NMI_HANDLER/MMU_WE</Signal>
+                    <Signal>U_Z80_NMI_HANDLER/retn_detected</Signal>
                 </SignalList>
             </Trigger>
             <Trigger index="15">
@@ -307,11 +309,11 @@
             </Trigger>
         </Triggers>
         <MatchUnits>
-            <MatchUnit index="0" enabled="1" match_type="0" counter_enable="0" counter_width="5" counter="6" countinuous="0" func="0" value0="010011001" value1="000000000" trigger="0"/>
+            <MatchUnit index="0" enabled="1" match_type="0" counter_enable="0" counter_width="5" counter="6" countinuous="0" func="0" value0="010001011" value1="000000000" trigger="0"/>
             <MatchUnit index="1" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="010000" value1="000000" trigger="1"/>
-            <MatchUnit index="2" enabled="1" match_type="4" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="4" value0="1011000100000000" value1="0000000000000000" trigger="2"/>
+            <MatchUnit index="2" enabled="1" match_type="4" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="4" value0="0000000011100001" value1="0000000000000000" trigger="2"/>
             <MatchUnit index="3" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="11111111" value1="00000000" trigger="3"/>
-            <MatchUnit index="4" enabled="1" match_type="4" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="5" value0="1011001101001011" value1="0000000000000000" trigger="4"/>
+            <MatchUnit index="4" enabled="1" match_type="4" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="5" value0="0000000011100001" value1="0000000000000000" trigger="4"/>
             <MatchUnit index="5" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="0" value1="0" trigger="5"/>
             <MatchUnit index="6" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="000100" value1="000000" trigger="6"/>
             <MatchUnit index="7" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="1" value1="0" trigger="7"/>
@@ -328,5 +330,5 @@
             <Expression>M0&amp;M2&amp;M4</Expression>
         </Expressions>
     </AoCore>
-    <GAO_ID>1110111100011011</GAO_ID>
+    <GAO_ID>1001011110011001</GAO_ID>
 </GAO_CONFIG>

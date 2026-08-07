@@ -67,6 +67,7 @@ PACKAGE defs_pkg IS
     TYPE t_system_to_z80 IS RECORD
         -- MMU Control Outputs (Generated from I/O Decode)
         MMU_nMAP_REG_N      : STD_LOGIC;                    -- MMU Map Reg Port (OUT (00h), PageNo)
+        MMU_nMAP_RD_N       : STD_LOGIC;                    -- MMU PORT READ PAGE IN BANK 
         MMU_nSET_RO_N       : STD_LOGIC;                    -- MMU Set Read-Only Port (OUT (01h), PageNo)
         MMU_nSET_RW_N       : STD_LOGIC;                    -- MMU Set Read/Write Port (OUT (02h), PageNo)
         

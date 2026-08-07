@@ -138,6 +138,10 @@ architecture structural of Z80_FPGA_SYSTEM is
     signal sBANK5_PAGE          : std_logic_vector(7 downto 0);
     signal sBANK6_PAGE          : std_logic_vector(7 downto 0);
     signal sBANK7_PAGE          : std_logic_vector(7 downto 0);
+    signal sMMURD               : std_logic := '1'; -- Port 0: Read banks (Active Low)  
+    signal sMMUBank             : std_logic_vector(7 downto 0);
+    signal sMMUBank_raw         : std_logic_vector(7 downto 0);
+
     
     -- General Control Signals
     signal nINT_REQ_PERIPH      : std_logic := '1'; -- Master Interrupt Request from all peripherals (Active Low)
@@ -1650,15 +1654,32 @@ begin
                 i2c_data_out          when I2C_CSn ='0' and nRD_CPU_r = '0' else
                 sDataout              when sIsDout ='0' and nRD_CPU_r = '0' else --system specific dataout to z80
                 "0000" & std_logic_vector(system_selection)      when SYS_CSn ='0' and nRD_CPU_r = '0' else
+                sMMUBank              when sMMURD='0' else
                 (others => 'Z');                           -- Default if no device is selected for read
         END IF;
     END PROCESS;
          
     sEnableDataOut <= '1' when flash_prog='0' 
-           else '0' when ( UART_nCS = '0' or PS2_DSn ='0' or VRAM_CE_CPU_N = '0' or nCLK_SEL='0' or I2C_CSn ='0' or sIsDout ='0' or SYS_CSn ='0') and nRD_CPU_r = '0'--add i2c when it works
+           else '0' when ( UART_nCS = '0' or PS2_DSn ='0' or VRAM_CE_CPU_N = '0' or nCLK_SEL='0' or I2C_CSn ='0' or sIsDout ='0' or SYS_CSn ='0' or sMMURD = '0') and nRD_CPU_r = '0'--add i2c when it works
            else '1';
+
+     -- Determine the raw bank selection based on the address bus
+    with Z80_LA_BUS_INT(15 downto 13) select
+        sMMUBank_raw <= sBANK0_PAGE  when "000",
+                        sBANK1_PAGE  when "001",
+                        sBANK2_PAGE  when "010",
+                        sBANK3_PAGE  when "011",
+                        sBANK4_PAGE  when "100",
+                        sBANK5_PAGE  when "101",
+                        sBANK6_PAGE  when "110",
+                        sBANK7_PAGE  when "111",
+                        sBANK0_PAGE  when others;
+    sMMURD <= '0' when MASTER_OUT.MMU_nMAP_RD_N = '0' else '1';
+    sMMUBank <= sMMUBank_raw when sMMURD = '0' else (others => '1');
+
     LWR_N <= 'Z' when flash_prog='0' else MMU_WR; --FlRam and Sram control
     L_RD_N <= 'Z'; --read only make the signal in
+
     
     -- A. Chip Enables to Physical Pins
     LRAMEN3_N <= '1' when flash_prog='0' else MMU_nCE0; -- 1MB SRAM

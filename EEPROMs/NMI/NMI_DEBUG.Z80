@@ -1,40 +1,79 @@
 		ORG $0000 ;40960 FOR PAGE $85
 
+;THIS MODULE RUN ON BANK 0 AND USES AS RAM VARIABLES BANK 7
+;WE DON'T KNOW WHAT PAGE WAS ON BANK0
+;WE DO KNOW THE OLD PAGE ON BANK7 (OUR RAM) SO WE CAN PUT IT IN ANOTHER BANK AND CHECK IT OUT IF NECESSARY
+
+		@DEVMMU EQU $00;
                 @DEVSER EQU $20
                 @DEVSYS EQU $E1
                 @DEVSND EQU $40 ;FOR SN76489
 		
 		DI
-		JP DBMENU
-		DS 0066H-$
+		JP DBMENUPRE
 
-		JP ENTRY
+		DS 0066H-$	;THIS WORKS ONLY WHEN ORG IS 0
+		;DS 6066H-$	;THIS WORKS ONLY WHEN ORG IS 6000 OR LESS
+		JP ENTRY	;NMI AT $0066
 		
 ENTRY:	;NO NEED TO INITIALIZE DEVICES ALREADY DONE ON BOOTLOADER
-		PUSH HL
-		PUSH BC
+                PUSH AF		;save old regs on old sp
+                PUSH BC
                 PUSH DE
-                PUSH AF
+                PUSH HL
                 PUSH IX
                 PUSH IY
-                IN A,(DEVSYS)           ;current system should be saved and
-                PUSH AF
+		IN A,(DEVSYS)           ;current system should be saved and
+		LD D,A			;SAVE TO D
                 XOR A
-                OUT (DEVSYS),A          ;SET NEW SYSTEM  0 AS BOOTLOADER 
+                OUT (DEVSYS),A          ;SET NEW SYSTEM  0 AS BOOTLOADER 				
+		LD B,7		;change page 7 to our ram
+		CALL MMU_READ	;A THE PAGE
+		LD E,A 		;SAVE TO E
+		LD A,$7F	;LAST RAM PAGE IS OUR VAR PAGE ON BANK 7
+		LD B,7.SHL.5
+		LD C,DEVMMU
+		OUT (C),A	;CANT USE MMU SET CALL HERE SAFELY
+		LD A,E 		;RESTORE A AS OLD PAGE ON 7
+		LD (OLDBNK7),A  ;SAVE AS VAR
+                LD A,D 
+		LD (OLDSYS),A   ;SAVE SYS VAR	
+		LD HL,0
+		ADD HL,SP 	;HL HAS THE SP
+		LD (OLDSP),HL
+		LD SP,$0000	;RAM TOP
                 ;TODO      BRING IN A RAM PAGE FOR OUR VARS NOW ASSUME F000 IS ALREADY RAM
-                JP DBMENU
-DBEXIT:         POP AF
+                JP DBMENUPRE
+DBEXIT:         LD A,(OLDSYS) 
+		LD D,A
+		LD A,(OLDBNK7)
+		LD E,A
+		LD HL,(OLDSP)
+		LD SP,HL	;SP RESTORED VARS NO LONGER NEEDED
+		LD A,E
+		LD B,7.SHL.5    
+		LD C,DEVMMU
+		OUT (C),A       ;WE CAN'T USE CALL HERE SAFELY
+		LD A,D 		 
                 OUT (DEVSYS),A          ;SET SYSTEM BACK
                 POP IY
                 POP IX
-                POP AF
+                POP HL
                 POP DE
                 POP BC
-                POP HL
+                POP AF
                 RETN
+
+DBMENUPRE:	;COPY FLASH ROUTINES TO OUR RAM
+		LD HL,NMIEND+1
+		LD DE,$F000
+		LD BC,FLSHSIZE
+		LDIR
 
 DBMENU:         LD HL, MSG1
                 CALL RS_TXT
+		LD HL, MSG_MNU
+                CALL RS_TXT		
 		
 		CALL RS_RX	; WAIT FOR A CHAR IN RS232
 		PUSH AF
@@ -42,6 +81,10 @@ DBMENU:         LD HL, MSG1
 		POP AF
 		CP 'U' 								;UPLOAD PROGRAM
 		CALL Z, UPLOD
+		CP 'I'	
+		CALL Z, SHOW_FLASH_ID
+		CP 'F'								;FLASH UPLOADED DATA
+		CALL Z, FLASH_CMD
 		CP 'X'
 		JP Z, EXEC
 		CP 'J'
@@ -50,6 +93,15 @@ DBMENU:         LD HL, MSG1
 		JP Z, DBEXIT
 		
 		JP DBMENU
+
+MANID:		DEFM "Manufacturer ID: "
+		DB 0
+DEVID:		DEFM "Device ID: "
+		DB 0
+FLSHERRID:	DEFM "ERROR: Unexpected Manufacturer , Unexpected Device!!!"
+		DB 0
+FLSHOKID	DEFM "CONFIRMED: SST / Microchip , SST39LF040 / SST39VF040 "
+		DB 0	
 
 
 EXEC:		LD DE, PRGEX
@@ -64,10 +116,12 @@ UPLOD:		CALL RS_RX 							;HL HAS RAM ADDRESS
 		LD L, A
 		CALL RS_RX
 		LD H, A
+		LD (@UPLOAD_ADDR), HL 						;REMEMBER WHERE THE UPLOAD LANDED
 		CALL RS_RX 							;BC HAS TOTAL DATA TO BE SEND
 		LD C, A
 		CALL RS_RX
 		LD B, A
+		LD (@UPLOAD_SIZE), BC 						;REMEMBER HOW MANY BYTES CAME IN
 		
 		LD DE, PRGEX 							;SAVE TO PRGEX THE PROG EXEC ADDR=HL
 		LD A, L
@@ -86,6 +140,9 @@ NXB:		CALL RS_RX
 		JR NZ, NXB 							;LOOP ALL BYTES
 				
 		POP HL
+
+		LD A, $FF
+		LD (@UPLOAD_VALID), A						;MARK THE UPLOAD AS USABLE BY FLASH_CMD
 		
 		RET
 					
@@ -109,20 +166,139 @@ NXB3:		LD A, (HL)
 		RET
 
 
+@SHOW_FLASH_ID:	CALL FLASH_GET_ID;;HL THE ID	;THIS ONE SHOULD BE IN RAM
+		LD A, H 
+		CP $BF
+		JR NZ, ERRF1
+		LD A,L 
+		CP $D7
+		JR NZ, ERRF1
+		PUSH HL
+		LD HL, FLSHOKID
+		CALL RS_TXT
+		CALL RS_NEWLINE
+		POP HL
+		JR OKF1
+ERRF1:		PUSH HL
+		LD HL,FLSHERRID
+		CALL RS_TXT
+		CALL RS_NEWLINE
+		POP HL		
+OKF1:		PUSH HL
+		LD HL, MANID
+		CALL RS_TXT 
+		POP HL
+		PUSH HL 
+		LD A,H 
+		CALL SOUTAS
+		CALL RS_NEWLINE		
+		LD HL, DEVID
+		CALL RS_TXT 
+		POP HL
+		LD A,L
+		CALL SOUTAS
+		CALL RS_NEWLINE
+		CALL RS_NEWLINE
+		CALL SND_BEEP2
+		XOR A
+		RET
+
+;--------------------------------------------------------------
+; FLASH_CMD - "F <page>" debugger command
+;
+; Receives the target Flash page number, confirms a valid
+; upload exists (see UPLOD above), then hands off to
+; FLASH_PROGRAM_PAGE (in ATL_FLASH.Z80) which does all of the
+; erase/program/verify work. All SST39LF040-specific logic
+; stays inside ATL_FLASH.Z80 - this routine is only a thin
+; front door for the debugger.
+;--------------------------------------------------------------
+FLASH_CMD:	CALL RS_RX 							;A = TARGET FLASH PAGE
+		LD (@FLASH_PAGE), A
+
+		LD A, (@UPLOAD_VALID)
+		OR A
+		JR Z, NO_UPLOAD
+
+		LD HL, MSG_FLASH_ST
+		CALL RS_TXT
+		;THIS ONE SHOULD BE IN RAM
+		CALL FLASH_PROGRAM_PAGE 					;DOES ERASE + PROGRAM + VERIFY
+		OR A 
+		JR Z, OKFL
+
+		LD HL, (FLASH_ERROR_ADDR)
+		LD A,H
+		CALL SOUTAS
+		LD A,L 
+		CALL SOUTAS		
+		LD HL,MSG_FLASH_ERR
+		CALL RS_TXT
+		RET		
+
+OKFL:		LD HL, MSG_FLASH_OK
+		CALL RS_TXT
+		RET
+
+NO_UPLOAD:	LD HL, MSG_NO_UPLOAD
+		CALL RS_TXT
+		RET                		
 
 MSG1:           DEFM "ATLAS DEBUGGER"
                 DB 10,13,0
-MSG_MNU:        DEFM "U:UPL,X:RUN,J:DOWNL,R:RETURN"
+MSG_MNU:        DEFM "U:UPL,I:FLSHID,F:FLASH,X:RUN,J:DOWNL,R:RETURN"
 		DB 10,13,0
+
+MSG_NO_UPLOAD:  DEFM "NO DATA UPLOADED"
+                DB 10,13,0
+MSG_FLASH_OK:   DEFM "FLASH ENDED"
+                DB 10,13,0
+MSG_FLASH_ERR:  DEFM "FLASH ERROR"
+                DB 10,13,0
+
+MSG_FLASH_ST:   DEFM "FLASHing..."
+                DB 10,13,0
+
 
 INCLUDE ..\Bootloader\ATL_SERIAL.Z80
 INCLUDE ..\Bootloader\ATL_SOUND.Z80
 INCLUDE ..\Bootloader\ATL_UTILS.Z80
 
 
-ORG $F200	;PARAMS
+;PRINTS A NUMBER ON A AS DECIMAL
+@SOUTAS:	PUSH HL
+		PUSH BC
+		PUSH DE
+		PUSH AF 							;SERIAL PRINT ASCII IN DECIMAL
+		LD H, 0
+		LD L, A
+		LD DE, MYNUM
+		CALL OUTASC
+		
+		LD A, 10
+		LD (DE), A
+		INC DE
+		LD A, 13
+		LD (DE), A
+		INC DE
+		XOR A
+		LD (DE), A
+		
+		LD HL, MYNUM
+		CALL RS_TXT
+		POP AF
+		POP DE	
+		POP BC
+		POP HL
+		RET
+NMIEND:		NOP ;THIS ALONG WITH FLSHSIZE WILL BE USED TO COPY THE FLASH TO F000
+
+ORG $E200	;PARAMS
 BLSTACKP	DEFS 1
 OSVARS  EQU $
+	@OLDBNK7	DEFS 1
+	@OLDSYS		DEFS 1
+	@OLDSP		DEFS 2
 	;SERIAL
 	@SERERR 	DEFS 1
         @STRGBUFF 	DEFS 40 						;USED FOR DIRECTORY AND FILENAME
@@ -137,6 +313,31 @@ OSVARS  EQU $
 	@STRG_STAT	DEFS 1
 	@PRGEX		DEFS 2		;PROGRAM EXECUTE ADDRESS
 	@DIRNM		DEFS 20		;DIRECTORY NAME
+	@MYNUM DEFS 13 							;10CHARS MESSAGE FOR NUMBER AND 3 TERMINATED
+	;----UPLOAD / FLASH TRACKING (used by UPLOD + FLASH_CMD + ATL_FLASH.Z80)
+	@UPLOAD_ADDR	DEFS 2		;RAM ADDRESS WHERE LAST UPLOAD WAS WRITTEN
+	@UPLOAD_SIZE	DEFS 2		;SIZE IN BYTES OF LAST UPLOAD
+	@UPLOAD_VALID	DEFS 1		;$FF = LAST UPLOAD IS VALID/USABLE, 0 = NONE
+	@FLASH_PAGE	DEFS 1		;TARGET FLASH PAGE REQUESTED BY 'F' COMMAND
+	;------------------------------------------------
+	; RAM WORKSPACE
+	; Lives inside NMI_DEBUG.Z80's OSVARS block (RAM page $7F,
+	; already mapped in bank 7), so it survives the bank-1/2
+	; juggling this module does and needs no page switch of its own.
+	;------------------------------------------------
+	FLASH_OLD_BANK1:    DEFS 1
+	FLASH_OLD_BANK2:    DEFS 1
+
+	FLASH_UPLOAD_ADDR:  DEFS 2       ;copy of @UPLOAD_ADDR at the time programming starts
+	FLASH_UPLOAD_SIZE:  DEFS 2       ;copy of @UPLOAD_SIZE at the time programming starts
+	FLASH_TARGET_PAGE:  DEFS 1       ;copy of @FLASH_PAGE at the time programming starts
+
+	FLASH_SOURCE_PTR:   DEFS 2       ;current RAM read pointer while programming/verifying
+	FLASH_DEST_ADDR:    DEFS 2       ;current Flash-relative destination address (within page)
+	FLASH_BYTES_LEFT:   DEFS 2       ;bytes still to program
+
+	FLASH_VERIFY_ERROR: DEFS 1       ;0 = ok, $FF = mismatch found
+	FLASH_ERROR_ADDR:   DEFS 2       ;address of first verify mismatch, if any
        ;----SOUND MODULE
 	@CHANDATA:       ;SONG DATA ADDRESS 0 FOR NO DATA
         DEFS 2
@@ -150,4 +351,7 @@ OSVARS  EQU $
         DEFS 1
 	@CHANST         DEFS 1    ;CHANNEL STATUS  BITS 0-3 SET MEANS DISABLED        
 
-
+ORG $F000
+;ALL FUNCTIONS ON ATL_FLASH WILL BE COPIED TO OUR RAM PAGE
+INCLUDE .\ATL_FLASH.Z80
+FLSHSIZE EQU $-0F000H

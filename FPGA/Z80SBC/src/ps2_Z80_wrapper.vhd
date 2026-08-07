@@ -222,6 +222,8 @@ begin
            else 
              OnlyForFPGA<='0';
            end if; 
+        else  --added 7/8
+          OnlyForFPGA<='0';
         end if;
         if (PS2_DS_N = '0' and Z80_RD_N = '0') then
             if (Z80_IO_ADDR(0) = '0') then

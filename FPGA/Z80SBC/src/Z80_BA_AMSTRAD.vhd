@@ -789,7 +789,7 @@ VDRegs_out.CRTC_R13 <= crtc_regs(13);
         X"FF";
 
         -- Minimal Boot Data Read Process
-    process(Z80_IO_ADDR, Z80_In, crtc_VSYNC, ppi_port_a, ppi_port_b, ppi_port_c, ppi_ctrl)
+    process(Z80_IO_ADDR, Z80_In, crtc_VSYNC, ppi_port_a, ppi_port_b, ppi_port_c, ppi_ctrl, CPC_KEYB_OUT, vsync_signal)
     begin
         dOUT_PPI  <= X"FF";        
         dOUT_FDC  <= X"FF";
@@ -828,7 +828,7 @@ VDRegs_out.CRTC_R13 <= crtc_regs(13);
 
 
      
-    process(crtc_index, crtc_regs)
+    process(crtc_index, crtc_regs, Z80_In)
     begin
         dOUT_CRTC <= X"00";
         if Z80_In.Z80_ADDR(8) = '0' then
@@ -940,7 +940,12 @@ io_strobe <= '0';
     -- Port 0: Write Page Mapping Registers (C_MMU_MAP_REG_ADDR = x"00")
     Z80_Out.MMU_nMAP_REG_N <= '0' WHEN (Z80_In.Z80_IORQ_N = '0' AND Z80_In.Z80_WR_N = '0' AND Z80_IO_LOWADDR = C_MMU_MAP_REG_ADDR) and OTSigs_in.ToolActive='1'
                       ELSE '1';
-                      
+               
+    -- Port 0: Read Page Mapping Registers (C_MMU_MAP_REG_ADDR = x"00")
+    Z80_Out.MMU_nMAP_RD_N <= '0' WHEN (Z80_In.Z80_IORQ_N = '0'  AND Z80_In.Z80_RD_N = '0' AND Z80_IO_LOWADDR = C_MMU_MAP_REG_ADDR) and OTSigs_in.ToolActive='1'
+                      ELSE '1';
+
+       
     -- Port 1: Set Read-Only Protection (C_MMU_SET_RO_ADDR = x"01")
     Z80_Out.MMU_nSET_RO_N  <= '0' WHEN (Z80_In.Z80_IORQ_N = '0' AND Z80_In.Z80_WR_N = '0' AND Z80_IO_LOWADDR = C_MMU_SET_RO_ADDR) and OTSigs_in.ToolActive='1'
                      ELSE '1';

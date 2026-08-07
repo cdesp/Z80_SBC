@@ -1,0 +1,377 @@
+;================================================
+; ATL_FLASH.Z80
+; SST39LF040 Flash programmer for the Atlas Z80 debugger
+;
+; Flash:
+;   512KB
+;   pages $80-$BF   (32 pages)
+;   page size   $2000 (8192 bytes)
+;   sector size $1000 (4096 bytes)  -> 2 sectors per page
+;
+; Called from NMI_DEBUG.Z80's FLASH_CMD, which:
+;   - has already received the target page in @FLASH_PAGE
+;   - has already confirmed @UPLOAD_VALID is set
+;
+; FLASH_PROGRAM_PAGE is the only entry point the debugger
+; needs to know about. Everything else here is private to
+; this module.
+;
+; HARDWARE ASSUMPTIONS (adjust the EQUs below to match your
+; actual MMU wiring if different):
+;   - MMU is written/read one bank at a time via MMU_MAP/MMU_READ,
+;     with the bank number (0-7) passed in B and the 8KB page
+;     number (0-255) passed in A.
+;   - Bank 1 covers Z80 address $2000-$3FFF (used to reach the
+;     Flash command address $2AAA -> Flash page $81).
+;   - Bank 2 covers Z80 address $4000-$5FFF (used to reach the
+;     Flash command address $5555 -> Flash page $82).
+;   - Bank 7 covers Z80 address $E000-$FFFF and, during a
+;     debugger/NMI context, is already mapped to RAM page $7F
+;     (the same page NMI_DEBUG.Z80's OSVARS/stack live in - see
+;     the ENTRY comment in NMI_DEBUG.Z80). Because of that, this
+;     module does NOT remap bank 7 - only banks 1 and 2 are
+;     saved/restored, since those are the ones borrowed to reach
+;     the Flash command addresses and page data.
+;================================================
+
+FLASH_FIRST_PAGE  EQU $80
+FLASH_LAST_PAGE   EQU $BF
+
+FLASH_PAGE_SIZE   EQU $2000
+FLASH_SECTOR_SIZE EQU $1000
+
+FLASH_BANK1       EQU 1          ; Z80 $2000-$3FFF -> used for the $2AAA / page $81 window
+FLASH_BANK2       EQU 2          ; Z80 $4000-$5FFF -> used for the $5555 / page $82 window
+FLASH_BANK5       EQU 5          ; Z80 $A000-$BFFF -> used for the $5555 / page $82 window
+
+FLASH_CMD1_ADDR   EQU $5555      ; lives in bank 2's window ($4000 + $1555)
+FLASH_CMD2_ADDR   EQU $2AAA      ; lives in bank 1's window ($2000 + $0AAA)
+FLASH_CMD1_PAGE   EQU $82
+FLASH_CMD2_PAGE   EQU $81
+
+MMU_PORT          EQU DEVMMU          ; base I/O port; actual port used = MMU_PORT + bank
+MMU_READ_PORT     EQU DEVMMU          ; base I/O port for reading current bank mapping
+
+
+BANK2_BASE        EQU $4000
+BANK5_BASE        EQU $A000
+FLASH_DQ6_MASK    EQU $40        ; data poll bit used to detect end of erase/program THIS ONE TOGGLES 
+FLASH_DQ7_MASK    EQU $80        ; data poll bit used to detect end of erase/program
+
+;********* THIS CODE IS COPIED TO $F000 RAM **************
+
+
+;================================================
+; MMU ROUTINES
+;================================================
+
+; MAP A PAGE INTO A BANK
+; IN:  A = flash/ram page number to map in
+;      B = bank number (0-7)
+MMU_MAP:
+		PUSH BC
+                SLA B   ;PUT IT ON HIGH BYTES
+                SLA B
+                SLA B
+                SLA B
+                SLA B                    
+		LD C,MMU_PORT
+		OUT (C),A
+		POP BC
+		RET
+
+; READ CURRENT PAGE MAPPED TO A BANK
+; IN:  B = bank number (0-7)
+; OUT: A = current page in that bank
+MMU_READ:
+		PUSH BC
+                SLA B   ;PUT IT ON HIGH BYTES
+                SLA B
+                SLA B
+                SLA B
+                SLA B  
+                LD C,MMU_READ_PORT              
+		IN A,(C)
+		POP BC
+		RET
+
+
+;================================================
+; CONTEXT SAVE / RESTORE
+; Only banks 1 and 2 are touched by this module (see the
+; hardware assumptions note at the top of this file), so
+; those are all that need saving/restoring.
+;================================================
+
+FLASH_SAVE_CONTEXT:
+
+		LD B,FLASH_BANK1
+		CALL MMU_READ
+		LD (FLASH_OLD_BANK1),A
+
+		LD B,FLASH_BANK2
+		CALL MMU_READ
+		LD (FLASH_OLD_BANK2),A
+		RET
+
+FLASH_RESTORE_CONTEXT:
+		LD A,(FLASH_OLD_BANK1)
+		LD B,FLASH_BANK1
+		CALL MMU_MAP
+
+		LD A,(FLASH_OLD_BANK2)
+		LD B,FLASH_BANK2
+		CALL MMU_MAP
+
+		RET
+
+
+;================================================
+; FLASH COMMAND ADDRESS MAPPING
+;================================================
+
+; MAP BANK2 SO $5555 REACHES FLASH PAGE $82
+MAP_CMD_5555:
+		LD A,FLASH_CMD1_PAGE
+		LD B,FLASH_BANK2
+		CALL MMU_MAP
+		RET
+
+; MAP BANK1 SO $2AAA REACHES FLASH PAGE $81
+MAP_CMD_2AAA:
+		LD A,FLASH_CMD2_PAGE
+		LD B,FLASH_BANK1
+		CALL MMU_MAP
+		RET
+
+
+;================================================
+; UNLOCK SEQUENCE  (AA/55 handshake, common to every command)
+;================================================
+FLASH_UNLOCK:
+		CALL MAP_CMD_5555
+		LD HL,FLASH_CMD1_ADDR
+		LD (HL),$AA
+
+		CALL MAP_CMD_2AAA
+		LD HL,FLASH_CMD2_ADDR
+		LD (HL),$55
+		RET
+
+
+;================================================
+; FLASH_GET_ID - enter/read/exit software ID mode
+; OUT: H = manufacturer ID, L = device ID
+;================================================
+FLASH_GET_ID:
+		CALL FLASH_UNLOCK
+		CALL MAP_CMD_5555
+		LD HL,FLASH_CMD1_ADDR
+		LD (HL),$90
+
+		LD A,FLASH_FIRST_PAGE
+		LD B,FLASH_BANK2
+		CALL MMU_MAP
+		LD HL,$4000
+		LD A,(HL)						;MANUFACTURER ID (BF)
+		LD E,A
+		INC HL
+		LD A,(HL)						;DEVICE ID (D7)
+		LD L,A
+                LD H,E
+
+		PUSH HL
+		CALL FLASH_UNLOCK
+		CALL MAP_CMD_5555
+		LD HL,FLASH_CMD1_ADDR
+		LD (HL),$F0						;EXIT ID MODE
+		POP HL
+		RET
+
+
+;================================================
+; FLASH_ERASE_SECTOR
+; IN: HL = Flash-relative sector address ($0000/$1000 within page)
+;     A  = Flash page the sector lives in
+;================================================
+FLASH_ERASE_SECTOR:
+		PUSH HL
+		PUSH AF
+
+		CALL FLASH_UNLOCK
+		CALL MAP_CMD_5555
+		LD HL,FLASH_CMD1_ADDR
+		LD (HL),$80
+
+		CALL FLASH_UNLOCK
+
+                POP AF
+		LD B,FLASH_BANK5
+		CALL MMU_MAP						;MAP THE PAGE BEING ERASED INTO BANK2
+
+		POP HL                
+		LD (HL),$30						;SECTOR ERASE COMMAND
+
+FLASH_ERASE_WAIT:
+		LD A,(HL)
+		LD B,A
+		LD A,(HL)
+		XOR B
+		AND FLASH_DQ6_MASK
+		JR NZ,FLASH_ERASE_WAIT					;DQ6 TOGGLING = STILL BUSY
+                
+                LD B,100
+                CALL DELAYMILI
+		RET
+
+
+;================================================
+; FLASH_ERASE_PAGE
+; Erases both 4K sectors that make up an 8K Flash page.
+; IN: A = Flash page number
+;================================================
+FLASH_ERASE_PAGE:
+		PUSH AF
+		LD HL,BANK5_BASE+0000H
+		CALL FLASH_ERASE_SECTOR
+		POP AF
+		PUSH AF
+		LD HL,BANK5_BASE+1000H
+		CALL FLASH_ERASE_SECTOR
+          	POP AF
+		RET
+
+
+;================================================
+; FLASH_PROGRAM_BYTE
+; IN: A = Flash page destination lives in (already mapped in bank2 by caller)
+;     HL = Z80 address of the destination byte (within bank2's window)
+;     E  = data byte to program
+;================================================
+FLASH_PROGRAM_BYTE:
+		PUSH HL
+		PUSH DE
+		CALL FLASH_UNLOCK
+		CALL MAP_CMD_5555
+		LD HL,FLASH_CMD1_ADDR
+		LD (HL),$A0
+		POP DE
+		POP HL
+		LD A,E
+		LD (HL),A
+
+FLASH_PROGRAM_WAIT:
+                LD A, (HL)              ; Read 1
+                LD B, A
+                LD A, (HL)              ; Read 2
+                XOR B                   ; Compare consecutive reads
+                AND FLASH_DQ6_MASK      ; Check if DQ6 toggling ($40)
+                JR NZ, FLASH_PROGRAM_WAIT
+                RET
+
+
+MSG_ERASE_PAGE  DEFM "ERASING PAGE..."
+                DB 10,13,0
+
+MSG_FLASH_PAGE  DEFM "FLASHING PAGE..."
+                DB 10,13,0
+
+;================================================
+; FLASH_PROGRAM_PAGE
+; Entry point called by NMI_DEBUG.Z80's FLASH_CMD.
+; Erases the target page, then programs+verifies it from
+; the last uploaded RAM block (@UPLOAD_ADDR/@UPLOAD_SIZE).
+;================================================
+FLASH_PROGRAM_PAGE:
+		CALL FLASH_SAVE_CONTEXT
+
+		LD A,(@FLASH_PAGE)
+		LD (FLASH_TARGET_PAGE),A
+
+		LD HL,(@UPLOAD_ADDR)
+		LD (FLASH_UPLOAD_ADDR),HL
+		LD HL,(@UPLOAD_SIZE)
+		LD (FLASH_UPLOAD_SIZE),HL
+
+		XOR A
+		LD (FLASH_VERIFY_ERROR),A
+		
+                LD HL, MSG_ERASE_PAGE
+                CALL RS_TXT
+                LD A,(FLASH_TARGET_PAGE)
+                OR A
+                JR NZ, DOFLER
+                LD A,99
+                LD (FLASH_VERIFY_ERROR),A
+                JP FLASH_PROG_DONE
+
+DOFLER:		CALL FLASH_ERASE_PAGE
+
+                LD HL, MSG_FLASH_PAGE
+                CALL RS_TXT
+
+		; ---- program loop ----
+		LD HL,(FLASH_UPLOAD_ADDR)
+		LD (FLASH_SOURCE_PTR),HL
+		LD HL,(FLASH_UPLOAD_SIZE)
+		LD (FLASH_BYTES_LEFT),HL
+		LD HL,0000H
+		LD (FLASH_DEST_ADDR),HL
+
+FLASH_PROG_LOOP:
+		LD HL,(FLASH_BYTES_LEFT)
+		LD A,H
+		OR L
+		JR Z,FLASH_PROG_DONE
+
+		LD HL,(FLASH_SOURCE_PTR)
+		LD E,(HL)						;E = BYTE TO WRITE
+		INC HL
+		LD (FLASH_SOURCE_PTR),HL
+
+		LD HL,(FLASH_DEST_ADDR)
+		; BUILD DESTINATION ADDRESS WITHIN BANK2'S WINDOW
+		LD A,H
+		AND $1F							;KEEP OFFSET WITHIN AN 8K PAGE
+		OR $A0							;+ $A000 WINDOW BASE
+		LD H,A
+
+		LD A,(FLASH_TARGET_PAGE)
+		LD B,FLASH_BANK5
+		CALL MMU_MAP						;MAP TARGET PAGE INTO BANK2 FOR THE WRITE
+
+		LD A,(FLASH_TARGET_PAGE)
+		CALL FLASH_PROGRAM_BYTE
+
+		; ---- verify ----
+		LD A,(FLASH_TARGET_PAGE)
+		LD B,FLASH_BANK5
+		CALL MMU_MAP
+		LD A,(HL)
+		CP E
+		JR Z,FLASH_PROG_NEXT
+
+		LD A,$FF
+		LD (FLASH_VERIFY_ERROR),A
+		LD HL,(FLASH_DEST_ADDR)
+		LD (FLASH_ERROR_ADDR),HL
+
+FLASH_PROG_NEXT:
+		LD HL,(FLASH_DEST_ADDR)
+		INC HL
+		LD (FLASH_DEST_ADDR),HL
+
+		LD HL,(FLASH_BYTES_LEFT)
+		DEC HL
+		LD (FLASH_BYTES_LEFT),HL
+
+		JR FLASH_PROG_LOOP
+
+FLASH_PROG_DONE:
+		CALL FLASH_RESTORE_CONTEXT
+
+		LD A,(FLASH_VERIFY_ERROR)
+		OR A
+		RET Z							;RETURN Z-FLAG SET = OK
+
+		RET
