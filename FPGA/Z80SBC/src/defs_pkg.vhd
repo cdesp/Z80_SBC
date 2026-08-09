@@ -55,6 +55,7 @@ PACKAGE defs_pkg IS
     TYPE t_z80_to_system IS RECORD      
         -- Z80 Side    
         Z80_Data    : STD_LOGIC_VECTOR(7 DOWNTO 0);
+        Z80_MREQ_N  : STD_LOGIC;
         Z80_IORQ_N  : STD_LOGIC;
         Z80_M1_N    : STD_LOGIC;
         Z80_WR_N    : STD_LOGIC;
@@ -107,6 +108,7 @@ PACKAGE defs_pkg IS
    TYPE t_ot_sigs_from_system IS RECORD  
         PS2_KEYB_READ : STD_LOGIC; --this flags that we have read the key to the ps.2 module
         
+        --Amstrad
         lower_rom_en : std_logic;
         upper_rom_en : std_logic;
         ram_page_bank0 : std_logic_vector(2 downto 0);

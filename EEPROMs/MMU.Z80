@@ -1,0 +1,39 @@
+
+;2 GLOBAL 
+;MMU_PORT
+;MMU_READ_PORT
+
+
+;================================================
+; MMU ROUTINES
+;================================================
+
+; MAP A PAGE INTO A BANK
+; IN:  A = flash/ram page number to map in
+;      B = bank number (0-7)
+@MMU_MAP:
+		PUSH BC
+                SLA B   ;PUT IT ON HIGH BYTES
+                SLA B
+                SLA B
+                SLA B
+                SLA B                    
+		LD C,MMU_PORT
+		OUT (C),A
+		POP BC
+		RET
+
+; READ CURRENT PAGE MAPPED TO A BANK
+; IN:  B = bank number (0-7)
+; OUT: A = current page in that bank
+@MMU_READ:
+		PUSH BC
+                SLA B   ;PUT IT ON HIGH BYTES
+                SLA B
+                SLA B
+                SLA B
+                SLA B  
+                LD C,MMU_READ_PORT              
+		IN A,(C)
+		POP BC
+		RET

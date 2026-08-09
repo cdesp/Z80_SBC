@@ -289,22 +289,27 @@ architecture structural of Z80_FPGA_SYSTEM is
         --BootL
     signal bootl_bus_out    : video_bus_out;  --Atlas video controller
     signal bootl_out        : t_system_to_z80;
-    signal VBL_ADDR_BUS      : std_logic_vector(15 downto 0); -- Address from the Video Controller
+    signal VBL_ADDR_BUS     : std_logic_vector(15 downto 0); -- Address from the Video Controller
         --Atlas
     signal atlas_bus_out    : video_bus_out;  --Atlas video controller
     signal atlas_out        : t_system_to_z80;
-    signal VAT_ADDR_BUS      : std_logic_vector(15 downto 0); -- Address from the Video Controller
+    signal VAT_ADDR_BUS     : std_logic_vector(15 downto 0); -- Address from the Video Controller
         --Newbrain
     signal nb_bus_out       : video_bus_out;  --Newbrain video controller
     signal nb_regs          : t_video_regs;   --Newbrain video registers 
     signal nb_out           : t_system_to_z80;
-    signal VNB_ADDR_BUS      : std_logic_vector(15 downto 0); -- Address from the Video Controller
+    signal VNB_ADDR_BUS     : std_logic_vector(15 downto 0); -- Address from the Video Controller
         --Spectrum
     signal zx_bus_out       : video_bus_out;  --ZX Spectrum video controller
     signal zx_regs          : t_video_regs;   --Newbrain video registers 
     signal zx_out           : t_system_to_z80;
-    signal VZX_ADDR_BUS      : std_logic_vector(15 downto 0); -- Address from the Video Controller
+    signal VZX_ADDR_BUS     : std_logic_vector(15 downto 0); -- Address from the Video Controller
     signal szxSigs_out      : t_ot_sigs_from_system;
+    signal sIS_SPECTRUM     :std_logic:='0';
+    signal sSPEC_icept_actv :std_logic:='0';
+    signal sSPEC_BANK_PAGE  : std_logic_vector(7 downto 0) := (others => '0');    
+    signal sSPEC_BANK_SEL   : std_logic_vector(2 downto 0) := (others => '0'); --bank selection 0-7
+    signal sSPEC_BANK_WE    : std_logic;
  
         --Amstrad
     signal am_bus_out       : video_bus_out;  --Amstrad video controller
@@ -463,6 +468,33 @@ architecture structural of Z80_FPGA_SYSTEM is
             OTSigs_out        : OUT t_ot_sigs_from_system;
             -- Video registers
             VDRegs_out        : OUT t_video_regs
+        );
+    end component;
+
+    component Spectrum_Load_Interceptor is
+        generic (
+            TARGET_LOAD_ADDR : std_logic_vector(15 downto 0) := x"056B"
+        );
+        port (
+            CLK_IN           : in  std_logic;
+            reset_n          : in  std_logic;
+            LOADER_ACTIVE   : in  std_logic; --Active high
+
+            -- Z80 System Bus Signals
+            Z80_In              : IN  t_z80_to_system;
+
+            INTERCEPT_ACTIVE : out std_logic;
+            MMU_ADDR         : out std_logic_vector(2 downto 0);
+            MMU_DATA         : out std_logic_vector(7 downto 0);
+            MMU_WE           : out std_logic;
+            MMU_BANK0_IN     : in  std_logic_vector(7 downto 0);
+            MMU_BANK1_IN     : in  std_logic_vector(7 downto 0);
+            MMU_BANK2_IN     : in  std_logic_vector(7 downto 0);
+            MMU_BANK3_IN     : in  std_logic_vector(7 downto 0);
+            MMU_BANK4_IN     : in  std_logic_vector(7 downto 0);
+            MMU_BANK5_IN     : in  std_logic_vector(7 downto 0);
+            MMU_BANK6_IN     : in  std_logic_vector(7 downto 0);
+            MMU_BANK7_IN     : in  std_logic_vector(7 downto 0)
         );
     end component;
 
@@ -1026,6 +1058,7 @@ begin
 
 
         master_in.Z80_DATA    <= Z80_DATA_IN_INT;
+        master_in.Z80_MREQ_N  <= nMREQ_r;
         master_in.Z80_IORQ_N  <= nIORQ_r;
         master_in.Z80_M1_N      <= l_m1_n;
         master_in.Z80_WR_N    <= nWR_CPU_r;
@@ -1078,6 +1111,43 @@ begin
      sPS2_READ <=    sNMI_PS2_Read when sTools_Act='1' 
                 else sotsigs_out.PS2_KEYB_READ  when system_selection="0011" or system_selection="0100" --for zx spec or cpc 464
                 else '0';
+
+
+    -- ***************************************************************
+    -- **  LOADERS MODULE INSTANTIATION **
+    -- ***************************************************************
+
+    sIS_SPECTRUM <='1' WHEN system_selection="0011" ELSE '0';
+
+    u_Spectrum_Load_Interceptor : Spectrum_Load_Interceptor
+    generic map (
+        TARGET_LOAD_ADDR => x"0556" -- Traps target ROM execution point
+    )
+    port map (
+        CLK_IN           => CLK_IN,             -- Connect your system clock
+        reset_n          => nRESET,         -- Connect active-low reset
+        LOADER_ACTIVE    => sIS_SPECTRUM,
+        Z80_In           => master_in,
+        
+        -- Interceptor Handshake
+        INTERCEPT_ACTIVE => sSPEC_icept_actv,
+        
+        -- Memory Management Unit Control Overrides
+        MMU_ADDR         => sSPEC_BANK_SEL,
+        MMU_DATA         => sSPEC_BANK_PAGE,
+        MMU_WE           => sSPEC_BANK_WE,
+        
+        -- Current Live Context tracking lines
+        MMU_BANK0_IN     => sBANK0_PAGE,
+        MMU_BANK1_IN     => sBANK1_PAGE,
+        MMU_BANK2_IN     => sBANK2_PAGE,
+        MMU_BANK3_IN     => sBANK3_PAGE,
+        MMU_BANK4_IN     => sBANK4_PAGE,
+        MMU_BANK5_IN     => sBANK5_PAGE,
+        MMU_BANK6_IN     => sBANK6_PAGE,
+        MMU_BANK7_IN     => sBANK7_PAGE
+    );
+
 
     -- ***************************************************************
     -- **  NMI MODULE INSTANTIATION **
@@ -1192,16 +1262,19 @@ begin
         );
  
     sFPGA_BANK_WE   <=  sNMI_BANK_WE   when sTools_Act='1'  
-                   else sCPC_BANK_WE   when system_selection=4 
+                   else sSPEC_BANK_WE  when system_selection=3
+                   else sCPC_BANK_WE   when system_selection=4                    
                    else '0'; 
     sFPGA_BANK_SEL  <=  sNMI_BANK_SEL  when sTools_Act='1'
+                   else sSPEC_BANK_SEL  when system_selection=3
                    else sCPC_BANK_SEL  when system_selection=4 
                    else (Others=>'0'); 
     sFPGA_BANK_PAGE <=  sNMI_BANK_PAGE when sTools_Act='1'
+                   else sSPEC_BANK_PAGE when system_selection=3
                    else sCPC_BANK_PAGE when system_selection=4 
                    else (Others=>'0');  
 
-
+--========== debugging
 --    AM_CAPTURE <= '0' WHEN system_selection=4 AND L_MREQ_N='0' and L_RD_N='0' AND Z80_LA_BUS_INT=x"C3AC"  ELSE '0';
 
     process(CLK_IN,nreset)
@@ -1228,6 +1301,8 @@ begin
           end if;  
         end if;
     end process;
+
+--========== debugging  end
 
 
     DPVRAM_Inst : entity work.DPVRAM

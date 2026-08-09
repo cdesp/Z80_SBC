@@ -1,7 +1,7 @@
 LIBRARY ieee;
 USE ieee.std_logic_1164.all;
 USE IEEE.NUMERIC_STD.ALL;
-USE work.defs_pkg.ALL; -- Import MMU I/O address constants
+USE work.defs_pkg.ALL; -- Import  constants
 
 ENTITY Z80_BA_Spectrum IS
     PORT (

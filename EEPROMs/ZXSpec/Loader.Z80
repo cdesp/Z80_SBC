@@ -1,0 +1,389 @@
+;this is the main function SAVED INTO PAGE $8D
+
+@MYRAMBANK       EQU 1   ;WHERE WE PUT OUR RAM PAGE $7F
+
+DIRECTORY DEFM "SPECTRUM"
+          DB 0
+FILENAME  DEFM "SPECMAN .TAP"
+          DB 0
+
+
+;THIS ONE IS CALLED FOR EACH DIR ENTRY 32BYTES
+;DATA IN USBBUF ON HL
+
+@MNG_DIR_ENTRY: LD DE,DIRFILENAME
+		PUSH DE
+		LD BC,8
+		LDIR  
+                LD A,'.'
+		LD (DE),A
+                INC DE
+		LD BC,3
+		LDIR
+                XOR A
+		LD (DE),A
+		POP HL
+		CALL RS_TXT
+                CALL RS_NEWLINE		
+		RET
+		 
+		 
+
+
+@PRINT_A:        PUSH AF
+                PUSH HL
+                PUSH DE
+                PUSH BC
+                CALL B2D8
+                LD HL,B2DBUF
+                CALL RS_TXT
+                CALL RS_NEWLINE
+                POP BC
+                POP DE
+                POP HL
+                POP AF
+                RET        
+
+@PRINT_HL:      PUSH AF
+                PUSH HL
+                PUSH DE
+                PUSH BC
+                CALL B2D16
+                LD HL,B2DBUF
+                CALL RS_TXT
+                CALL RS_NEWLINE
+                POP BC
+                POP DE
+                POP HL
+                POP AF
+                RET        
+
+;ZX BASIC SET 
+;HL TO THE FILENAME
+;BC BYTES TO LOAD
+;DE THE DESTINATION IN RAM
+
+;THIS IS BEFORE THE OLD SP CHANGE -- NO CALL CAUSE OF THE SP 
+;BUT AFTER THE RAM PAGE IS ON
+;MYRAMBANK SHOULD BE SET ON THE OLD SYSTEM ROM TO BE SAFE
+@BEF_SP_CHANGE: POP IY
+                POP IX
+                POP HL
+                POP DE
+                POP BC
+                POP AF  ;NOW WE HAVE THE OLD REGISTERS
+                
+                LD (OLDIY),IY
+                LD (OLDIX),IX
+                LD (OLDHL),HL
+                LD (OLDDE),DE
+                LD (OLDBC),BC
+                PUSH AF
+                POP HL
+		LD (OLDAF),HL                
+
+                CALL OS_PRINTMSG
+                DEFM 'IY='
+                DB 0
+                LD HL,(OLDIY)
+                CALL PRINT_HL
+                CALL OS_PRINTMSG
+                DEFM 'IX='
+                DB 0
+                LD HL,(OLDIX)
+                CALL PRINT_HL
+                CALL OS_PRINTMSG
+                DEFM 'HL='
+                DB 0
+                LD HL,(OLDHL)
+                CALL PRINT_HL
+                CALL OS_PRINTMSG
+                DEFM 'DE='
+                DB 0
+                LD HL,(OLDDE)
+                CALL PRINT_HL
+                CALL OS_PRINTMSG
+                DEFM 'BC='
+                DB 0
+                LD HL,(OLDBC)
+                CALL PRINT_HL
+                CALL OS_PRINTMSG
+                DEFM 'AF='
+                DB 0
+                LD HL,(OLDAF)
+                CALL PRINT_HL
+                CALL OS_PRINTMSG
+                DEFM 'OBNK='
+                DB 0
+                LD A,(OLDBNK7)
+                CALL PRINT_A
+                CALL OS_PRINTMSG
+                DEFM 'SYS='
+                DB 0
+                LD A,(OLDSYS)
+                CALL PRINT_A
+                CALL OS_PRINTMSG
+                DEFM 'OLDSP='
+                DB 0
+                LD HL,0
+                OR A
+                ADC HL,SP
+                CALL PRINT_HL
+
+                LD HL,(OLDHL)
+                PUSH AF		;save old regs on old sp
+                PUSH BC
+                PUSH DE
+                PUSH HL		
+                PUSH IX
+                PUSH IY	                                	
+                JP DO_SP_CHANGE
+
+@MAINROUTINE:   LD HL, DIRECTORY
+                CALL RS_TXT
+                CALL RS_NEWLINE
+                LD HL, FILENAME
+                CALL RS_TXT
+                CALL RS_NEWLINE
+                LD A,(DIROPENED)
+                OR A 
+                JR NZ, CONTOK1
+                LD HL,DIRNM
+                LD A,'\' ;'
+                LD (HL),A 
+                INC HL
+                XOR A 
+                LD (HL),A 
+                INC HL
+                LD (HL),A 
+                CALL OS_PRINTMSG
+                DEFM "OPENING DIRECTORY"
+                DB 10,13,0
+                LD HL,DIRECTORY
+                ;OPEN HE DIRECTORY
+                CALL STRG_DIRNMCHG        ;THIS PUTS THE NEW DIR ON THE DIRNM VAR
+                CALL STRG_OPENCDIR      ;THIS OPENS THE DIRNM VAR
+                JR NC,CONTOK
+                LD HL,DIROPNERR
+                JP MYDISKERROR
+CONTOK:         ;DIRECTORY OPENED OK
+                LD A,1
+                LD (DIROPENED),A
+                LD HL,0
+                LD (BYTESREAD),HL               
+CONTOK1:        LD A,(FILEOPENED)
+                OR A 
+                JR NZ, CONTOK2 ;ALREADY OPEN
+                ;OPEN THE FILE
+                CALL OS_PRINTMSG
+                DEFM "OPENING FILE"
+                DB 10,13,0
+                LD HL,FILENAME
+                CALL COPYFNAME
+                XOR A                      ; Read-only
+                CALL STRG_OPNFILE
+                JR Z, CONTOK2B
+                LD HL, FILOPNERR
+                JP MYDISKERROR   
+CONTOK2B:       ;FILE OPENED OK
+                LD A,1
+                LD (FILEOPENED),A
+                ;GET TOTAL BYTES ON FILE BC:DE
+                CALL STRG_GETSIZE
+                LD (TOTBYTES),BC        ;HIGH
+                LD (TOTBYTES+2),DE     ;LOW
+                LD A,'T'
+                CALL RS_TX
+                PUSH DE
+                POP HL
+                PUSH BC
+                POP DE
+                CALL B2D32
+                LD HL,B2DBUF
+                CALL RS_TXT
+                CALL RS_NEWLINE
+
+CONTOK2:        ;READ THE 1ST 2 BYTES = TOTAL BYTES
+                LD DE,BLOCKBYTES  ;READ BLOCK BYTES
+                LD BC,2
+                CALL STRG_BLKREAD                           
+                JR Z, CONTOK2A
+                LD HL, FILREDERR
+                JP MYDISKERROR
+CONTOK2A:       ;READ FROM THE FILE                
+                LD DE,(OLDIX)   ;BASIC DESTINATION ADDRESS
+                LD BC,(OLDDE)   ;BASIC BYTE COUNT
+                PUSH DE
+                POP HL
+                CALL PRINT_HL
+                PUSH BC
+                POP HL
+                CALL PRINT_HL
+                LD DE,(OLDIX)   ;BASIC DESTINATION ADDRESS
+                LD BC,(OLDDE)   ;BASIC BYTE COUNT
+                CALL STRG_BLKREAD 
+                JR Z, CONTOK3
+                LD HL, FILREDERR
+                JP MYDISKERROR
+
+CONTOK3:        PUSH DE
+                PUSH BC
+                LD A,'A'
+                CALL RS_TX
+                PUSH DE
+                POP HL
+                CALL PRINT_HL
+                LD A,'B'
+                CALL RS_TX
+                PUSH BC
+                POP HL
+                CALL PRINT_HL
+                POP BC
+                POP DE
+                LD (LASTADDR),DE; THE LAST ADDRESS WRITTEN +1
+                LD (LASTREAD),BC                ;BYTES WRITTEN
+                INC BC               ;2 BYTES AT THE BEGINNING AND 1 AT THE END
+                INC BC
+                INC BC                
+                LD HL,(BYTESREAD)
+                ADD HL,BC        ;BC HAS THE ACTUAL BYTES READ
+                LD (BYTESREAD),HL
+                LD BC,(TOTBYTES+2) ;ONLY THE LAST 2 WE WILL LOAD FILES LESS THAN 64K FOR NOW
+                AND A
+                SBC HL,BC
+                JR NZ, EXIT4
+                ;FINISHED WE CLOSE THE FILE CLEAR THE PARAMS
+                LD HL,0
+                XOR A
+                LD (FILEOPENED),A
+                LD (BYTESREAD),HL
+                LD (TOTBYTES),HL
+                CALL STRG_CLSFILE      
+                CALL OS_PRINTMSG
+                DEFM "CLOSING FILE"
+                DB 10,13,0         
+                JR EXIT0
+@EXIT4:         LD DE,CHECKSUM
+                LD BC,1
+                CALL STRG_BLKREAD  
+                CALL OS_PRINTMSG
+                DEFM "BLOCK READ"
+                DB 10,13,0                                                  
+@EXIT0:         JP MAINEXIT
+
+
+@EX_BF_SP_CHNG: ;MANIPULATE DE,IX AND CF
+                POP IY
+                POP IX
+                POP HL
+                POP DE
+                POP BC
+                POP AF  ;NOW WE HAVE THE OLD REGISTERS
+                LD DE, (LASTREAD)
+                LD IX, (LASTADDR)
+                SCF                                
+                PUSH AF		;save old regs on old sp
+                PUSH BC
+                PUSH DE
+                PUSH HL		
+                PUSH IX
+                PUSH IY	                	
+                LD A, 127
+                OUT ($E4),A     ;SIGNAL FPGA TO CHECK FOR THE NEXT RET AND SWITCH BANKS BACK
+                JP EX_DO_SP_CHNG
+
+FILREDERR  DEFM "ER READ FILE"
+          DB 0    
+FILOPNERR  DEFM "ER OPEN FILE"
+          DB 0    
+DIROPNERR  DEFM "ER OPEN DIR"
+          DB 0             
+
+MYDISKERROR:    CALL RS_TXT
+                CALL RS_NEWLINE
+                RET
+
+
+;HL POINTS TO ZERO TERMINATED MSG
+;IX,A DESTROYED
+@OS_PRINTTEXT:	LD A,(HL)
+		CP 0
+		RET Z
+		PUSH HL
+		CALL OS_PRINTCHAR
+		POP HL
+		INC HL
+		JR OS_PRINTTEXT 
+;PRINTS A ZT MESSAGE FOLLOWING THE CALL TO RS232 AND MAYBE TO SCREEN
+@OS_PRINTMSG:	POP HL
+		PUSH HL
+		CALL RS_TXT ; PRINTS A ZT STRING ON HL 
+		POP DE  ;DE ON STRING
+		PUSH HL ;CONTINUE AFTER THE MESG	
+		; DO OTHER STUFF WITHT THE STRING ADDESS LIKE PRINT ON SCREEN STRING ON DE
+		
+		RET
+;PRINTS A ZT MESSAGE FOLLOWING THE CALL
+@OS_PRNMSGSCR:	POP HL
+                CALL OS_PRINTTEXT	;SERIAL AND SCREEN
+		INC HL
+		PUSH HL			;CONTINUE AFTER THE MESG	
+		RET
+
+
+
+;PRINTS A CHAR TO THE OS SCREEN		
+;A HAS THE CHAR
+;FLAGS MUST BE RETAINED NO CARRY FLAG MEANS BACKSPACE IS GO LEFT
+@OS_PRINTCHAR:	;PUSH AF
+OSPCNX:		;POP DE
+	;	LD A,(SCRNST)
+	;	AND 2
+	;	RET Z
+	;	PUSH DE
+	;	POP AF				;GET THE FLAGS BACK AND THE CHAR
+		PUSH AF
+		CALL RS_TX
+		POP AF		
+		;CALL VGA_PRCH	
+		RET
+
+@OS_PRNCHARSFE:	PUSH HL
+		PUSH BC
+		CALL OS_PRINTCHAR
+		POP BC
+		POP HL
+		RET
+
+@OS_NEWLINE:	LD A,10
+		CALL OS_PRNCHARSFE 
+		LD A,13
+		CALL OS_PRNCHARSFE 
+		RET
+
+@OS_PRMESSCR:   LD A,(HL)
+		OR A
+		RET Z
+		CALL RS_TX
+                INC HL
+		JR OS_PRMESSCR
+;SAFE PRINT TO SCREEN SAVES HL
+@OS_PRMESSCRSFE: PUSH HL
+                PUSH BC
+                PUSH AF
+                CALL OS_PRMESSCR
+                POP AF
+                POP BC
+                POP HL
+                RET
+
+@OS_PRCHSCR	EQU RS_TX
+
+
+
+
+
+
+
+
+

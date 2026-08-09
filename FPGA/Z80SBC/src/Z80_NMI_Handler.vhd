@@ -120,9 +120,9 @@ architecture rtl of Z80_NMI_Handler is
     constant C_PS2_F4          : std_logic_vector(7 downto 0) := x"0C";
     constant C_PS2_F5          : std_logic_vector(7 downto 0) := x"03";
 
-    constant C_TOOL_PAGE_F2    : std_logic_vector(7 downto 0) := x"85";  --flash address 
-    constant C_TOOL_PAGE_F3    : std_logic_vector(7 downto 0) := x"8A";
-    constant C_TOOL_PAGE_F4    : std_logic_vector(7 downto 0) := x"8F";
+    constant C_TOOL_PAGE_F2    : std_logic_vector(7 downto 0) := x"85";  --flash address for Atlas Debugger
+    constant C_TOOL_PAGE_F3    : std_logic_vector(7 downto 0) := x"8A";  --flash page for spectrum $8A-$8E (5 Pages)
+    constant C_TOOL_PAGE_F4    : std_logic_vector(7 downto 0) := x"8F";  --flash page for amstrad   
 
     constant C_NMI_VECTOR      : std_logic_vector(15 downto 0) := x"0066"; 
 

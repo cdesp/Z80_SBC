@@ -164,10 +164,8 @@ DL_NXTFILE:     RET     Z                      ; No more files
                 LD      (DE), A                ; ZT string
                 
                 LD      HL, USBBUF
-                CALL    OS_PRMESSCRSFE
-                LD      A, $0D
-                CALL    OS_PRCHSCR
-                
+                CALL    MNG_DIR_ENTRY           ;GLOBAL ROUTINE TO HANDLE
+
                 LD      A, CMD_FILEENUM_GO
                 CALL    CH376_COMMD
                 CALL    CH376_WTCMDEND
@@ -380,7 +378,31 @@ STRG_SETPOS:    LD      A, CMD_BYTE_LOCATE
                 CALL    CH376_WTCMDEND
                 RET
 
-STRG_GETSIZE:   RET
+;-------------------------------------------------------------------------------
+; STRG_SETPOS: Sets the file pointer position using a 32-bit offset.
+;
+; Parameters:
+
+;
+; Returns:
+;   BC:DE: The 32-bit SIZE (BC is high, DE is low).
+;-------------------------------------------------------------------------------
+
+STRG_GETSIZE:   LD A, CMD_GET_FILE_SIZE
+                CALL  CH376_COMMD
+                LD A, $68
+                CALL    CH376_DATAWR
+                CALL CH376_DATARD
+                LD E,A 
+                CALL CH376_DATARD
+                LD D,A 
+                CALL CH376_DATARD
+                LD C,A 
+                CALL CH376_DATARD
+                LD B,A 
+                RET
+
+
 STRG_GETEOF:    RET
 
 ;-------------------------------------------------------------------------------
