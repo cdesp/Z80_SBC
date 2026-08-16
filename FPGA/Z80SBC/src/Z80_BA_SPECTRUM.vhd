@@ -52,6 +52,17 @@ ARCHITECTURE behavioral OF Z80_BA_Spectrum IS
     signal kb_matrix : t_ps2_matrix := (others => (others => '1')); -- Default: all keys released ('1')
     signal ps2_rd_req : std_logic := '0';
     signal ps2_data_byte  : std_logic_vector(7 downto 0);
+    signal caps_shift_src : std_logic_vector(5 downto 0) := (others => '0');
+    -- bit0 = real Left Shift (12/59)
+    -- bit1 = Left Arrow  (E0 6B)
+    -- bit2 = Down Arrow  (E0 72)
+    -- bit3 = Up Arrow    (E0 75)
+    -- bit4 = Right Arrow (E0 74)
+    -- bit5 = Backspace   (66)
+
+    signal symshift_src : std_logic_vector(1 downto 0) := (others => '0');
+    -- bit0 = Right Ctrl (E0 14)
+    -- bit1 = Right Alt  (E0 11)
 
 
 BEGIN
@@ -90,6 +101,13 @@ BEGIN
 --ZX Spectrum Keyboard Scanner
      -- to get another key from ps/2 keyboard
     OTSigs_out.PS2_KEYB_READ <= ps2_rd_req;
+
+    -- READ FROM ULA (combinational, always reflects the currently addressed row)
+    -- Bits 0-4: keyboard matrix, active-low (0 = pressed)
+    -- Bit 5: unused (1)
+    -- Bit 6: EAR input (tape)
+    -- Bit 7: unused (1)
+    dOUT <= "111" & ZXSpec_KEYB;
      
     --------------------------------------------------------------------------------
     -- Combinational: build the selected half-row(s) AND'ed together, and drive
@@ -112,15 +130,37 @@ BEGIN
         ZXSpec_KEYB <= v_mat;
     end process;
      
+
     --------------------------------------------------------------------------------
-    -- PS/2 decode FSM (simplified to 2 states)
+    -- PS/2 decode FSM (with anti-race macro delay & standard numpad mapping)
     --------------------------------------------------------------------------------
     process(CLK_FPGA, nRESET)
         type t_ps2_state is (IDLE, DECODE_BYTE);
         variable dec_state     : t_ps2_state := IDLE;
         variable release_flag  : std_logic := '0';
         variable extended_flag : std_logic := '0';
-        variable val           : std_logic; -- '0' = pressed, '1' = released
+        variable val           : std_logic; 
+        variable cur_byte      : std_logic_vector(7 downto 0);
+
+        -- Macro Tracking (bit 0=Left, 1=Down, 2=Up, 3=Right, 4=Backspace)
+        variable m_pressed : std_logic_vector(4 downto 0) := (others => '0');
+        variable m_active  : std_logic_vector(4 downto 0) := (others => '0');
+        variable m_timer   : integer range 0 to 100000 := 0;
+
+        -- Standard key tracking for keys that share matrix locations with macros
+        variable std_cs : std_logic := '0';
+        variable std_5  : std_logic := '0';
+        variable std_6  : std_logic := '0';
+        variable std_7  : std_logic := '0';
+        variable std_8  : std_logic := '0';
+        variable std_0  : std_logic := '0';
+
+        -- Standard Numpad direct number tracking (Numpad 4, 5, 6, 8 -> Spectrum 5, 6, 7, 8)
+        variable np_5   : std_logic := '0'; -- Numpad 4 -> '5'
+        variable np_6   : std_logic := '0'; -- Numpad 5 -> '6'
+        variable np_7   : std_logic := '0'; -- Numpad 8 -> '7'
+        variable np_8   : std_logic := '0'; -- Numpad 6 -> '8'
+
     begin
         if nRESET = '0' then
             kb_matrix     <= (others => (others => '1'));
@@ -128,116 +168,182 @@ BEGIN
             release_flag  := '0';
             extended_flag := '0';
             ps2_rd_req    <= '0';
-     
+            
+            m_pressed := (others => '0');
+            m_active  := (others => '0');
+            m_timer   := 0;
+            
+            std_cs := '0'; std_5 := '0'; std_6 := '0';
+            std_7  := '0'; std_8 := '0'; std_0 := '0';
+            np_5   := '0'; np_6   := '0'; np_7   := '0'; np_8 := '0';
+
         elsif rising_edge(CLK_FPGA) then
-            ps2_rd_req <= '0'; -- pulse for 1 cycle when we pop a byte
-     
+            ps2_rd_req <= '0'; -- Pulse for 1 cycle when popping a byte
+
             case dec_state is
                 when IDLE =>
                     if OTSigs_in.PS2_KEYB_Int = '1' then
                         ps2_data_byte <= OTSigs_in.PS2_DATA;
-                        ps2_rd_req    <= '1'; -- pop this byte from the PS/2 FIFO
+                        ps2_rd_req    <= '1';
                         dec_state     := DECODE_BYTE;
                     end if;
-     
+
                 when DECODE_BYTE =>
-                    val := release_flag;
-     
-                    if ps2_data_byte = X"E0" then
-                        extended_flag := '1';
-     
-                    elsif ps2_data_byte = X"F0" then
-                        release_flag := '1';
-     
+                    cur_byte := ps2_data_byte;
+
+                    if cur_byte = X"E0" then
+                        extended_flag := '1'; -- Mark extended prefix
+
+                    elsif cur_byte = X"F0" then
+                        release_flag := '1';  -- Mark release prefix
+
                     else
+                        -- We have reached the actual key code byte!
+                        val := release_flag; -- '1' if releasing, '0' if pressing
+
                         if extended_flag = '1' then
                             -- Extended (E0-prefixed) keys
-                            case ps2_data_byte is
-                                when X"6B" => kb_matrix(0)(0) <= val; kb_matrix(3)(4) <= val; -- Left Arrow  = CS+5
-                                when X"72" => kb_matrix(0)(0) <= val; kb_matrix(4)(4) <= val; -- Down Arrow  = CS+6
-                                when X"75" => kb_matrix(0)(0) <= val; kb_matrix(4)(3) <= val; -- Up Arrow    = CS+7
-                                when X"74" => kb_matrix(0)(0) <= val; kb_matrix(4)(2) <= val; -- Right Arrow = CS+8
-                                when X"5A" => kb_matrix(6)(0) <= val; -- Numpad Enter
+                            case cur_byte is
+                                when X"6B" => m_pressed(0) := not val; -- Left Arrow  = CS+5
+                                when X"72" => m_pressed(1) := not val; -- Down Arrow  = CS+6
+                                when X"75" => m_pressed(2) := not val; -- Up Arrow    = CS+7
+                                when X"74" => m_pressed(3) := not val; -- Right Arrow = CS+8
+                                when X"5A" => kb_matrix(6)(0) <= val;  -- Numpad Enter
                                 when X"14" | X"11" => kb_matrix(7)(1) <= val; -- Right Ctrl/Alt -> Symbol Shift
                                 when others => null;
                             end case;
-                            extended_flag := '0';
                         else
                             -- Standard (Set 2) keys
-                            case ps2_data_byte is
-                                -- Row 0 (A8): CAPS SHIFT, Z, X, C, V
-                                when X"12" | X"59" => kb_matrix(0)(0) <= val;
-                                when X"1A"         => kb_matrix(0)(1) <= val;
-                                when X"22"         => kb_matrix(0)(2) <= val;
-                                when X"21"         => kb_matrix(0)(3) <= val;
-                                when X"2A"         => kb_matrix(0)(4) <= val;
-     
-                                -- Row 1 (A9): A, S, D, F, G
+                            case cur_byte is
+                                when X"12" | X"59" => std_cs := not val;
+                                when X"2E"         => std_5  := not val;
+                                when X"36"         => std_6  := not val;
+                                when X"3D"         => std_7  := not val;
+                                when X"3E"         => std_8  := not val;
+                                when X"45"         => std_0  := not val;
+                                when X"66"         => m_pressed(4) := not val; -- Backspace -> CS + 0
+
+                                -- Standard Non-Extended Numpad Keys (4, 5, 6, 8)
+                                when X"6B"         => np_5   := not val; -- Numpad 4 -> '5'
+                                when X"73"         => np_6   := not val; -- Numpad 5 -> '6'
+                                when X"75"         => np_7   := not val; -- Numpad 8 -> '7'
+                                when X"74"         => np_8   := not val; -- Numpad 6 -> '8'
+
+                                when X"1A" => kb_matrix(0)(1) <= val;
+                                when X"22" => kb_matrix(0)(2) <= val;
+                                when X"21" => kb_matrix(0)(3) <= val;
+                                when X"2A" => kb_matrix(0)(4) <= val;
+
                                 when X"1C" => kb_matrix(1)(0) <= val;
                                 when X"1B" => kb_matrix(1)(1) <= val;
                                 when X"23" => kb_matrix(1)(2) <= val;
                                 when X"2B" => kb_matrix(1)(3) <= val;
                                 when X"34" => kb_matrix(1)(4) <= val;
-     
-                                -- Row 2 (A10): Q, W, E, R, T
+
                                 when X"15" => kb_matrix(2)(0) <= val;
                                 when X"1D" => kb_matrix(2)(1) <= val;
                                 when X"24" => kb_matrix(2)(2) <= val;
                                 when X"2D" => kb_matrix(2)(3) <= val;
                                 when X"2C" => kb_matrix(2)(4) <= val;
-     
-                                -- Row 3 (A11): 1, 2, 3, 4, 5
+
                                 when X"16" => kb_matrix(3)(0) <= val;
                                 when X"1E" => kb_matrix(3)(1) <= val;
                                 when X"26" => kb_matrix(3)(2) <= val;
                                 when X"25" => kb_matrix(3)(3) <= val;
-                                when X"2E" => kb_matrix(3)(4) <= val;
-     
-                                -- Row 4 (A12): 0, 9, 8, 7, 6
-                                when X"45" => kb_matrix(4)(0) <= val;
+
                                 when X"46" => kb_matrix(4)(1) <= val;
-                                when X"3E" => kb_matrix(4)(2) <= val;
-                                when X"3D" => kb_matrix(4)(3) <= val;
-                                when X"36" => kb_matrix(4)(4) <= val;
-     
-                                -- Row 5 (A13): P, O, I, U, Y
+
                                 when X"4D" => kb_matrix(5)(0) <= val;
                                 when X"44" => kb_matrix(5)(1) <= val;
                                 when X"43" => kb_matrix(5)(2) <= val;
                                 when X"3C" => kb_matrix(5)(3) <= val;
                                 when X"35" => kb_matrix(5)(4) <= val;
-     
-                                -- Row 6 (A14): ENTER, L, K, J, H
+
                                 when X"5A" => kb_matrix(6)(0) <= val;
                                 when X"4B" => kb_matrix(6)(1) <= val;
                                 when X"42" => kb_matrix(6)(2) <= val;
                                 when X"3B" => kb_matrix(6)(3) <= val;
                                 when X"33" => kb_matrix(6)(4) <= val;
-     
-                                -- Row 7 (A15): SPACE, SYMBOL SHIFT, M, N, B
-                                when X"29"         => kb_matrix(7)(0) <= val;
-                                when X"14" | X"11" => kb_matrix(7)(1) <= val; -- Ctrl/Alt -> Symbol Shift
-                                when X"3A"         => kb_matrix(7)(2) <= val;
-                                when X"31"         => kb_matrix(7)(3) <= val;
-                                when X"32"         => kb_matrix(7)(4) <= val;
-     
-                                -- Backspace -> CAPS SHIFT + '0'
-                                when X"66" =>
-                                    kb_matrix(0)(0) <= val;
-                                    kb_matrix(4)(0) <= val;
-     
+
+                                when X"29" => kb_matrix(7)(0) <= val;
+                                when X"14" | X"11" => kb_matrix(7)(1) <= val;
+                                when X"3A" => kb_matrix(7)(2) <= val;
+                                when X"31" => kb_matrix(7)(3) <= val;
+                                when X"32" => kb_matrix(7)(4) <= val;
+
                                 when others => null;
                             end case;
                         end if;
-     
-                        release_flag := '0'; -- consumed
+
+                        -- Clear flags ONLY after a full scancode packet has been consumed
+                        release_flag  := '0';
+                        extended_flag := '0';
                     end if;
-     
+
                     dec_state := IDLE;
-     
+
                 when others =>
                     dec_state := IDLE;
             end case;
+
+            -- ========================================================
+            -- MACRO DELAY LOGIC (Runs every clock cycle)
+            -- ========================================================
+            if m_active /= m_pressed then
+                if m_timer = 100000 then
+                    m_active := m_pressed;
+                    m_timer  := 0;
+                else
+                    m_timer := m_timer + 1;
+                end if;
+            else
+                m_timer := 0;
+            end if;
+
+            -- 1. Caps Shift: 
+            if (std_cs = '1') or (m_active /= "00000") then
+                kb_matrix(0)(0) <= '0';
+            else
+                kb_matrix(0)(0) <= '1';
+            end if;
+
+            -- 2. Number Keys (Standard typing + Arrow macros + Standard Numpad mapping):
+            
+            -- Left (5) -> Standard '5', macro arrow 1, or standard numpad 4 (`6B`)
+            if (std_5 = '1') or (m_active(0) = '1') or (np_5 = '1') then
+                kb_matrix(3)(4) <= '0';
+            else
+                kb_matrix(3)(4) <= '1';
+            end if;
+
+            -- Down (6) -> Standard '6', macro arrow 2, or standard numpad 5 (`73`)
+            if (std_6 = '1') or (m_active(1) = '1') or (np_6 = '1') then
+                kb_matrix(4)(4) <= '0';
+            else
+                kb_matrix(4)(4) <= '1';
+            end if;
+
+            -- Up (7) -> Standard '7', macro arrow 3, or standard numpad 8 (`75`)
+            if (std_7 = '1') or (m_active(2) = '1') or (np_7 = '1') then
+                kb_matrix(4)(3) <= '0';
+            else
+                kb_matrix(4)(3) <= '1';
+            end if;
+
+            -- Right (8) -> Standard '8', macro arrow 4, or standard numpad 6 (`74`)
+            if (std_8 = '1') or (m_active(3) = '1') or (np_8 = '1') then
+                kb_matrix(4)(2) <= '0';
+            else
+                kb_matrix(4)(2) <= '1';
+            end if;
+
+            -- Backspace (0)
+            if (std_0 = '1') or (m_active(4) = '1') then
+                kb_matrix(4)(0) <= '0';
+            else
+                kb_matrix(4)(0) <= '1';
+            end if;
+
         end if;
     end process;
      
@@ -258,12 +364,7 @@ BEGIN
         END IF;
     END PROCESS;
      
-    -- READ FROM ULA (combinational, always reflects the currently addressed row)
-    -- Bits 0-4: keyboard matrix, active-low (0 = pressed)
-    -- Bit 5: unused (1)
-    -- Bit 6: EAR input (tape)
-    -- Bit 7: unused (1)
-    dOUT <= "111" & ZXSpec_KEYB;
+
 
 
 ----------------------

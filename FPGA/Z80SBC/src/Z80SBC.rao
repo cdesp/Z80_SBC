@@ -84,99 +84,30 @@
                 <Signal>sDataout[0]</Signal>
             </Bus>
             <Signal capture_enable="true">sISDout</Signal>
-            <Signal capture_enable="true">U_Z80_NMI_HANDLER/saw_ed</Signal>
-            <Signal capture_enable="true">U_Z80_NMI_HANDLER/retn_detected</Signal>
-            <Signal capture_enable="true">U_Z80_NMI_HANDLER/tool_request</Signal>
-            <Bus capture_enable="true" name="U_Z80_NMI_HANDLER/seq_state[5:0]">
-                <Signal>U_Z80_NMI_HANDLER/seq_state.seq_idle</Signal>
-                <Signal>U_Z80_NMI_HANDLER/seq_state.seq_save_ctx</Signal>
-                <Signal>U_Z80_NMI_HANDLER/seq_state.seq_wr_bank0</Signal>
-                <Signal>U_Z80_NMI_HANDLER/seq_state.seq_wait_vector</Signal>
-                <Signal>U_Z80_NMI_HANDLER/seq_state.seq_wait_retn</Signal>
-                <Signal>U_Z80_NMI_HANDLER/seq_state.seq_restore</Signal>
+            <Signal capture_enable="true">BA_Spectrum/ps2_rd_req</Signal>
+            <Bus capture_enable="true" name="BA_Spectrum/dOUT[7:0]">
+                <Signal>BA_Spectrum/dOUT[7]</Signal>
+                <Signal>BA_Spectrum/dOUT[6]</Signal>
+                <Signal>BA_Spectrum/dOUT[5]</Signal>
+                <Signal>BA_Spectrum/dOUT[4]</Signal>
+                <Signal>BA_Spectrum/dOUT[3]</Signal>
+                <Signal>BA_Spectrum/dOUT[2]</Signal>
+                <Signal>BA_Spectrum/dOUT[1]</Signal>
+                <Signal>BA_Spectrum/dOUT[0]</Signal>
             </Bus>
-            <Signal capture_enable="true">sTools_Act</Signal>
-            <Signal capture_enable="true">flash_prog</Signal>
-            <Bus capture_enable="true" name="sBANK0_PAGE[7:0]">
-                <Signal>sBANK0_PAGE[7]</Signal>
-                <Signal>sBANK0_PAGE[6]</Signal>
-                <Signal>sBANK0_PAGE[5]</Signal>
-                <Signal>sBANK0_PAGE[4]</Signal>
-                <Signal>sBANK0_PAGE[3]</Signal>
-                <Signal>sBANK0_PAGE[2]</Signal>
-                <Signal>sBANK0_PAGE[1]</Signal>
-                <Signal>sBANK0_PAGE[0]</Signal>
+            <Bus capture_enable="true" name="BA_Spectrum/ps2_data_byte[7:0]">
+                <Signal>BA_Spectrum/ps2_data_byte[7]</Signal>
+                <Signal>BA_Spectrum/ps2_data_byte[6]</Signal>
+                <Signal>BA_Spectrum/ps2_data_byte[5]</Signal>
+                <Signal>BA_Spectrum/ps2_data_byte[4]</Signal>
+                <Signal>BA_Spectrum/ps2_data_byte[3]</Signal>
+                <Signal>BA_Spectrum/ps2_data_byte[2]</Signal>
+                <Signal>BA_Spectrum/ps2_data_byte[1]</Signal>
+                <Signal>BA_Spectrum/ps2_data_byte[0]</Signal>
             </Bus>
-            <Bus capture_enable="true" name="sBANK1_PAGE[7:0]">
-                <Signal>sBANK1_PAGE[7]</Signal>
-                <Signal>sBANK1_PAGE[6]</Signal>
-                <Signal>sBANK1_PAGE[5]</Signal>
-                <Signal>sBANK1_PAGE[4]</Signal>
-                <Signal>sBANK1_PAGE[3]</Signal>
-                <Signal>sBANK1_PAGE[2]</Signal>
-                <Signal>sBANK1_PAGE[1]</Signal>
-                <Signal>sBANK1_PAGE[0]</Signal>
-            </Bus>
-            <Bus capture_enable="true" name="sBANK2_PAGE[7:0]">
-                <Signal>sBANK2_PAGE[7]</Signal>
-                <Signal>sBANK2_PAGE[6]</Signal>
-                <Signal>sBANK2_PAGE[5]</Signal>
-                <Signal>sBANK2_PAGE[4]</Signal>
-                <Signal>sBANK2_PAGE[3]</Signal>
-                <Signal>sBANK2_PAGE[2]</Signal>
-                <Signal>sBANK2_PAGE[1]</Signal>
-                <Signal>sBANK2_PAGE[0]</Signal>
-            </Bus>
-            <Bus capture_enable="true" name="sBANK3_PAGE[7:0]">
-                <Signal>sBANK3_PAGE[7]</Signal>
-                <Signal>sBANK3_PAGE[6]</Signal>
-                <Signal>sBANK3_PAGE[5]</Signal>
-                <Signal>sBANK3_PAGE[4]</Signal>
-                <Signal>sBANK3_PAGE[3]</Signal>
-                <Signal>sBANK3_PAGE[2]</Signal>
-                <Signal>sBANK3_PAGE[1]</Signal>
-                <Signal>sBANK3_PAGE[0]</Signal>
-            </Bus>
-            <Bus capture_enable="true" name="sBANK4_PAGE[7:0]">
-                <Signal>sBANK4_PAGE[7]</Signal>
-                <Signal>sBANK4_PAGE[6]</Signal>
-                <Signal>sBANK4_PAGE[5]</Signal>
-                <Signal>sBANK4_PAGE[4]</Signal>
-                <Signal>sBANK4_PAGE[3]</Signal>
-                <Signal>sBANK4_PAGE[2]</Signal>
-                <Signal>sBANK4_PAGE[1]</Signal>
-                <Signal>sBANK4_PAGE[0]</Signal>
-            </Bus>
-            <Bus capture_enable="true" name="sBANK5_PAGE[7:0]">
-                <Signal>sBANK5_PAGE[7]</Signal>
-                <Signal>sBANK5_PAGE[6]</Signal>
-                <Signal>sBANK5_PAGE[5]</Signal>
-                <Signal>sBANK5_PAGE[4]</Signal>
-                <Signal>sBANK5_PAGE[3]</Signal>
-                <Signal>sBANK5_PAGE[2]</Signal>
-                <Signal>sBANK5_PAGE[1]</Signal>
-                <Signal>sBANK5_PAGE[0]</Signal>
-            </Bus>
-            <Bus capture_enable="true" name="sBANK6_PAGE[7:0]">
-                <Signal>sBANK6_PAGE[7]</Signal>
-                <Signal>sBANK6_PAGE[6]</Signal>
-                <Signal>sBANK6_PAGE[5]</Signal>
-                <Signal>sBANK6_PAGE[4]</Signal>
-                <Signal>sBANK6_PAGE[3]</Signal>
-                <Signal>sBANK6_PAGE[2]</Signal>
-                <Signal>sBANK6_PAGE[1]</Signal>
-                <Signal>sBANK6_PAGE[0]</Signal>
-            </Bus>
-            <Bus capture_enable="true" name="sBANK7_PAGE[7:0]">
-                <Signal>sBANK7_PAGE[7]</Signal>
-                <Signal>sBANK7_PAGE[6]</Signal>
-                <Signal>sBANK7_PAGE[5]</Signal>
-                <Signal>sBANK7_PAGE[4]</Signal>
-                <Signal>sBANK7_PAGE[3]</Signal>
-                <Signal>sBANK7_PAGE[2]</Signal>
-                <Signal>sBANK7_PAGE[1]</Signal>
-                <Signal>sBANK7_PAGE[0]</Signal>
-            </Bus>
+            <Signal capture_enable="true">BA_Spectrum/extended_flag</Signal>
+            <Signal capture_enable="true">BA_Spectrum/release_flag</Signal>
+            <Signal capture_enable="true">BA_Spectrum/dec_state</Signal>
         </SignalList>
         <Triggers>
             <Trigger index="0">
@@ -271,14 +202,24 @@
             </Trigger>
             <Trigger index="6">
                 <SignalList>
-                    <Signal>nMREQ_r</Signal>
-                    <Signal>nRD_CPU_r</Signal>
                     <Bus restorename="system_selection[3:0]">
                         <Signal>system_selection[3]</Signal>
                         <Signal>system_selection[2]</Signal>
                         <Signal>system_selection[1]</Signal>
                         <Signal>system_selection[0]</Signal>
                     </Bus>
+                    <Signal>BA_Spectrum/ps2_rd_req</Signal>
+                    <Bus restorename="BA_Spectrum/ps2_data_byte[7:0]">
+                        <Signal>BA_Spectrum/ps2_data_byte[7]</Signal>
+                        <Signal>BA_Spectrum/ps2_data_byte[6]</Signal>
+                        <Signal>BA_Spectrum/ps2_data_byte[5]</Signal>
+                        <Signal>BA_Spectrum/ps2_data_byte[4]</Signal>
+                        <Signal>BA_Spectrum/ps2_data_byte[3]</Signal>
+                        <Signal>BA_Spectrum/ps2_data_byte[2]</Signal>
+                        <Signal>BA_Spectrum/ps2_data_byte[1]</Signal>
+                        <Signal>BA_Spectrum/ps2_data_byte[0]</Signal>
+                    </Bus>
+                    <Signal>BA_Spectrum/extended_flag</Signal>
                 </SignalList>
             </Trigger>
             <Trigger index="7">
@@ -309,13 +250,13 @@
             </Trigger>
         </Triggers>
         <MatchUnits>
-            <MatchUnit index="0" enabled="1" match_type="0" counter_enable="0" counter_width="5" counter="6" countinuous="0" func="0" value0="010001011" value1="000000000" trigger="0"/>
+            <MatchUnit index="0" enabled="0" match_type="0" counter_enable="0" counter_width="5" counter="6" countinuous="0" func="0" value0="010001011" value1="000000000" trigger="0"/>
             <MatchUnit index="1" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="010000" value1="000000" trigger="1"/>
-            <MatchUnit index="2" enabled="1" match_type="4" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="4" value0="0000000011100001" value1="0000000000000000" trigger="2"/>
+            <MatchUnit index="2" enabled="0" match_type="4" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="4" value0="0000000011100001" value1="0000000000000000" trigger="2"/>
             <MatchUnit index="3" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="11111111" value1="00000000" trigger="3"/>
-            <MatchUnit index="4" enabled="1" match_type="4" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="5" value0="0000000011100001" value1="0000000000000000" trigger="4"/>
+            <MatchUnit index="4" enabled="0" match_type="4" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="5" value0="0000000011100001" value1="0000000000000000" trigger="4"/>
             <MatchUnit index="5" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="0" value1="0" trigger="5"/>
-            <MatchUnit index="6" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="000100" value1="000000" trigger="6"/>
+            <MatchUnit index="6" enabled="1" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="00111011010111" value1="00000000000000" trigger="6"/>
             <MatchUnit index="7" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="1" value1="0" trigger="7"/>
             <MatchUnit index="8" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
             <MatchUnit index="9" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="10" value1="00" trigger="9"/>
@@ -327,8 +268,8 @@
             <MatchUnit index="15" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="1" value1="0" trigger="15"/>
         </MatchUnits>
         <Expressions type="Static">
-            <Expression>M0&amp;M2&amp;M4</Expression>
+            <Expression>M6</Expression>
         </Expressions>
     </AoCore>
-    <GAO_ID>1001011110011001</GAO_ID>
+    <GAO_ID>1011000010111100</GAO_ID>
 </GAO_CONFIG>

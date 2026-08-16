@@ -51,7 +51,7 @@ ORG $2200 ;MYRAMBANK IS 1 SO $2000
         @BYTESREAD       DEFS 2
         @TOTBYTES        DEFS 4          ;DE:BC THE FILE SIZE BC IF FILE <65K
         @BLOCKBYTES      DEFS 2
-        @BLOCKTYPE       DEFS 1
+        @BLOCKTYPE       DEFS 1		 ;THIS THE FLAG BYTE
         @LASTADDR        DEFS 2
         @CHECKSUM        DEFS 1
         @DIRFILENAME     DEFS 20

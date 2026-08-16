@@ -204,8 +204,8 @@ CONTOK2B:       ;FILE OPENED OK
                 CALL RS_NEWLINE
 
 CONTOK2:        ;READ THE 1ST 2 BYTES = TOTAL BYTES
-                LD DE,BLOCKBYTES  ;READ BLOCK BYTES
-                LD BC,2
+                LD DE,BLOCKBYTES  ;READ BLOCK BYTES + FLAG BYTE
+                LD BC,3
                 CALL STRG_BLKREAD                           
                 JR Z, CONTOK2A
                 LD HL, FILREDERR
@@ -279,7 +279,8 @@ CONTOK3:        PUSH DE
                 POP DE
                 POP BC
                 POP AF  ;NOW WE HAVE THE OLD REGISTERS
-                LD DE, (LASTREAD)
+                LD A,0 
+                LD DE, 0;0 = all read (LASTREAD)
                 LD IX, (LASTADDR)
                 SCF                                
                 PUSH AF		;save old regs on old sp

@@ -77,6 +77,7 @@ SKIP1:		JP BEF_SP_CHANGE
                 POP DE
                 POP BC
                 POP AF
+		EI
                 RET
 
 ;ROUTINE THAT CHECKS IF THIS IS THE FIRST TIME RUNNING TO INITIALIZE VAR

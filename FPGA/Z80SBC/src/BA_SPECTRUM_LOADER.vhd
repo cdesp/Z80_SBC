@@ -92,6 +92,7 @@ architecture rtl of Spectrum_Load_Interceptor is
     signal m1_active_d    : std_logic := '0';
     signal opcode_shadow  : std_logic_vector(7 downto 0) := (others => '0');
     signal ret_detected   : std_logic := '0';
+    signal ret_in_progress : std_logic := '0';
 
     -- MMU Sequencer Drive Registers
     signal mmu_wr_active  : std_logic := '0';
@@ -147,7 +148,7 @@ begin
             -- (lower 8 bits of address handle standard port mapping)
             if CPU_IORQ_n = '0' and CPU_WR_n = '0' 
                and CPU_A(7 downto 0) = C_TARGET_PORT 
-               and CPU_D = C_TARGET_IO_DATA and LOADER_ACTIVE='1' then
+               and CPU_D = C_TARGET_IO_DATA  then
                 out_port_hit <= '1';
             else
                 out_port_hit <= '0';
@@ -155,30 +156,42 @@ begin
         end if;
     end process;
 
+
+----------------------------------------------------------------------
+    -- 2. Opcode Fetch Monitor (Safe RET Execution)
     ----------------------------------------------------------------------
-    -- 2. Opcode Fetch Monitor (RET Detection)
-    ----------------------------------------------------------------------
-    m1_active <= '1' when (CPU_M1_n = '0' and CPU_MREQ_n = '0' and CPU_RD_n = '0' and LOADER_ACTIVE='1') else '0';
+    m1_active <= '1' when (CPU_M1_n = '0' and CPU_MREQ_n = '0' and CPU_RD_n = '0' and LOADER_ACTIVE = '1') else '0';
 
     process (CLK_IN, reset_n)
     begin
         if reset_n = '0' then
-            ret_detected  <= '0';
-            opcode_shadow <= (others => '0');
-            m1_active_d   <= '0';
+            ret_detected   <= '0';
+            opcode_shadow  <= (others => '0');
+            m1_active_d    <= '0';
+            ret_in_progress <= '0';
         elsif rising_edge(CLK_IN) then
-            ret_detected <= '0'; -- Default single-cycle strobe
+            ret_detected <= '0';
             m1_active_d  <= m1_active;
 
             if seq_state = SEQ_WAIT_RET then
+                -- Step A: Capture the RET opcode on M1 cycle
                 if m1_active = '1' then
-                    opcode_shadow <= CPU_D; -- Continuously capture data bus lines
+                    opcode_shadow <= CPU_D;
                 elsif m1_active_d = '1' and m1_active = '0' then
-                    -- Detect falling edge of fetch cycle (data safely locked and stabilized)
+                    -- Falling edge of M1 fetch cycle
                     if opcode_shadow = C_OPCODE_RET then
-                        ret_detected <= '1';
+                        ret_in_progress <= '1'; -- Mark RET as fetched, waiting for execution to finish
                     end if;
                 end if;
+
+                -- Step B: Wait for RET to finish executing (Z80 pops stack), 
+                -- then detect the NEXT M1 cycle starting.
+                if ret_in_progress = '1' and m1_active = '1' then
+                    ret_detected    <= '1'; -- NOW it is safe to trigger the MMU restore!
+                    ret_in_progress <= '0';
+                end if;
+            else
+                ret_in_progress <= '0';
             end if;
         end if;
     end process;
