@@ -33,6 +33,9 @@ architecture RTL of AmstradVideo is
     constant BORDER_V : integer := 100;  -- Vertical border offset
     constant ACTIVE_W : integer := 640;  -- 320 CPC pixels * 2
     constant ACTIVE_H : integer := 400;  -- 200 CPC lines * 2
+    -- FOR PAGE $C0 IS 0. FOR $C1 IS 8192 change the amstrad mmu also to match the page
+    constant BITMAP_BASE    : integer := 8192;      
+
 
     signal in_active   : std_logic;
     signal x_rel       : integer range 0 to 2047;
@@ -175,7 +178,7 @@ variable base_addr : unsigned(15 downto 0);
                     case phase is
                         when 0 =>
                             -- Step A: Set Address for current block/column
-                              bm_addr := 
+                              bm_addr := BITMAP_BASE +
                                 to_unsigned(
                                     (line_in_row * 2048) + 
                                     (char_row * 80) + 

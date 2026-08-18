@@ -1,6 +1,7 @@
                
 	       ;USE PS2ISK TO CHECK IF A KEY IS AVAILABLE
 	       ;USE READCHAR TO GET THE KEY TRANSLATED TO CHAR
+	       ;********** NEEDS ATL_PS2KBTRANS.Z80 **********
 	       
 	        GLOBAL PS2KBINIT	        
                 GLOBAL PS2ISK		
@@ -63,4 +64,4 @@ NGETKEY:	DI
 		RET
 		
 
-INCLUDE ATL_PS2KBTRANS.Z80
+;INCLUDE ATL_PS2KBTRANS.Z80

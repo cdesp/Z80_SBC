@@ -66,11 +66,14 @@ entity Z80_NMI_Handler is
         sPS2_BTRDY    : in  std_logic;                      -- byte-ready level
         sPS2_DATA     : in  std_logic_vector(7 downto 0);   -- received byte
         sPS2_READ     : out std_logic;                      -- ack pulse, 1 cycle
+        sNMIClear     : out std_logic;                      -- ack pulse, 1 cycle active low
+        sNewByteForNMI: in std_logic;                       -- active high
 
         -- Flag: high for one cycle whenever a byte is consumed by this
         -- module (F2/F3/F4 make codes) and must NOT be forwarded to the
         -- CPC keyboard handler.
         oKey_Consumed : out std_logic;
+        NMI_Key       : out std_logic;  
 
         -- Z80 bus (for $0066 vector fetch detection and ED 45 RETN detection)
         CPU_A         : in  std_logic_vector(15 downto 0);
@@ -137,7 +140,7 @@ architecture rtl of Z80_NMI_Handler is
     --   ps2_break_pending tracks whether the byte we are about to service
     --   is the break code following an F0 prefix (orthogonal to the
     --   handshake state machine).
-    type ps2_hs_state_t is (PS2_S_WAIT, PS2_S_ACK, PS2_S_CLEAR);
+    type ps2_hs_state_t is (PS2_S_WAIT, PS2_S_ACK, PS2_S_CLEAR, PS2_S_WAIT_TOOL);
     signal ps2_hs_state     : ps2_hs_state_t := PS2_S_WAIT;
     signal ps2_break_pending : std_logic := '0';
 
@@ -191,98 +194,97 @@ architecture rtl of Z80_NMI_Handler is
     signal restore_active  : std_logic := '0';
     signal restore_done    : std_logic := '0';
 
+    signal ps2_toolkey_held : std_logic;  -- add near ps2_break_pending
+    
 begin
 
-    ----------------------------------------------------------------------
-    -- PS2 key receiver
-    --   Implements the level-held BTRDY / pulsed READ handshake:
-    --     PS2_S_WAIT  - wait for sPS2_BTRDY = '1' (a byte is available).
-    --                   Service it combinationally with the current
-    --                   register values, then pulse sPS2_READ for one
-    --                   cycle to tell the source to fetch the next byte.
-    --     PS2_S_ACK   - drop sPS2_READ back to '0' (it was only asserted
-    --                   for a single CLK_IN cycle).
-    --     PS2_S_CLEAR - wait here until sPS2_BTRDY drops back to '0',
-    --                   confirming the source has moved on, before
-    --                   returning to PS2_S_WAIT to look for the next byte.
-    --                   Without this wait we could re-latch the same byte
-    --                   multiple times while BTRDY is still high.
-    --
-    --   Tracks break-code prefix (F0) so break codes are ignored.
-    --   Only make codes for F2 (05) / F3 (0D) / F4 (0C) are consumed and
-    --   turned into a tool_request pulse + tool_page_reg value. All other
-    --   bytes (and all break codes) are NOT consumed, i.e. oKey_Consumed
-    --   stays low and the byte is left for the normal CPC keyboard path.
-    ----------------------------------------------------------------------
+ 
+
     process (CLK_IN, reset_n)
     begin
         if reset_n = '0' then
             ps2_hs_state      <= PS2_S_WAIT;
             ps2_break_pending <= '0';
+            ps2_toolkey_held  <= '0';
             tool_request      <= '0';
             tool_page_reg     <= (others => '0');
             oKey_Consumed     <= '0';
             sPS2_READ         <= '0';
+            nmi_key           <= '0';    
+            sNMIClear         <= '1'; --active low            
         elsif rising_edge(CLK_IN) then
-            -- defaults: pulses are one cycle wide
             tool_request  <= '0';
             oKey_Consumed <= '0';
             sPS2_READ     <= '0';
-
+            sNMIClear     <= '1'; --one tick only
             case ps2_hs_state is
                 when PS2_S_WAIT =>
-                    if sPS2_BTRDY = '1' then
+                    if sPS2_BTRDY = '1' and sNewByteForNMI='1' then
                         if ps2_break_pending = '0' then
-                            if sPS2_DATA = C_PS2_MAKE_F0 then
-                                -- break prefix incoming; the next byte
-                                -- serviced will be the break code itself.
+                            if sPS2_DATA = C_PS2_MAKE_F0 and nmi_key='1' then
+                                -- Break prefix. If a tool key is currently
+                                -- held, this F0 belongs to ITS break
+                                -- sequence -> swallow it too, so the CPC
+                                -- decoder never sees an orphaned F0.
                                 ps2_break_pending <= '1';
+                                if ps2_toolkey_held = '1' then
+                                    oKey_Consumed <= '1';
+                                end if;
                             elsif sPS2_DATA = C_PS2_F2 then
-                                tool_page_reg <= C_TOOL_PAGE_F2;
-                                tool_request  <= '1';
-                                oKey_Consumed <= '1';
+                                tool_page_reg    <= C_TOOL_PAGE_F2;
+                                tool_request     <= '1';
+                                oKey_Consumed    <= '1';
+                                ps2_toolkey_held <= '1';
+                                nmi_key <= '1';    
                             elsif sPS2_DATA = C_PS2_F3 then
-                                tool_page_reg <= C_TOOL_PAGE_F3;
-                                tool_request  <= '1';
-                                oKey_Consumed <= '1';
+                                tool_page_reg    <= C_TOOL_PAGE_F3;
+                                tool_request     <= '1';
+                                oKey_Consumed    <= '1';
+                                ps2_toolkey_held <= '1';
+                                nmi_key <= '1';    
                             elsif sPS2_DATA = C_PS2_F4 then
-                                tool_page_reg <= C_TOOL_PAGE_F4;
-                                tool_request  <= '1';
-                                oKey_Consumed <= '1';
-                            end if;
-                            -- any other make code: not consumed, falls
-                            -- through to the normal keyboard handler.
+                                tool_page_reg    <= C_TOOL_PAGE_F4;
+                                tool_request     <= '1';
+                                oKey_Consumed    <= '1';
+                                ps2_toolkey_held <= '1';
+                                nmi_key <= '1';    
+
+                            else --not our key reject it by clear sNewByteForNMI
+                                sNMIClear<='0';
+                            end if;                            
                         else
-                            -- this byte is the break code itself; ignore
-                            -- it regardless of value, and do not consume
-                            -- it (let the CPC keyboard handler see
-                            -- releases normally), except releases of
-                            -- F2/F3/F4 which we also swallow so the CPC
-                            -- never sees them.
+                            -- this byte is the break code itself
                             if sPS2_DATA = C_PS2_F2 or
                                sPS2_DATA = C_PS2_F3 or
                                sPS2_DATA = C_PS2_F4 then
-                                oKey_Consumed <= '1';
+                                oKey_Consumed    <= '1';
+                                ps2_toolkey_held <= '0';
+                                nmi_key <= '1';    
                             end if;
                             ps2_break_pending <= '0';
                         end if;
-
-                        -- byte serviced: pulse READ to advance to the
-                        -- next byte, then wait for BTRDY to clear.
-                        sPS2_READ    <= '1';
-                        ps2_hs_state <= PS2_S_ACK;
+                        
+                        if nmi_key = '1' then
+                          sPS2_READ    <= '1';
+                          ps2_hs_state <= PS2_S_ACK;
+                        end if;
                     end if;
 
                 when PS2_S_ACK =>
-                    -- sPS2_READ already deasserted by the default above;
-                    -- this state just spends one cycle before waiting
-                    -- for BTRDY to clear.
                     ps2_hs_state <= PS2_S_CLEAR;
 
                 when PS2_S_CLEAR =>
-                    if sPS2_BTRDY = '0' then
+                    if ps2_toolkey_held = '0' and nmi_key = '1' then
+                        nmi_key <= '0'; --we got all key scans                        
+                        ps2_hs_state <= PS2_S_WAIT_TOOL;
+                    elsif sPS2_BTRDY = '0' then
                         ps2_hs_state <= PS2_S_WAIT;
                     end if;
+    
+                when PS2_S_WAIT_TOOL =>
+                      if TOOLS_ACTIVE='0' then 
+                         ps2_hs_state <= PS2_S_WAIT; 
+                      end if;
             end case;
         end if;
     end process;

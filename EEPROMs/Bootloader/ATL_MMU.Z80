@@ -13,9 +13,11 @@
                 GLOBAL INITMMU            ; Initializes the MMU banks to a default setup (bank 0 -> page 0, etc.).
                 GLOBAL PUTPGINBANK        ; Puts a specific page into a memory bank. Params: B = bank number (0-7), A = page number (0-255).
                 GLOBAL GETPGINBANK        ; Gets the current page number for a given bank. Params: B = bank number (0-7). Returns: A = page number.
+                GLOBAL MMU_READ           ; Read from the fpga the page in a bank
                 GLOBAL BANKS              ; A global memory location storing the current page-to-bank mapping.
 
 ;DEVMMU PORT
+MMU_READ_PORT  EQU DEVMMU;
                 
 ;-------------------------------------------------------------------------------
 ; INITMMU: Initializes the MMU banks to a default setup.
@@ -98,4 +100,20 @@ GETPGINBANK:    LD HL, BANKS
                 LD A, (HL)
                 RET
                 
+
+; READ CURRENT PAGE MAPPED TO A BANK
+; IN:  B = bank number (0-7)
+; OUT: A = current page in that bank
+MMU_READ:
+		PUSH BC
+                SLA B   ;PUT IT ON HIGH BYTES
+                SLA B
+                SLA B
+                SLA B
+                SLA B  
+                LD C,MMU_READ_PORT              
+		IN A,(C)
+		POP BC
+		RET
+
                 END

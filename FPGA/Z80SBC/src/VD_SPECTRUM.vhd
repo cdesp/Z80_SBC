@@ -70,8 +70,9 @@ architecture RTL of spectrumvideo is
     constant BORDER_V       : integer := (SCREEN_H - ACTIVE_H) / 2; -- 12
 
     -- Spectrum 16K video-RAM memory map (byte offsets)
-    constant BITMAP_BASE    : integer := 0;      -- 0x0000..0x17FF (6144 bytes)
-    constant ATTR_BASE      : integer := 6144;   -- 0x1800..0x1AFF (768 bytes)
+    -- FOR PAGE $C0 IS 0. FOR $C1 IS 8192
+    constant BITMAP_BASE    : integer := 8192;      -- 0x0000..0x17FF (6144 bytes)
+    constant ATTR_OFFSET    : integer := 6144;   -- 0x1800..0x1AFF (768 bytes)
     constant SHADOW_OFFSET  : integer := 16384;   -- shadow/second screen offset 16384 for +2,+3
 
     -- Flash-attribute toggle period, in host frames (~ once every 16 frames,
@@ -189,14 +190,14 @@ begin
                 case V_IN.h_cnt is
                     when 2 =>
                         y_u := to_unsigned(fetch_y, 8);
-                        bm_addr := (to_integer(y_u and "11000000") * 32) +
+                        bm_addr := BITMAP_BASE + (to_integer(y_u and "11000000") * 32) +
                                    (to_integer(y_u and "00000111") * 256) +
                                    (to_integer(y_u and "00111000") * 4) + 0;
                         vram_addr_pxl <= to_unsigned(bm_addr, 16);
 
                     when 6 =>
                         bitmap_next <= vram_data_reg;
-                        at_addr := ATTR_BASE + (fetch_y/8)*32 + 0;
+                        at_addr := BITMAP_BASE + ATTR_OFFSET + (fetch_y/8)*32 + 0;
                         vram_addr_pxl <= to_unsigned(at_addr, 16);
 
                     when 10 =>
@@ -219,14 +220,14 @@ begin
                     case ((V_IN.h_cnt - BORDER_H) mod (8*ZOOM)) is
                         when 0 =>
                             y_u := to_unsigned(fetch_y, 8);
-                            bm_addr := (to_integer(y_u and "11000000") * 32) +
+                            bm_addr := BITMAP_BASE + (to_integer(y_u and "11000000") * 32) +
                                        (to_integer(y_u and "00000111") * 256) +
                                        (to_integer(y_u and "00111000") * 4) + pre_col;
                             vram_addr_pxl <= to_unsigned(bm_addr, 16);
 
                         when 4 =>
                             bitmap_next <= vram_data_reg;
-                            at_addr := ATTR_BASE + (fetch_y/8)*32 + pre_col;
+                            at_addr := BITMAP_BASE + ATTR_OFFSET + (fetch_y/8)*32 + pre_col;
                             vram_addr_pxl <= to_unsigned(at_addr, 16);
 
                         when 8 =>

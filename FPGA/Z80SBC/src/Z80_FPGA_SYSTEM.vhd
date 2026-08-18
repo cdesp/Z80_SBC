@@ -166,10 +166,10 @@ architecture structural of Z80_FPGA_SYSTEM is
     -- ***************************************************************
     -- ** SIGNALS FOR ASYNCHRONOUS RESET SYNCHRONIZATION **
     -- ***************************************************************
-    signal reset_n_sync1    : std_logic := '1'; -- Stage 1 (Active Low)
-    signal reset_n_sync2    : std_logic := '1'; -- Synchronized Reset (Active Low)
-    signal reset_a_sync     : std_logic;        -- Synchronized Reset (Active High) for DPVRAM
-    signal nreset           : std_logic := '1'; -- Synchronized Reset (Active Low) copy of reset_n_sync2
+    signal reset_n_sync1    : std_logic := '0'; -- Stage 1 (Active Low)
+    signal reset_n_sync2    : std_logic := '0'; -- Synchronized Reset (Active Low)
+    signal reset_a_sync     : std_logic := '1';        -- Synchronized Reset (Active High) for DPVRAM
+    signal nreset           : std_logic := '0'; -- Synchronized Reset (Active Low) copy of reset_n_sync2
     -- ***************************************************************
 
     -- Debounce tracking (Assuming a slow 100Hz to 1kHz sample clock, or a large counter)
@@ -321,15 +321,21 @@ architecture structural of Z80_FPGA_SYSTEM is
     signal sCPC_BANK_SEL    : std_logic_vector(2 downto 0) := (others => '0'); --bank selection 0-7
     signal sCPC_BANK_WE     : std_logic;
     signal sAmstradEN       : std_logic :='0'; --active high 
+    signal sAmstradTry      : std_logic :='0'; --active high this go high to signal we want to set amstrad sys
+    signal amstrad_booted_flag : std_logic :='0'; --active high
 
 
         --NMI tools
     signal sTools_Act       : std_logic := '0'; -- active high
+    signal sKEYCONS         : std_logic := '0'; -- active high
+    signal sNMI_KEY         : std_logic := '0'; -- active high
     signal sNMI_PS2_Read    : std_logic := '0'; -- active high
     signal sNMI_NMI_n       : std_logic := '1'; -- active low
     signal sNMI_BANK_PAGE   : std_logic_vector(7 downto 0); -- page to put in bank
     signal sNMI_BANK_SEL    : std_logic_vector(2 downto 0); --bank select 0-7
     signal sNMI_BANK_WE     : std_logic := '0'; -- active high
+    signal sNewByteForNMI   : std_logic := '0'; -- active high
+    signal sNMIClear        : std_logic := '1'; -- active low
 
 
 
@@ -641,6 +647,8 @@ architecture structural of Z80_FPGA_SYSTEM is
             PS2_DS_N       : in    std_logic;
             PS2_BT_RDY     : out    std_logic; 
             FPGA_READ      : in std_logic; 
+            NMIClear       : in std_logic; -- Active low when low clears the  NewByteForNMI
+            NewByteForNMI  : out std_logic; --flags the nmi that a newbyte arrived to check it
             Z80_IO_ADDR    : in    std_logic_vector(7 downto 0);
             Z80_RD_N       : in    std_logic;
             Z80_WR_N       : in    std_logic;
@@ -809,8 +817,12 @@ architecture structural of Z80_FPGA_SYSTEM is
             sPS2_BTRDY    : in  std_logic;
             sPS2_DATA     : in  std_logic_vector(7 downto 0);
             sPS2_READ     : out std_logic;
+            sNMIClear     : out std_logic;                      -- ack pulse, 1 cycle active low
+            sNewByteForNMI: in std_logic;                       -- active high
+
      
             oKey_Consumed : out std_logic;
+            NMI_Key       : out std_logic;
      
             CPU_A         : in  std_logic_vector(15 downto 0);
             CPU_D         : in  std_logic_vector(7 downto 0);
@@ -838,16 +850,18 @@ architecture structural of Z80_FPGA_SYSTEM is
 
 begin
 
--- ***************************************************************
-    -- ** RESET SYNCHRONIZATION PROCESS (Active-Low LRESET_N to CLK) **
     -- ***************************************************************
-    -- This synchronizer converts the asynchronous LRESET_N to a reliable,
-    -- synchronous signal (reset_n_sync2) in the CLK domain.
-    PROCESS (CLK_Z80_INT)
+    -- ** ROBUST RESET SYNCHRONIZATION PROCESS                      **
+    -- ***************************************************************
+    PROCESS (CLK_Z80_INT, LRESET_N)
     BEGIN
-        IF rising_edge(CLK_Z80_INT) THEN
-            -- Reset propagation path (active low)
-            reset_n_sync1 <= LRESET_N;
+        IF LRESET_N = '0' then
+            -- Asynchronously force everything to reset state immediately
+            reset_n_sync1 <= '0';
+            reset_n_sync2 <= '0';
+        ELSIF rising_edge(CLK_Z80_INT) THEN
+            -- Synchronous release path
+            reset_n_sync1 <= '1';
             reset_n_sync2 <= reset_n_sync1;
         END IF;
     END PROCESS;
@@ -1066,7 +1080,7 @@ begin
         master_in.Z80_ADDR    <= Z80_LA_BUS_INT;
         master_in.INT_REQ_N   <= nINT_REQ_PERIPH;
 
-        sotsigs_in.PS2_KEYB_Int <= sPS2_BTRDY; --active high
+        sotsigs_in.PS2_KEYB_Int <= sPS2_BTRDY when sNewByteForNMI='0' else '0'; --active high only activate if nmi does not want it
         sotsigs_in.PS2_DATA     <= PS2_DATA_OUT;
         sotsigs_in.CPU_SPEED    <= clk_reg_out;
         sotsigs_in.ToolActive   <= sTools_Act;
@@ -1081,7 +1095,7 @@ begin
         BADEV2          <= master_out.DEV2;
         nCLK_SEL        <= master_out.CLK_SEL_RG_N;
         UART_nCS        <= master_out.UART_CS_N;
-        PS2_DSn         <= master_out.PS2_DS_N when sTools_Act='0' else '1'; -- disable keyboard when on debugger;
+        PS2_DSn         <= master_out.PS2_DS_N when sNMI_Key='0' else '1'; -- disable keyboard for z80 when handling a Fx key;
         VD_DSn          <= master_out.VD_DS_N ;
         I2C_CSn         <= master_out.I2C_CS_N;
         SYS_CSn         <= master_out.SYS_CS_N;
@@ -1107,8 +1121,8 @@ begin
                       sDMsigs_out WHEN OTHERS;
 
     
-    --active high signal to get another key from ps/2
-     sPS2_READ <=    sNMI_PS2_Read when sTools_Act='1' 
+    --active high signal to get another key from ps/2 FROM FPGA
+     sPS2_READ <=    sNMI_PS2_Read when sNMI_KEY='1'
                 else sotsigs_out.PS2_KEYB_READ  when system_selection="0011" or system_selection="0100" --for zx spec or cpc 464
                 else '0';
 
@@ -1165,8 +1179,12 @@ begin
             sPS2_BTRDY    => sPS2_BTRDY,
             sPS2_DATA     => PS2_DATA_OUT,
             sPS2_READ     => sNMI_PS2_Read,
+            sNMIClear     => sNMIClear,         -- ack pulse, 1 cycle active low
+            sNewByteForNMI=> sNewByteForNMI,    -- active high
+
      
-            oKey_Consumed => open, --probably not needed same as ps2read
+            oKey_Consumed => sKEYCONS, --SIGNALS THAT NMI TOOK THE KEY
+            NMI_Key       => sNMI_KEY, --signals that we are handling a NMI key (Fx)
      
             CPU_A         => Z80_LA_BUS_INT,
             CPU_D         => Z80_DATA_IN_INT,
@@ -1371,6 +1389,8 @@ begin
         PS2_DS_N     => PS2_DSn,       -- Your decoded signal from top-level
         PS2_BT_RDY   => sPS2_BTRDY,  -- Active high 
         FPGA_READ    => sPS2_READ, -- Active high
+        NMIClear     => sNMIClear, --active low
+        NewByteForNMI =>  sNewByteForNMI, --active high
         Z80_IO_ADDR  => Z80_LA_BUS_INT(7 downto 0),   -- Connect to Z80 address bus
         Z80_RD_N     => nRD_CPU_r,       -- Connect to Z80 RD signal
         Z80_WR_N     => nWR_CPU_r,       -- Connect to Z80 WR signal
@@ -1570,27 +1590,51 @@ begin
     reg_video_sel_n <= '0' when (VD_DSn = '0' and LWR_N = '0') else  '1';
     reg_system_sel_n <= '0' when (SYS_CSn = '0' and nWR_CPU_r = '0') else  '1';
 
-    process(CLK_IN, nRESET) --CLK_Z80_INT
+    process(CLK_IN, nRESET)
     begin
         if nRESET = '0' then
-          --  video_selection <= "0000";
-            system_selection <= "0000";
+            video_selection     <= "0000";
+            system_selection    <= "0000";
+            sAmstradTry         <= '0';
+            amstrad_booted_flag <= '0';
         elsif rising_edge(CLK_IN) then
             if reg_system_sel_n = '0' then
-                -- Store lower 4 bits to address 16 potential systems
-                if Z80_DATA_IN_INT(3 downto 0)/="0100" then  --all but amstrad we ll set it another way for now
-                   system_selection <= unsigned(Z80_DATA_IN_INT(3 downto 0)); 
+                -- Standard path for all non-Amstrad systems OR Amstrad after its first boot
+                if Z80_DATA_IN_INT(3 downto 0) /= "0100" or amstrad_booted_flag = '1' then  
+                    system_selection <= unsigned(Z80_DATA_IN_INT(3 downto 0));  
+                    
+                    -- High nibble rule: 
+                    -- If high nibble is 0, update video to match system.
+                    -- If high nibble is NOT 0 (e.g. loading), keep the original screen/video.
+                    if Z80_DATA_IN_INT(7 downto 4) = "0000" then 
+                        video_selection <= unsigned(Z80_DATA_IN_INT(3 downto 0));
+                    end if;
+                    
+                    sAmstradTry <= '0';
+                else 
+                    -- First-time Amstrad selection: arm the trigger for the first OUT
+                    sAmstradTry <= '1';
+                    
+                    -- High nibble check for initial selection if needed
+                    if Z80_DATA_IN_INT(7 downto 4) = "0000" then
+                        video_selection <= "0100";                        
+                    end if;
                 end if;
-            elsif system_selection=0 then
-                if nIORQ_r='0' and nWR_CPU_r='0' and Z80_LA_BUS_INT=x"7F89" then
-                   system_selection<="0100";
+                
+            -- When Amstrad is armed for its very first boot, wait for the first OUT at x"7F89"
+            elsif system_selection = 0 and sAmstradTry = '1' then
+                if nIORQ_r = '0' and nWR_CPU_r = '0' and Z80_LA_BUS_INT = x"7F89" then
+                    system_selection    <= "0100";
+                    video_selection <= "0100";                    
+                    amstrad_booted_flag <= '1'; -- Mark that the first-time boot sequence is complete                    
+                    sAmstradTry <= '0'; 
                 end if;
             end if;
         end if;
     end process;
 
 
-    with system_selection select
+    with video_selection select
         selected_video <= bootl_bus_out when "0000",
                           atlas_bus_out when "0001",
                           nb_bus_out    when "0010",

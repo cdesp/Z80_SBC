@@ -1,0 +1,222 @@
+
+
+        BOOTMENU EQU $02AC
+
+;MAIN ROUTINE  FOR NMI ENTRY 0066H
+@SHOWDIR:
+		PUSH AF		;save old regs on old sp
+		PUSH BC
+		PUSH DE
+		PUSH HL
+		PUSH IX
+		PUSH IY
+		;READ SYSTEM PAGES AND SYSTEM SAVE THEM ON OUR VAR PAGE
+		IN A,(DEVSYS)           ;current system should be saved and
+		LD D,A			;SAVE TO D
+                XOR A
+                OUT (DEVSYS),A          ;SET NEW SYSTEM  0 AS BOOTLOADER 				
+		LD B,MYRAMBANK		;READ OLD page  OF our ram bank
+		CALL MMU_READ	;A THE PAGE
+		LD E,A 		;SAVE TO E
+		LD A,$7F	;LAST RAM PAGE IS OUR VAR PAGE ON BANK 7
+		LD B,MYRAMBANK
+		SLA B 
+		SLA B 
+		SLA B 
+		SLA B 
+		SLA B 
+		LD C,DEVMMU
+		OUT (C),A	;CANT USE MMU SET CALL HERE SAFELY
+		CALL CHECKID
+		;JR C,SKIP1 ;not used cause we have to clear the ram page on bootloader or on fpga on reset
+		LD A,E 		;RESTORE A AS OLD PAGE ON 7
+		LD (OLDBNK7),A  ;SAVE AS VAR
+                LD A,D 		
+		LD (OLDSYS),A   ;SAVE SYS VAR	
+		CALL PRINT_A		
+		;CHANGE SP
+SKIP1:		LD HL,0
+		ADD HL,SP 	;HL HAS THE SP
+		LD (OLDSP),HL		
+		LD SP,BLSTACKP	;RAM TOP		
+		
+		;MAIN WORK SHOW THE MENU AND SELECT AN ITEM
+		CALL INITMENU
+		LD A,1
+		LD (SCRNST),A
+		LD A,(DIROPENED)
+                OR A 
+		JR NZ, DIROPNED
+                LD HL,DIRNM
+                LD A,'\' ;'
+                LD (HL),A 
+                INC HL
+                XOR A 
+                LD (HL),A 
+                INC HL
+                LD (HL),A 
+                LD HL,DIRECTORY
+                ;OPEN HE DIRECTORY
+                CALL STRG_DIRNMCHG        ;THIS PUTS THE NEW DIR ON THE DIRNM VAR
+                CALL STRG_OPENCDIR      ;THIS OPENS THE DIRNM VAR	
+		JR NC,DIROP
+                LD HL,DIROPNERR
+                JP MYDISKERROR		
+DIROP:		LD A,1
+		LD (DIROPENED),A
+DIROPNED: 	CALL  OS_PRINTMSG
+		DEFM "DIR OPENED"
+		DB 0
+		LD HL,MENU
+		LD (MENUPTR),HL
+		CALL STRG_DIRLIST	;THIS CALLS MNG_DIR_ENTRY FOR EACH DIR ENTRY
+		LD HL,(MENUPTR)
+		XOR A 
+		LD (HL),0		;SIGNAL END OF MENU
+		INC HL
+		LD (HL),0
+		CALL GETMNUSEL
+		JR NC, MENUOK
+		CALL  OS_PRINTMSG
+		DEFM "MENU EMPTY!"
+		DB 0		
+
+		;HL POINTS TO THE STRING SELECTED
+		;A POINTS TO THE NUMBER ON THE LIST
+		;CALL RS_RX
+MENUOK:		LD A,12
+		LD (VGATX_X),A
+		LD A,2
+		LD (VGATX_Y),A		   
+		LD DE,FILENAME
+		PUSH DE
+		LD BC,12	;8.3
+		LDIR ;COPY TO FILENAME
+		XOR A 
+		LD (DE),A	;NULL TERMINATE
+		CALL STRG_CLSFILE ;CLOSE FILE IF ONE IS OPENED
+		POP HL
+		CALL OS_PRINTTEXT
+
+
+		;RESTORE SYSTEM PAGES AND SYSTEM AND EXIT
+		;RESTORE SP
+		LD HL,(OLDSP)		
+		LD SP,HL	;SP RESTORED VARS NO LONGER NEEDED
+		LD A,(OLDSYS) 
+		LD D, A
+		LD A,(OLDBNK7)
+		LD B,MYRAMBANK
+		SLA B 
+		SLA B 
+		SLA B 
+		SLA B 
+		SLA B 		   
+		LD C,DEVMMU
+		OUT (C),A       ;WE CAN'T USE CALL HERE SAFELY
+		LD A,D 		 
+                OUT (DEVSYS),A          ;SET SYSTEM BACK	
+		POP IY
+		POP IX
+		POP HL
+		POP DE
+		POP BC
+		POP AF
+		RETN
+
+@TEST    	DEFM "VGA TEST"
+		DB 0
+
+;THIS ONE IS CALLED FOR EACH DIR ENTRY 32BYTES
+;DATA IN USBBUF ON HL
+;0x00	8 bytes	DIR_Name
+;0x08	3 bytes	DIR_Extension
+;0x0B	1 byte	DIR_Attr (ReadOnly, Hidden, System, Volume, Directory, Archive)
+;0x0C	1 byte	DIR_NTRes
+;0x0D	1 byte	DIR_CrtTimeTenth
+;0x0E	2 bytes	DIR_CrtTime
+;0x10	2 bytes	DIR_CrtDateFile
+;0x12	2 bytes	DIR_LstAccDate
+;0x14	2 bytes	DIR_FstClusHI
+;0x16	2 bytes	DIR_WrtTime
+;0x18	2 bytes	DIR_WrtDate
+;0x1A	2 bytes	DIR_FstClusLO
+;0x1C	4 bytes	DIR_FileSize
+
+
+@MNG_DIR_ENTRY: 
+		LD A,(HL)		
+		CP '.'
+		RET Z 	;SKIP IF DIR CUR OR BACK
+		LD DE,(MENUPTR)
+		;HL THE FILE STRUCT				
+		PUSH HL
+		POP IX ;IX THE FILE STRUCT
+		LD BC,8
+		LDIR  	;COPY FILENAME
+                LD A,'.'
+		LD (DE),A
+                INC DE
+		LD BC,3
+		LDIR	;COPY EXTENSION
+		LD A,' '
+		LD (DE),A
+		INC DE
+		LD A,' '
+		LD (DE),A
+		INC DE
+		PUSH IX
+		POP HL
+		LD BC, $1C 
+		ADD HL,BC
+		CALL CNVTOKB
+		LD A,C 		;BC HAS THE KB SUPPORT UP TO 255KB
+		PUSH DE
+		CALL B2D8
+		POP DE
+                LD HL,B2DBUF
+		CALL SKIPSPC
+DE_NEXT:	LD A,(HL)
+		OR A 
+		JR Z, DE_OVER
+		LD (DE),A
+		INC DE
+		INC HL
+		JR DE_NEXT
+DE_OVER:	LD A,'K'
+		LD (DE),A 
+		INC DE
+		LD A,'B'
+		LD (DE),A 
+		INC DE
+                XOR A
+		LD (DE),A
+		INC DE
+		LD (MENUPTR),DE	;NEXT ENTRY POINTER
+		RET
+
+;HL POINTS TO 32BIT (4BYTES), LITTLE-ENDIAN (LSB FIRST)
+;RETURN BC HAS THE KBs (VALUE >> 10, LOW 16 BITS)
+;DESTROYS: A, HL
+CNVTOKB:
+		PUSH DE
+		INC   HL        ;SKIP BYTE0 (LSB) - LOST IN >>10 ANYWAY
+		LD    E,(HL)    ;E = BYTE1
+		INC   HL
+		LD    D,(HL)    ;D = BYTE2
+		INC   HL
+		LD    A,(HL)    ;A = BYTE3 (MSB)
+
+		;SHIFT THE 24-BIT VALUE A:D:E RIGHT BY 2 (TOTAL SHIFT = 8+2 = 10)
+		SRL   A
+		RR    D
+		RR    E
+		SRL   A
+		RR    D
+		RR    E
+
+		LD    C,E
+		LD    B,D
+		POP DE
+		RET
+

@@ -33,8 +33,7 @@ GLOBAL PS2LOK
     ; Memory accessed: PS2TAB1, PS2TAB2
 
 ;----------------- Check for Extended Keys -----------------
-CHECKEXT:
-    CP $E1                     ; Check for break key (break code)
+@CHECKEXT:    CP $E1                     ; Check for break key (break code)
     RET Z                      ; If break, just save it (exit)
     CP $F0                     ; Check for key release code (240)
     RET Z                      ; If release, just save it (exit)
@@ -187,8 +186,7 @@ CAPSTOG:
 ;----------------- ASCII translation: PS2LOK -----------------
 ; Converts scan code to ASCII considering shift and caps lock
 ; Returns in A, Z=1 if invalid
-PS2LOK:
-    CP $AA                    ; Validate scan code range
+@PS2LOK:    CP $AA                    ; Validate scan code range
     JR C, DOTRANS            ; If less, translate
     XOR A                     ; Invalid code, clear A
     RET

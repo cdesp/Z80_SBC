@@ -1,0 +1,212 @@
+module MENU		
+
+;SHOWS A  MENU OF FILES ON THE DISK E.G. *.TAP FILES
+;USER SELECTS THE FILE AND RETURN TO THE CALLING ROUTINE.
+;THE FILES ARE SHOWN A SPECIFIED NUMBER AT A TIME E.G. 10
+;AND THE REST OF THEM LIE IN DIFFERENT PAGES
+;PAGES ARE CHANGED IF YOU GO PASS THE 10TH OR BEFORE THE 1ST ONE (THAT GOES NEXT OR PREV)
+;ALSO BY PRESSING THE LEFT OR RIGHT ARROWS IT CHANGES A WHOLE PAGE
+;USE THE MNG_DIR_ENTRY FUNCTION TO GET THE NECESSARY DATA TO AN ARRAY ON MEMORY (MENU)
+;ON THIS MEMORY AREA IF THERE ARE TWO ZEROES MEAN IT IS THE LAST ENTRY.
+;IF NO ENTRY THEN MENU SHOULD EXIT WITH CARRY SET TO SIGNAL ERROR NO FILES
+
+
+
+        
+        DEF_SCR_COL EQU $4B	;BLACK GREEN
+		MNU_X	EQU 9 
+		MNU_Y	EQU 7
+		MNU_WD	EQU 20
+		MNU_COL EQU $F1		;WHITE BLUE
+		MNU_SEL_COL EQU $B1		;LIGHTCYAN BLUE
+		MNU_DEF_ITM EQU 1		;NOT COUNTING SERIAL DEBUG
+		MNU_LINES EQU $F1
+		MNU_UPL EQU 139
+		MNU_UPR EQU 138
+		MNU_DNL EQU 137
+		MNU_DNR EQU 136
+		MNU_LNH EQU 129
+		MNU_LNV EQU 130 
+		
+		MNU_UPL EQU 143
+		MNU_UPR EQU 142
+		MNU_DNL EQU 141
+		MNU_DNR EQU 140
+		MNU_LNH EQU 129
+		MNU_LNV EQU 130 
+
+;THIS ONE IS CALLED FOR EACH DIR ENTRY 32BYTES
+;DIRFILENAME IS THE POINTER TO THE 32BYTE STRUCTURE FROM THE CH376S USB FLASH DRIVE
+;DATA IN USBBUF ON HL
+
+@MNG_DIR_ENTRY: LD DE,DIRFILENAME
+                PUSH DE
+                LD BC,8
+                LDIR  
+                LD A,'.'
+                LD (DE),A
+                INC DE
+                LD BC,3
+                LDIR
+                XOR A
+                LD (DE),A
+                POP HL
+                CALL RS_TXT
+                CALL RS_NEWLINE		
+                RET        
+
+
+@INITMENU: 	CALL VGA_SETLOWTX
+		    LD A, DEF_SCR_COL
+		    CALL VGA_SETCOL	
+		    CALL VGA_CLRSCR	
+            RET
+
+ DEMOITM:   DEFM "ITEM 1"
+            DB 0
+            DEFM "ITEM 2"
+            DB 0
+            DEFM "ITEM 3"
+            DB 0
+            DEFM "ITEM 4"
+            DB 0            
+            DEFM "ITEM 5"
+            DB 0
+            DEFM "ITEM 6"
+            DB 0
+            DB 0,0
+DEMOITMEND:  NOP
+
+PRINTMENU:  LD DE,MENU
+            LD HL,DEMOITM
+            LD BC, DEMOITMEND-DEMOITM
+            LDIR 
+            LD A,5
+            LD HL, MNUITEMS
+            LD (HL),A
+            LD A, 0 ;DEFAULT NEWBRAIN
+            INC HL ;SELECTED
+            LD (HL),A         
+            JP SHOWMENU
+
+
+
+PRINTLINE:	LD B,MNU_WD
+            LD A, MNU_LNH
+            CALL OS_PRNCHARSFE
+            DJNZ $-5
+            RET
+PRINTLNUP:	PUSH BC
+            LD A, MNU_LINES
+            CALL VGA_SETCOL	
+            LD A,MNU_UPL
+            CALL OS_PRNCHARSFE
+            CALL PRINTLINE
+            LD A,MNU_UPR
+            CALL OS_PRNCHARSFE
+            POP BC
+            RET
+PRINTLNDN:	PUSH BC
+            LD A, MNU_LINES
+            CALL VGA_SETCOL	
+            LD A,MNU_DNL
+            CALL OS_PRNCHARSFE
+            CALL PRINTLINE
+            LD A,MNU_DNR
+            CALL OS_PRNCHARSFE
+            POP BC
+            RET
+SHOWMENU:	LD B,0		;COUNTER		
+            LD A,MNU_Y		;LINE
+            LD (VGATX_Y),A
+            LD A,MNU_X		;COLUMN
+            LD (VGATX_X),A 		
+            CALL PRINTLNUP
+            LD A,MNU_Y+1	;LINE
+            LD (VGATX_Y),A
+            LD HL,MENU	
+SM_NEXT:	LD A,MNU_X		;COLUMN
+            LD (VGATX_X),A 
+            LD A, MNU_LINES
+            CALL VGA_SETCOL			
+            LD A,MNU_LNV
+            CALL OS_PRNCHARSFE
+            LD A, MNU_COL
+            CALL VGA_SETCOL
+            LD A,(SELECTED)
+            CP B
+            JR NZ, DEFCOL		
+            LD A, MNU_SEL_COL
+            CALL VGA_SETCOL
+DEFCOL:		PUSH BC
+            PUSH HL			;SAVE START OF STRING
+            CALL OS_PRINTTEXT
+            POP DE			;RESTORE START HL=END
+            PUSH HL
+            XOR A 			;CLEAR CARRY
+            SBC HL,DE		;RESULT ON L
+NXTSPC:		LD A,L 
+            CP MNU_WD		;TOTAL LINE CHARS
+            JR Z, NXTLNE
+            LD A,' '
+            CALL OS_PRNCHARSFE
+            INC L
+            JR NXTSPC
+NXTLNE:		LD A, MNU_LINES
+            CALL VGA_SETCOL			
+            LD A,MNU_LNV
+            CALL OS_PRNCHARSFE
+            POP HL			;HL ON NEXT LINE
+            POP BC
+            LD A, (VGATX_Y)
+            INC A 			;NEXT LINE
+            LD (VGATX_Y),A
+            INC HL
+            INC B
+            LD A,(MNUITEMS)
+            CP B
+            JR NZ, SM_NEXT		
+            LD A,MNU_X		;COLUMN
+            LD (VGATX_X),A 		
+            CALL PRINTLNDN
+
+
+GETINPUT: 	CALL RS_RX		;TAKE A CHAR FROM RS232 OR PS2 KEYB
+            CP 0
+            JR Z,GETINPUT
+            CALL SND_BEEP2
+            CP $0B				;UP KEY
+            JR NZ, KNX1
+            LD A,(SELECTED)
+            CP 0
+            JR Z,KNX2			;NO MORE
+            DEC A 
+            LD (SELECTED),A
+            XOR A		
+KNX1:		CP $0A				;DN KEY
+            JR NZ, KNX2	
+            LD A,(MNUITEMS)
+            DEC A				;MINUS 1 OF TOTAL 4 ITEMS GOES 0-3
+            LD C,A
+            LD A,(SELECTED)
+            CP C
+            JR Z,KNX2			;NO MORE
+            INC A 
+            LD (SELECTED),A
+            XOR A
+KNX2:	    CP 13				;CHECK FOR ENTER
+            JP NZ,SHOWMENU
+
+            CALL RS_NEWLINE
+            LD A,(SELECTED)			;1ST ENTRY IS SERIAL DEBUG 
+            CALL SOUTAS
+            RET
+
+;CALL THIS TO SHOW THE MENU AND GET AN ENTRY FROM THE USER
+;ON RETURN 
+;HL POINTS TO THE STRING SELECTED
+;A POINTS TO THE NUMBER ON THE LIST
+@GETMNUSEL: CALL INITMENU
+            CALL PRINTMENU
+            RET
+         

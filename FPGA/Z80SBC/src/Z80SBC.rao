@@ -10,6 +10,12 @@
                 <Signal>system_selection[1]</Signal>
                 <Signal>system_selection[0]</Signal>
             </Bus>
+            <Bus capture_enable="true" name="video_selection[3:0]">
+                <Signal>video_selection[3]</Signal>
+                <Signal>video_selection[2]</Signal>
+                <Signal>video_selection[1]</Signal>
+                <Signal>video_selection[0]</Signal>
+            </Bus>
             <Bus capture_enable="true" name="Z80_DATA_OUT_INT[7:0]">
                 <Signal>Z80_DATA_OUT_INT[7]</Signal>
                 <Signal>Z80_DATA_OUT_INT[6]</Signal>
@@ -84,30 +90,125 @@
                 <Signal>sDataout[0]</Signal>
             </Bus>
             <Signal capture_enable="true">sISDout</Signal>
-            <Signal capture_enable="true">BA_Spectrum/ps2_rd_req</Signal>
-            <Bus capture_enable="true" name="BA_Spectrum/dOUT[7:0]">
-                <Signal>BA_Spectrum/dOUT[7]</Signal>
-                <Signal>BA_Spectrum/dOUT[6]</Signal>
-                <Signal>BA_Spectrum/dOUT[5]</Signal>
-                <Signal>BA_Spectrum/dOUT[4]</Signal>
-                <Signal>BA_Spectrum/dOUT[3]</Signal>
-                <Signal>BA_Spectrum/dOUT[2]</Signal>
-                <Signal>BA_Spectrum/dOUT[1]</Signal>
-                <Signal>BA_Spectrum/dOUT[0]</Signal>
+            <Signal capture_enable="true">sPS2_BTRDY</Signal>
+            <Bus capture_enable="true" name="PS2_DATA_OUT[7:0]">
+                <Signal>PS2_DATA_OUT[7]</Signal>
+                <Signal>PS2_DATA_OUT[6]</Signal>
+                <Signal>PS2_DATA_OUT[5]</Signal>
+                <Signal>PS2_DATA_OUT[4]</Signal>
+                <Signal>PS2_DATA_OUT[3]</Signal>
+                <Signal>PS2_DATA_OUT[2]</Signal>
+                <Signal>PS2_DATA_OUT[1]</Signal>
+                <Signal>PS2_DATA_OUT[0]</Signal>
             </Bus>
-            <Bus capture_enable="true" name="BA_Spectrum/ps2_data_byte[7:0]">
-                <Signal>BA_Spectrum/ps2_data_byte[7]</Signal>
-                <Signal>BA_Spectrum/ps2_data_byte[6]</Signal>
-                <Signal>BA_Spectrum/ps2_data_byte[5]</Signal>
-                <Signal>BA_Spectrum/ps2_data_byte[4]</Signal>
-                <Signal>BA_Spectrum/ps2_data_byte[3]</Signal>
-                <Signal>BA_Spectrum/ps2_data_byte[2]</Signal>
-                <Signal>BA_Spectrum/ps2_data_byte[1]</Signal>
-                <Signal>BA_Spectrum/ps2_data_byte[0]</Signal>
+            <Signal capture_enable="true">sEnableDataOut</Signal>
+            <Bus capture_enable="true" name="U_PRODUCER_AMSTRAD/vram_addr_pxl[15:0]">
+                <Signal>U_PRODUCER_AMSTRAD/vram_addr_pxl[15]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/vram_addr_pxl[14]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/vram_addr_pxl[13]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/vram_addr_pxl[12]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/vram_addr_pxl[11]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/vram_addr_pxl[10]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/vram_addr_pxl[9]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/vram_addr_pxl[8]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/vram_addr_pxl[7]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/vram_addr_pxl[6]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/vram_addr_pxl[5]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/vram_addr_pxl[4]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/vram_addr_pxl[3]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/vram_addr_pxl[2]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/vram_addr_pxl[1]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/vram_addr_pxl[0]</Signal>
             </Bus>
-            <Signal capture_enable="true">BA_Spectrum/extended_flag</Signal>
-            <Signal capture_enable="true">BA_Spectrum/release_flag</Signal>
-            <Signal capture_enable="true">BA_Spectrum/dec_state</Signal>
+            <Bus capture_enable="true" name="am_regs.CRTC_R12[7:0]">
+                <Signal>am_regs.CRTC_R12[7]</Signal>
+                <Signal>am_regs.CRTC_R12[6]</Signal>
+                <Signal>am_regs.CRTC_R12[5]</Signal>
+                <Signal>am_regs.CRTC_R12[4]</Signal>
+                <Signal>am_regs.CRTC_R12[3]</Signal>
+                <Signal>am_regs.CRTC_R12[2]</Signal>
+                <Signal>am_regs.CRTC_R12[1]</Signal>
+                <Signal>am_regs.CRTC_R12[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="am_regs.CRTC_R13[7:0]">
+                <Signal>am_regs.CRTC_R13[7]</Signal>
+                <Signal>am_regs.CRTC_R13[6]</Signal>
+                <Signal>am_regs.CRTC_R13[5]</Signal>
+                <Signal>am_regs.CRTC_R13[4]</Signal>
+                <Signal>am_regs.CRTC_R13[3]</Signal>
+                <Signal>am_regs.CRTC_R13[2]</Signal>
+                <Signal>am_regs.CRTC_R13[1]</Signal>
+                <Signal>am_regs.CRTC_R13[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="U_PRODUCER_AMSTRAD/dbgcrtcstart[13:0]">
+                <Signal>U_PRODUCER_AMSTRAD/dbgcrtcstart[13]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/dbgcrtcstart[12]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/dbgcrtcstart[11]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/dbgcrtcstart[10]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/dbgcrtcstart[9]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/dbgcrtcstart[8]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/dbgcrtcstart[7]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/dbgcrtcstart[6]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/dbgcrtcstart[5]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/dbgcrtcstart[4]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/dbgcrtcstart[3]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/dbgcrtcstart[2]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/dbgcrtcstart[1]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/dbgcrtcstart[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="U_PRODUCER_AMSTRAD/dbgvideooff[15:0]">
+                <Signal>U_PRODUCER_AMSTRAD/dbgvideooff[15]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/dbgvideooff[14]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/dbgvideooff[13]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/dbgvideooff[12]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/dbgvideooff[11]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/dbgvideooff[10]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/dbgvideooff[9]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/dbgvideooff[8]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/dbgvideooff[7]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/dbgvideooff[6]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/dbgvideooff[5]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/dbgvideooff[4]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/dbgvideooff[3]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/dbgvideooff[2]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/dbgvideooff[1]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/dbgvideooff[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="U_PRODUCER_AMSTRAD/video_mode[1:0]">
+                <Signal>U_PRODUCER_AMSTRAD/video_mode[1]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/video_mode[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="U_PRODUCER_AMSTRAD/V_OUT.r_8[7:0]">
+                <Signal>U_PRODUCER_AMSTRAD/V_OUT.r_8[7]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/V_OUT.r_8[6]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/V_OUT.r_8[5]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/V_OUT.r_8[4]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/V_OUT.r_8[3]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/V_OUT.r_8[2]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/V_OUT.r_8[1]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/V_OUT.r_8[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="U_PRODUCER_AMSTRAD/V_OUT.g_8[7:0]">
+                <Signal>U_PRODUCER_AMSTRAD/V_OUT.g_8[7]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/V_OUT.g_8[6]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/V_OUT.g_8[5]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/V_OUT.g_8[4]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/V_OUT.g_8[3]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/V_OUT.g_8[2]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/V_OUT.g_8[1]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/V_OUT.g_8[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="U_PRODUCER_AMSTRAD/V_OUT.b_8[7:0]">
+                <Signal>U_PRODUCER_AMSTRAD/V_OUT.b_8[7]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/V_OUT.b_8[6]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/V_OUT.b_8[5]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/V_OUT.b_8[4]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/V_OUT.b_8[3]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/V_OUT.b_8[2]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/V_OUT.b_8[1]</Signal>
+                <Signal>U_PRODUCER_AMSTRAD/V_OUT.b_8[0]</Signal>
+            </Bus>
+            <Signal capture_enable="true">BA_Amstrad/OTSigs_in.ToolActive</Signal>
         </SignalList>
         <Triggers>
             <Trigger index="0">
@@ -161,15 +262,15 @@
             </Trigger>
             <Trigger index="3">
                 <SignalList>
-                    <Bus restorename="BA_Amstrad/dOUT_PPI[7:0]">
-                        <Signal>BA_Amstrad/dOUT_PPI[7]</Signal>
-                        <Signal>BA_Amstrad/dOUT_PPI[6]</Signal>
-                        <Signal>BA_Amstrad/dOUT_PPI[5]</Signal>
-                        <Signal>BA_Amstrad/dOUT_PPI[4]</Signal>
-                        <Signal>BA_Amstrad/dOUT_PPI[3]</Signal>
-                        <Signal>BA_Amstrad/dOUT_PPI[2]</Signal>
-                        <Signal>BA_Amstrad/dOUT_PPI[1]</Signal>
-                        <Signal>BA_Amstrad/dOUT_PPI[0]</Signal>
+                    <Bus restorename="BA_Spectrum/Z80_Out.DataOut[7:0]">
+                        <Signal>BA_Spectrum/Z80_Out.DataOut[7]</Signal>
+                        <Signal>BA_Spectrum/Z80_Out.DataOut[6]</Signal>
+                        <Signal>BA_Spectrum/Z80_Out.DataOut[5]</Signal>
+                        <Signal>BA_Spectrum/Z80_Out.DataOut[4]</Signal>
+                        <Signal>BA_Spectrum/Z80_Out.DataOut[3]</Signal>
+                        <Signal>BA_Spectrum/Z80_Out.DataOut[2]</Signal>
+                        <Signal>BA_Spectrum/Z80_Out.DataOut[1]</Signal>
+                        <Signal>BA_Spectrum/Z80_Out.DataOut[0]</Signal>
                     </Bus>
                 </SignalList>
             </Trigger>
@@ -250,13 +351,13 @@
             </Trigger>
         </Triggers>
         <MatchUnits>
-            <MatchUnit index="0" enabled="0" match_type="0" counter_enable="0" counter_width="5" counter="6" countinuous="0" func="0" value0="010001011" value1="000000000" trigger="0"/>
+            <MatchUnit index="0" enabled="1" match_type="0" counter_enable="0" counter_width="5" counter="6" countinuous="0" func="0" value0="000000111" value1="000000000" trigger="0"/>
             <MatchUnit index="1" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="010000" value1="000000" trigger="1"/>
-            <MatchUnit index="2" enabled="0" match_type="4" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="4" value0="0000000011100001" value1="0000000000000000" trigger="2"/>
-            <MatchUnit index="3" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="11111111" value1="00000000" trigger="3"/>
-            <MatchUnit index="4" enabled="0" match_type="4" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="5" value0="0000000011100001" value1="0000000000000000" trigger="4"/>
+            <MatchUnit index="2" enabled="1" match_type="4" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="4" value0="1111111000000000" value1="0000000000000000" trigger="2"/>
+            <MatchUnit index="3" enabled="1" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="1" value0="11111111" value1="00000000" trigger="3"/>
+            <MatchUnit index="4" enabled="1" match_type="4" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="5" value0="1111111111111110" value1="0000000000000000" trigger="4"/>
             <MatchUnit index="5" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="0" value1="0" trigger="5"/>
-            <MatchUnit index="6" enabled="1" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="00111011010111" value1="00000000000000" trigger="6"/>
+            <MatchUnit index="6" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="00111011010111" value1="00000000000000" trigger="6"/>
             <MatchUnit index="7" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="1" value1="0" trigger="7"/>
             <MatchUnit index="8" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
             <MatchUnit index="9" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="10" value1="00" trigger="9"/>
@@ -268,8 +369,8 @@
             <MatchUnit index="15" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="1" value1="0" trigger="15"/>
         </MatchUnits>
         <Expressions type="Static">
-            <Expression>M6</Expression>
+            <Expression>M0&amp;M2&amp;M3&amp;M4</Expression>
         </Expressions>
     </AoCore>
-    <GAO_ID>1011000010111100</GAO_ID>
+    <GAO_ID>1011111010100110</GAO_ID>
 </GAO_CONFIG>

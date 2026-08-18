@@ -48,7 +48,7 @@ architecture Behavioral of CPC_MMU_Bank_Sequencer is
             when "000"  => return X"0A";
             when "001"  => return X"02";
             when "010"  => return X"04";
-            when "011"  => return X"C0";
+            when "011"  => return X"C1";
             when "100"  => return X"16";
             when "101"  => return X"18";
             when "110"  => return X"1A";
@@ -63,7 +63,7 @@ architecture Behavioral of CPC_MMU_Bank_Sequencer is
             when "000"  => return X"0B";
             when "001"  => return X"03";
             when "010"  => return X"05";
-            when "011"  => return X"C1";
+            when "011"  => return X"C2";
             when "100"  => return X"17";
             when "101"  => return X"19";
             when "110"  => return X"1B";

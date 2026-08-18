@@ -135,7 +135,7 @@ BEGIN
     -- PS/2 decode FSM (with anti-race macro delay & standard numpad mapping)
     --------------------------------------------------------------------------------
     process(CLK_FPGA, nRESET)
-        type t_ps2_state is (IDLE, DECODE_BYTE);
+        type t_ps2_state is (IDLE, DECODE_BYTE); --, WAIT_CLEAR);
         variable dec_state     : t_ps2_state := IDLE;
         variable release_flag  : std_logic := '0';
         variable extended_flag : std_logic := '0';
@@ -281,6 +281,14 @@ BEGIN
                     end if;
 
                     dec_state := IDLE;
+
+--                when WAIT_CLEAR =>
+--                    
+----                     don't look for the next byte until the source has
+----                     acknowledged this one and dropped its ready flag
+--                    if OTSigs_in.PS2_KEYB_Int = '0' then
+--                        dec_state := IDLE;
+--                    end if;               
 
                 when others =>
                     dec_state := IDLE;

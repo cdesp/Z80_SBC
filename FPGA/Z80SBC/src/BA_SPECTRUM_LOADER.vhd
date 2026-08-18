@@ -55,7 +55,7 @@ architecture rtl of Spectrum_Load_Interceptor is
     ----------------------------------------------------------------------
     -- Constants
     ----------------------------------------------------------------------
-    constant C_SWAP_PAGE       : std_logic_vector(7 downto 0) := x"8D";
+    constant C_SWAP_PAGE       : std_logic_vector(7 downto 0) := x"8A"; --WAS $8D
     constant C_TARGET_PORT     : std_logic_vector(7 downto 0) := x"E4";
     constant C_TARGET_IO_DATA  : std_logic_vector(7 downto 0) := x"7F"; -- 127 in decimal
     constant C_OPCODE_RET      : std_logic_vector(7 downto 0) := x"C9"; -- Standard RET

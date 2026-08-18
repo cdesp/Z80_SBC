@@ -1,0 +1,479 @@
+module MENU		
+
+;SHOWS A  MENU OF FILES ON THE DISK E.G. *.TAP FILES
+;USER SELECTS THE FILE AND RETURN TO THE CALLING ROUTINE.
+;THE FILES ARE SHOWN A SPECIFIED NUMBER AT A TIME E.G. 10
+;AND THE REST OF THEM LIE IN DIFFERENT PAGES
+;PAGES ARE CHANGED IF YOU GO PASS THE 10TH OR BEFORE THE 1ST ONE (THAT GOES NEXT OR PREV)
+;ALSO BY PRESSING THE LEFT OR RIGHT ARROWS IT CHANGES A WHOLE PAGE
+;USE THE MNG_DIR_ENTRY FUNCTION TO GET THE NECESSARY DATA TO AN ARRAY ON MEMORY (MENU)
+;ON THIS MEMORY AREA IF THERE ARE TWO ZEROES MEAN IT IS THE LAST ENTRY.
+;IF NO ENTRY THEN MENU SHOULD EXIT WITH CARRY SET TO SIGNAL ERROR NO FILES
+
+
+        DEF_SCR_COL EQU $F9 ;WHITE,LIGHT CYAN 
+        MAX_LINES      EQU 20   ; Total screen rows
+        ITEMS_PER_PAGE EQU 10
+        MNU_X   EQU 9 
+        MNU_Y   EQU (MAX_LINES / 2) - (ITEMS_PER_PAGE / 2) - 1
+        MNU_WD  EQU 20
+        MNU_COL EQU $F1     ;WHITE BLUE
+        MNU_SEL_COL EQU $B1     ;LIGHTCYAN BLUE
+        MNU_DEF_ITM EQU 1       ;
+        MNU_LINES EQU $F1
+
+        MNU_UPL EQU 143
+        MNU_UPR EQU 142
+        MNU_DNL EQU 141
+        MNU_DNR EQU 140
+        MNU_LNH EQU 129
+        MNU_LNV EQU 130 
+
+        KEY_UP    EQU $0B
+        KEY_DOWN  EQU $0A
+        KEY_LEFT  EQU $04   ; Adjust based on your firmware scan-code map
+        KEY_RIGHT EQU $03   ; Adjust based on your firmware scan-code map
+        KEY_ENTER EQU 13
+
+
+; Placeholder system labels referenced outside this scope
+      
+
+@INITMENU:      CALL VGA_SETLOWTX ; THIS NEEDS THE FONT TOO AT FONT_ADDR EXCEPT IF 0
+                LD A, DEF_SCR_COL
+                CALL VGA_SETCOL	
+                CALL VGA_CLRSCR	
+                LD DE,MENU
+                LD HL,DEMOITM
+                LD BC, DEMOITMEND-DEMOITM
+                LDIR             
+                RET
+
+ DEMOITM:   DEFM "ITEM 1"
+            DB 0
+            DEFM "ITEM 2"
+            DB 0
+            DEFM "ITEM 3"
+            DB 0
+            DEFM "ITEM 4"
+            DB 0            
+            DEFM "ITEM 5"
+            DB 0
+            DEFM "ITEM 6"
+            DB 0
+        
+            DB 0,0
+DEMOITMEND:  NOP
+
+; --- ENTRY POINT ---
+; CALL THIS TO SHOW THE MENU AND GET AN ENTRY FROM THE USER
+; ON RETURN:
+;   - HL POINTS TO THE STRING SELECTED
+;   - A HAS THE INDEX OF THE SELECTED ENTRY
+;   - CARRY SET SIGNALS NO FILES / ERROR
+@GETMNUSEL: 
+        ;CALL INITMENU
+        
+        ; 1. Count absolute items in MENU buffer until double 00, 00
+        LD HL,MENU
+        LD BC,0             ; B = Total Items, C = Temporary / String Flag
+COUNT_LOOP:
+        LD A,(HL)
+        INC HL
+        CP 0
+        JR NZ, NOT_ZERO_TERM
+        ; Found a zero. Check next byte
+        LD A,(HL)
+        CP 0
+        JR Z, COUNT_DONE    ; Double zero found! We are done counting.
+        INC B               ; Single zero means 1 complete item parsed
+        JR COUNT_LOOP
+NOT_ZERO_TERM:
+        JR COUNT_LOOP
+
+COUNT_DONE:
+        ; Check if any items exist at all
+        LD A,B
+        CP 0
+        JR NZ, MENU_HAS_ITEMS
+        SCF                 ; Set Carry Flag to signal error (No Files)
+        RET
+
+MENU_HAS_ITEMS:
+        LD (TOTAL_ITEMS),A  ; Store absolute total items found
+        ; 2. Calculate Total Pages: Ceil(TOTAL_ITEMS / ITEMS_PER_PAGE)
+        LD C,0              ; Clear page counter
+        LD A,(TOTAL_ITEMS)
+CALC_PAGES:
+        INC C
+        SUB ITEMS_PER_PAGE
+        JR C,CALC_DONE      ; If Carry is set (A < 0), we went too far, done!
+        JR NZ,CALC_PAGES    ; If A > 0, loop again for next page
+CALC_DONE:
+        LD A,C
+        LD (TOTAL_PAGES),A
+
+        ; 3. Reset positions to Page 1, Item 0
+        XOR A
+        LD (CURR_PAGE),A    ; 0-indexed page variables
+        LD (SELECTED),A     ; Index relative to current page display (0-9)
+
+; --- MAIN RENDER AND INTERACTION LOOP ---
+MENU_LOOP:
+        CALL SHOWMENU
+        
+GETINPUT:   
+        CALL GET_KBCHAR 		;TAKE A CHAR FROM RS232 OR PS2 KEYB
+        CP 0
+        JR Z,GETINPUT
+        PUSH AF
+        CALL SND_BEEP2
+        POP AF
+
+        CP KEY_UP
+        JR NZ, CHK_DN
+        ; --- UP ARROW PRESSED ---
+        LD A,(SELECTED)
+        CP 0
+        JR NZ, UP_SAME_PAGE
+        ; Go to previous page if available
+        LD A,(CURR_PAGE)
+        CP 0
+        JR Z, GETINPUT      ; Top of Page 1: Do nothing
+        DEC A
+        LD (CURR_PAGE),A
+        LD A,ITEMS_PER_PAGE-1
+        LD (SELECTED),A     ; Highlight bottom item of previous page
+        JR MENU_LOOP
+UP_SAME_PAGE:
+        DEC A
+        LD (SELECTED),A
+        JR MENU_LOOP
+
+CHK_DN:
+        CP KEY_DOWN
+        JR NZ, CHK_LF
+        ; --- DOWN ARROW PRESSED ---
+        ; Check if next line exists globally
+        CALL GET_GLOBAL_INDEX ; A = Global index of currently selected item
+        INC A
+        LD C,A
+        LD A,(TOTAL_ITEMS)
+        CP C                ; Is next global item >= total items?
+        JR Z, GETINPUT      ; Yes: Absolute bottom reached, ignore key.
+
+        ; Check if pushing past page layout limit
+        LD A,(SELECTED)
+        INC A
+        CP ITEMS_PER_PAGE
+        JR NZ, DN_SAME_PAGE
+        ; Flip to next page
+        LD A,(CURR_PAGE)
+        INC A
+        LD (CURR_PAGE),A
+        XOR A
+        LD (SELECTED),A     ; Jump to top line of next page
+        JR MENU_LOOP
+DN_SAME_PAGE:
+        LD (SELECTED),A
+        JR MENU_LOOP
+
+CHK_LF:
+        CP KEY_LEFT
+        JR NZ, CHK_RT
+        ; --- LEFT ARROW PRESSED ---
+        LD A,(CURR_PAGE)
+        CP 0
+        JR Z, GETINPUT      ; Page 1: Cannot go back further
+        DEC A
+        LD (CURR_PAGE),A
+        XOR A
+        LD (SELECTED),A     ; Snap selection to top item of new page
+        JP MENU_LOOP
+
+CHK_RT:
+        CP KEY_RIGHT
+        JR NZ, CHK_ENT
+        ; --- RIGHT ARROW PRESSED ---
+        LD A,(CURR_PAGE)
+        INC A
+        LD C,A
+        LD A,(TOTAL_PAGES)
+        CP C                ; Is next page valid?
+        JR Z, GETINPUT      ; No: Already on maximum page
+        LD A,C
+        LD (CURR_PAGE),A
+        XOR A
+        LD (SELECTED),A     ; Snap selection to top item of new page
+        JP MENU_LOOP
+
+CHK_ENT:
+        CP KEY_ENTER
+        JP NZ, GETINPUT     ; Unknown keys are discarded
+
+        ; --- SELECTION CONFIRMED (ENTER) ---
+        CALL SEEK_PAGE_START ; Returns HL pointing to start of current page contents
+        LD A,(SELECTED)
+        CP 0
+        JR Z, ITEM_FOUND
+        LD B,A              ; Loop through local strings to get accurate pointer
+FIND_STR_LOOP:
+        LD A,(HL)
+        INC HL
+        CP 0
+        JR NZ, FIND_STR_LOOP
+        DJNZ FIND_STR_LOOP
+
+ITEM_FOUND:
+        PUSH HL             ; Save our selected string pointer
+        CALL RS_NEWLINE
+        CALL GET_GLOBAL_INDEX ; Returns absolute active number to A
+;        PUSH AF
+;        CALL SOUTAS         ; Debug output
+;        POP AF
+        POP HL              ; Restore HL pointer to selected string
+        OR A                ; Clear carry flag (Success)
+        RET
+
+; --- HELPER: CALCULATE GLOBAL DATA ELEMENT VALUE ---
+GET_GLOBAL_INDEX:
+        LD A,(CURR_PAGE)
+        LD B,ITEMS_PER_PAGE
+        CALL MULT_A_B       ; HL = CURR_PAGE * 10
+        LD A,L
+        LD C,A
+        LD A,(SELECTED)
+        ADD A,C             ; Add local selected index
+        RET
+
+MULT_A_B:                   ; Simple 8-bit Math utility
+        LD HL,0
+        LD D,0
+        LD E,A
+        CP 0
+        RET Z
+MULT_LOOP:
+        ADD HL,DE
+        DJNZ MULT_LOOP
+        RET
+
+; --- SEEK TO CURRENT PAGE OFFSET IN RAM ---
+SEEK_PAGE_START:
+        LD HL,MENU
+        LD A,(CURR_PAGE)
+        CP 0
+        RET Z               ; Page 0 starts directly at buffer start
+        LD B,A              ; Number of pages to skip over
+PAGE_SKIP_OUTER:
+        LD C,ITEMS_PER_PAGE
+PAGE_SKIP_INNER:
+        LD A,(HL)
+        INC HL
+        CP 0
+        JR NZ, PAGE_SKIP_INNER
+        DEC C
+        JR NZ, PAGE_SKIP_INNER
+        DJNZ PAGE_SKIP_OUTER
+        RET
+
+; --- RENDER ENGINE ROUTINE ---
+
+PRINTLINE:  LD B,MNU_WD
+            LD A, MNU_LNH
+            CALL OS_PRNCHARSFE
+            DJNZ $-5
+            RET
+
+PRINTLNUP:  PUSH BC
+            LD A, MNU_LINES
+            CALL VGA_SETCOL	
+            LD A,MNU_UPL
+            CALL OS_PRNCHARSFE
+            CALL PRINTLINE
+            LD A,MNU_UPR
+            CALL OS_PRNCHARSFE
+            POP BC
+            RET
+
+PRINTLNDN:	PUSH BC
+            LD A, MNU_LINES
+            CALL VGA_SETCOL	
+            LD A,MNU_DNL
+            CALL OS_PRNCHARSFE
+            CALL PRINTLINE
+            LD A,MNU_DNR
+            CALL OS_PRNCHARSFE
+            POP BC
+            RET
+
+
+SHOWMENU:   
+        ; Calculate total number of items to print on this specific page
+        LD A,(CURR_PAGE)
+        LD B,ITEMS_PER_PAGE
+        CALL MULT_A_B       ; HL = current skipped items
+        LD A,(TOTAL_ITEMS)
+        SUB L               ; Acc = Remaining items to render globally
+        CP ITEMS_PER_PAGE
+        JR C, LAST_PAGE_FITTING
+        LD A,ITEMS_PER_PAGE ; Lock printing to max 10
+LAST_PAGE_FITTING:
+        LD (PAGE_ITEMS),A   ; Stash items showing on current frame
+
+
+        ; Screen Layout Setup
+        LD A,MNU_Y
+        LD (VGATX_Y),A
+        LD A,MNU_X
+        LD (VGATX_X),A      
+        CALL PRINTLNUP
+
+        LD A,MNU_Y+1
+        LD (VGATX_Y),A
+        CALL SEEK_PAGE_START ; HL now contains correct page source data buffer pointer
+        LD B,0              ; B loop item item index tracer
+
+SM_NEXT:    
+        PUSH BC
+        LD A,MNU_X
+        LD (VGATX_X),A 
+        LD A, MNU_LINES
+        CALL VGA_SETCOL         
+        LD A,MNU_LNV
+        CALL OS_PRNCHARSFE
+
+        LD A, MNU_COL
+        CALL VGA_SETCOL
+        POP BC
+        LD A,(SELECTED)
+        CP B
+        JR NZ, DEFCOL       
+        LD A, MNU_SEL_COL
+        CALL VGA_SETCOL
+DEFCOL:     
+        PUSH BC
+        PUSH HL             ; Save start of item text string
+        CALL OS_PRINTTEXT
+        POP DE              ; DE = Start string pointer, HL = End pointer
+        PUSH HL
+        XOR A
+        SBC HL,DE
+        LD A,L              ; Length of printed string on screen
+NXTSPC:     
+        CP MNU_WD           ; Fill blank width spacing
+        JR Z, NXTLNE
+        PUSH AF
+        LD A,' '
+        CALL OS_PRNCHARSFE
+        POP AF
+        INC A
+        JR NXTSPC
+NXTLNE:     
+        LD A, MNU_LINES
+        CALL VGA_SETCOL         
+        LD A,MNU_LNV
+        CALL OS_PRNCHARSFE
+        POP HL              ; HL is point-ahead for next loop text
+        POP BC
+        LD A, (VGATX_Y)
+        INC A
+        LD (VGATX_Y),A
+        INC HL              ; Step over null byte terminator
+        INC B
+        LD A,(PAGE_ITEMS)
+        CP B
+        JR NZ, SM_NEXT      
+
+        CALL PAD_EMPTY_LINES
+
+        LD A,MNU_X
+        LD (VGATX_X),A      
+        CALL PRINTLNDN
+
+        ; --- DRAW FOOTER DATA: PAGE X OF Y ---
+        LD A,(VGATX_Y)
+        INC A               ; Drop line down below border frame
+        INC A
+        LD (VGATX_Y),A
+        LD A,MNU_X+2        ; Slight indent offset
+        LD (VGATX_X),A
+
+        LD A,MNU_COL
+        CALL VGA_SETCOL
+        
+        ; "Page " text literal
+        LD HL,TXT_PAGE
+        CALL OS_PRINTTEXT
+
+        ; "X" current page byte
+        LD A,(CURR_PAGE)
+        INC A               ; Change 0-9 to human readable 1-10 string index
+        ADD A,'0'
+        CALL OS_PRNCHARSFE
+
+        ; " of " literal
+        LD HL,TXT_OF
+        CALL OS_PRINTTEXT
+
+        ; "Y" maximum pages calculated
+        LD A,(TOTAL_PAGES)
+        ADD A,'0'
+        CALL OS_PRNCHARSFE
+        RET
+
+
+; =========================================================================
+; PAD_EMPTY_LINES
+; Fills out the menu box with empty lines if current page items < 10
+; Input: B = Number of items already rendered on this page
+; =========================================================================
+PAD_EMPTY_LINES:
+        LD A, ITEMS_PER_PAGE  ; Target line count (10)
+        SUB B                 ; How many lines are missing?
+        RET Z                 ; If 0 missing (page is full), exit immediately
+
+        LD C, A               ; C = Loop counter for remaining blank lines
+PAD_LOOP:
+        PUSH BC
+
+        ; Set X position to left frame edge
+        LD A, MNU_X
+        LD (VGATX_X), A
+
+        ; Print left border |
+        LD A, MNU_LINES
+        CALL VGA_SETCOL
+        LD A, MNU_LNV
+        CALL OS_PRNCHARSFE
+
+        ; Print blank body spaces across MNU_WD width
+        LD A, MNU_COL
+        CALL VGA_SETCOL
+        LD B, MNU_WD
+PAD_SPACES:
+        LD A, ' '
+        CALL OS_PRNCHARSFE
+        DJNZ PAD_SPACES
+
+        ; Print right border |
+        LD A, MNU_LINES
+        CALL VGA_SETCOL
+        LD A, MNU_LNV
+        CALL OS_PRNCHARSFE
+
+        ; Advance Y coordinate to next row
+        LD A, (VGATX_Y)
+        INC A
+        LD (VGATX_Y), A
+
+        POP BC
+        DEC C
+        JR NZ, PAD_LOOP
+        RET
+
+
+TXT_PAGE:    DEFM "Page "
+             DB 0
+TXT_OF:      DEFM " of "
+             DB 0
+

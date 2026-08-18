@@ -2,62 +2,11 @@
 
 @MYRAMBANK       EQU 1   ;WHERE WE PUT OUR RAM PAGE $7F
 
-DIRECTORY DEFM "SPECTRUM"
+@DIRECTORY DEFM "SPECTRUM"
           DB 0
-FILENAME  DEFM "SPECMAN .TAP"
+@DEMOFNAME  DEFM "SPECMAN .TAP"
           DB 0
-
-
-;THIS ONE IS CALLED FOR EACH DIR ENTRY 32BYTES
-;DATA IN USBBUF ON HL
-
-@MNG_DIR_ENTRY: LD DE,DIRFILENAME
-		PUSH DE
-		LD BC,8
-		LDIR  
-                LD A,'.'
-		LD (DE),A
-                INC DE
-		LD BC,3
-		LDIR
-                XOR A
-		LD (DE),A
-		POP HL
-		CALL RS_TXT
-                CALL RS_NEWLINE		
-		RET
-		 
-		 
-
-
-@PRINT_A:        PUSH AF
-                PUSH HL
-                PUSH DE
-                PUSH BC
-                CALL B2D8
-                LD HL,B2DBUF
-                CALL RS_TXT
-                CALL RS_NEWLINE
-                POP BC
-                POP DE
-                POP HL
-                POP AF
-                RET        
-
-@PRINT_HL:      PUSH AF
-                PUSH HL
-                PUSH DE
-                PUSH BC
-                CALL B2D16
-                LD HL,B2DBUF
-                CALL RS_TXT
-                CALL RS_NEWLINE
-                POP BC
-                POP DE
-                POP HL
-                POP AF
-                RET        
-
+	  
 ;ZX BASIC SET 
 ;HL TO THE FILENAME
 ;BC BYTES TO LOAD
@@ -242,9 +191,10 @@ CONTOK3:        PUSH DE
                 POP DE
                 LD (LASTADDR),DE; THE LAST ADDRESS WRITTEN +1
                 LD (LASTREAD),BC                ;BYTES WRITTEN
-                INC BC               ;2 BYTES AT THE BEGINNING AND 1 AT THE END
+                INC BC               ;3 BYTES AT THE BEGINNING AND 1 AT THE END
                 INC BC
                 INC BC                
+                INC BC
                 LD HL,(BYTESREAD)
                 ADD HL,BC        ;BC HAS THE ACTUAL BYTES READ
                 LD (BYTESREAD),HL
@@ -297,88 +247,14 @@ FILREDERR  DEFM "ER READ FILE"
           DB 0    
 FILOPNERR  DEFM "ER OPEN FILE"
           DB 0    
-DIROPNERR  DEFM "ER OPEN DIR"
+@DIROPNERR  DEFM "ER OPEN DIR"
           DB 0             
 
-MYDISKERROR:    CALL RS_TXT
+@MYDISKERROR:    CALL RS_TXT
                 CALL RS_NEWLINE
                 RET
 
 
-;HL POINTS TO ZERO TERMINATED MSG
-;IX,A DESTROYED
-@OS_PRINTTEXT:	LD A,(HL)
-		CP 0
-		RET Z
-		PUSH HL
-		CALL OS_PRINTCHAR
-		POP HL
-		INC HL
-		JR OS_PRINTTEXT 
-;PRINTS A ZT MESSAGE FOLLOWING THE CALL TO RS232 AND MAYBE TO SCREEN
-@OS_PRINTMSG:	POP HL
-		PUSH HL
-		CALL RS_TXT ; PRINTS A ZT STRING ON HL 
-		POP DE  ;DE ON STRING
-		PUSH HL ;CONTINUE AFTER THE MESG	
-		; DO OTHER STUFF WITHT THE STRING ADDESS LIKE PRINT ON SCREEN STRING ON DE
-		
-		RET
-;PRINTS A ZT MESSAGE FOLLOWING THE CALL
-@OS_PRNMSGSCR:	POP HL
-                CALL OS_PRINTTEXT	;SERIAL AND SCREEN
-		INC HL
-		PUSH HL			;CONTINUE AFTER THE MESG	
-		RET
-
-
-
-;PRINTS A CHAR TO THE OS SCREEN		
-;A HAS THE CHAR
-;FLAGS MUST BE RETAINED NO CARRY FLAG MEANS BACKSPACE IS GO LEFT
-@OS_PRINTCHAR:	;PUSH AF
-OSPCNX:		;POP DE
-	;	LD A,(SCRNST)
-	;	AND 2
-	;	RET Z
-	;	PUSH DE
-	;	POP AF				;GET THE FLAGS BACK AND THE CHAR
-		PUSH AF
-		CALL RS_TX
-		POP AF		
-		;CALL VGA_PRCH	
-		RET
-
-@OS_PRNCHARSFE:	PUSH HL
-		PUSH BC
-		CALL OS_PRINTCHAR
-		POP BC
-		POP HL
-		RET
-
-@OS_NEWLINE:	LD A,10
-		CALL OS_PRNCHARSFE 
-		LD A,13
-		CALL OS_PRNCHARSFE 
-		RET
-
-@OS_PRMESSCR:   LD A,(HL)
-		OR A
-		RET Z
-		CALL RS_TX
-                INC HL
-		JR OS_PRMESSCR
-;SAFE PRINT TO SCREEN SAVES HL
-@OS_PRMESSCRSFE: PUSH HL
-                PUSH BC
-                PUSH AF
-                CALL OS_PRMESSCR
-                POP AF
-                POP BC
-                POP HL
-                RET
-
-@OS_PRCHSCR	EQU RS_TX
 
 
 

@@ -11,11 +11,16 @@
                 @DEVSYS EQU $E1
                 @DEVSND EQU $40 ;FOR SN76489
 		@DEV376 EQU $30
+		@DEVKBI EQU $48
+
+		@FONT_ADDR EQU $00	;FONT ALREADY LOADED 
+		@VIDPG 	EQU $C0		;WAS 8 DPVRAM START PAGE TOTAL 8 64KB ON 2 BUFFERS 0 AND 1
 
                 @MMU_PORT EQU DEVMMU
                 @MMU_READ_PORT EQU DEVMMU
 
-@MENTRY:         NOP
+;MAIN ENTRY FOR LOAD ISSUED FROM SPECTRUM
+@MENTRY:        NOP
 		DI
                 PUSH AF		;save old regs on old sp
                 PUSH BC
@@ -27,7 +32,7 @@
 		;POP IY		;IY=DE = EXPECTED LENGTH
 		IN A,(DEVSYS)           ;current system should be saved and
 		LD D,A			;SAVE TO D
-                XOR A
+                LD A,$F0		;HIGH NIBBLE TO KEEP THE VIDEO SCREEN, LOW NIBBLE TO SET SYSTEM
                 OUT (DEVSYS),A          ;SET NEW SYSTEM  0 AS BOOTLOADER 				
 		LD B,MYRAMBANK		;READ OLD page  OF our ram bank
 		CALL MMU_READ	;A THE PAGE
@@ -81,7 +86,7 @@ SKIP1:		JP BEF_SP_CHANGE
                 RET
 
 ;ROUTINE THAT CHECKS IF THIS IS THE FIRST TIME RUNNING TO INITIALIZE VAR
-CHECKID:	PUSH DE
+@CHECKID:	PUSH DE
 		LD A,(ID)
 		CP $14
 		JR NZ,FIRST
@@ -121,6 +126,12 @@ CHECKID:	PUSH DE
 		LD (ID+3),A
 		LD A,1
 		LD (INITRUN),A
+		LD HL,DEMOFNAME
+		LD DE,FILENAME
+		LD BC,13
+		LDIR
+		LD A,1
+		LD (SCRNST),A
 		POP DE
 		AND 1		
 		RET

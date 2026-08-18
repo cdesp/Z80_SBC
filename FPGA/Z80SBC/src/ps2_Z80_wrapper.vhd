@@ -11,6 +11,9 @@ entity Z80_PS2_Bridge is
         PS2_DS_N       : in  std_logic; -- Active Low 
         PS2_BT_RDY     : out  std_logic; -- Active Low  
         FPGA_READ      : in std_logic; -- Active high 
+        NMIClear       : in std_logic; -- Active low when low clears the  NewByteForNMI
+        NewByteForNMI  : out std_logic; --flags the nmi that a newbyte arrived to check it
+
         -- Z80 Bus Interface
         Z80_IO_ADDR    : in    std_logic_vector(7 downto 0);
         Z80_RD_N       : in    std_logic;
@@ -43,7 +46,9 @@ architecture RTL of Z80_PS2_Bridge is
     
     -- Status and Buffer
     signal byte_reg    : std_logic_vector(7 downto 0);
+    signal pre_byte_reg    : std_logic_vector(7 downto 0);
     signal byte_ready  : std_logic := '0';
+    signal pre_byte_ready  : std_logic := '0';
     signal rd_prev : std_logic :='1';
 
     -- =========================================================
@@ -60,7 +65,6 @@ architecture RTL of Z80_PS2_Bridge is
     signal fifo_rd_ptr : integer range 0 to 15 := 0;
     signal fifo_count  : integer range 0 to 16 := 0;
 
-    signal OnlyForFPGA : std_logic :='0';
 
 begin
 
@@ -153,7 +157,7 @@ begin
     end process;
 
     -- Pulses high for exactly 1 clock cycle when the Z80 FINISHES reading    
-    z80_rd_done <= '1' when ((z80_rd_sync_2 = '1' and z80_rd_sync_1 = '0') and OnlyForFPGA='0')or FPGA_READ='1' else '0';
+    z80_rd_done <= '1' when (z80_rd_sync_2 = '1' and z80_rd_sync_1 = '0') or FPGA_READ='1' else '0';
 
     -- =========================================================
     -- NEW LOGIC: 16-Byte FIFO for capturing PS/2 Data
@@ -210,20 +214,34 @@ begin
         end if;
     end process;
 
+
+    -- Clocked edge-detect + NewByteForNMI generation
+    process(CLK, nRESET)
+    begin
+        if nRESET = '0' then
+            pre_byte_ready <= '0';
+            NewByteForNMI  <= '0';
+        elsif rising_edge(CLK) then
+            pre_byte_ready <= byte_ready;  -- true 1-cycle-delayed copy
+
+            if NMIClear = '0' then
+                NewByteForNMI <= '0';
+            elsif byte_ready = '1' and pre_byte_ready = '0' then
+                NewByteForNMI <= '1';      -- real rising-edge pulse
+            else
+                NewByteForNMI <= NewByteForNMI;  -- or '0' if you want it 1-cycle only;
+                                                  -- see note below
+            end if;
+        end if;
+    end process;
+
     -- Bus Multiplexer (Output to Z80)
-    process(Z80_IO_ADDR, PS2_DS_N, Z80_RD_N, byte_reg, byte_ready, tx_busy)
+    process(Z80_IO_ADDR, PS2_DS_N, Z80_RD_N, byte_reg, pre_byte_reg, byte_ready, tx_busy )
     begin
         Z80_DATA_OUT <= (others => 'Z'); -- Default high-impedance
         PS2_BT_RDY <= byte_ready;
-        if byte_ready='1' then      --always on
-           Z80_DATA_OUT <= byte_reg;          
-           if byte_reg = 0x"05" or byte_reg = 0x"06" or byte_reg = 0x"04" or byte_reg = 0x"0c" or byte_reg = 0x"03" then--f1-f5
-             OnlyForFPGA<='1';
-           else 
-             OnlyForFPGA<='0';
-           end if; 
-        else  --added 7/8
-          OnlyForFPGA<='0';
+        if byte_ready='1' then      
+           Z80_DATA_OUT <= byte_reg;  
         end if;
         if (PS2_DS_N = '0' and Z80_RD_N = '0') then
             if (Z80_IO_ADDR(0) = '0') then
