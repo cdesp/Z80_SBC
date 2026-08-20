@@ -113,7 +113,7 @@ BEGIN
     nWRin   <= Z80_In.Z80_WR_N;
     nRDin   <= Z80_In.Z80_RD_N;
     ADDRin  <= Z80_IO_ADDR;
-    kbintIN <= OTSigs_in.PS2_KEYB_Int;
+    kbintIN <= OTSigs_in.PS2_BT_Avail;
  --   kbData  <= OTSigs_in.PS2_DATA; --not needed
     MYCPUCLK <= CLK;
     cpu_speed <= to_integer(unsigned(otsigs_in.CPU_SPEED));

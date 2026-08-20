@@ -62,10 +62,16 @@ PACKAGE defs_pkg IS
         Z80_RD_N    : STD_LOGIC;
         Z80_ADDR    : STD_LOGIC_VECTOR(15 DOWNTO 0);
         INT_REQ_N   : STD_LOGIC;                     -- Master Peripheral Interrupt Request (Active Low)
+        BUS_ACK_N   : STD_LOGIC;
     END RECORD;
 
     -- Signals coming OUT of each system core BACK to the Z80 / Arbiter
     TYPE t_system_to_z80 IS RECORD
+        --Main Z80 out signals
+        Z80_BUSREQ_N        : STD_LOGIC;                    -- Z80 Bus Request
+        Z80_WAIT_N          : STD_LOGIC;                    -- Z80 Wait Request (Active Low)
+        Z80_INT_N           : STD_LOGIC;                    -- Z80 Interrupt Pin (Active Low)
+
         -- MMU Control Outputs (Generated from I/O Decode)
         MMU_nMAP_REG_N      : STD_LOGIC;                    -- MMU Map Reg Port (OUT (00h), PageNo)
         MMU_nMAP_RD_N       : STD_LOGIC;                    -- MMU PORT READ PAGE IN BANK 
@@ -79,34 +85,34 @@ PACKAGE defs_pkg IS
         -- and AY control logic is derived from 74LS138 outputs and Z80 address lines.
         CLK_SEL_RG_N        : std_logic;                    -- for clock selection
         UART_CS_N           : std_logic;                    -- for UART RS232 Selection
-        PS2_DS_N            : std_logic;                    -- for PS/2 Keyboard Device communication
-        VD_DS_N             : std_logic;                    -- for Video Device Communication
+        PS2_DS_N            : std_logic;                    -- for PS/2 Keyboard Device Direct communication
+        VD_DS_N             : std_logic;                    -- for Video Device Communication setting registers etc
         I2C_CS_N            : std_logic;                    -- for i2c Communication
-        SYS_CS_N            : std_logic;                    -- for system selection 
-        -- Wait State Generation
-        Z80_WAIT_N          : STD_LOGIC;                    -- Z80 Wait Request (Active Low)
-        -- Interrupt Management
-        Z80_INT_N           : STD_LOGIC;                     -- Z80 Interrupt Pin (Active Low)
+        SYS_CS_N            : std_logic;                    -- for system/video selection up to 16 systems
         -- Data to z80
-        DataOut             : STD_LOGIC_VECTOR(7 DOWNTO 0);
-        isDOut              : std_logic;    
+        DataOut             : STD_LOGIC_VECTOR(7 DOWNTO 0); --data output to z80
+        isDOut              : std_logic;                    --for multiplexing
     END RECORD;
 
+    -- System control, timing, and broadcast inputs
+    TYPE t_ot_sigs_to_system IS RECORD  
+        -- Master Clocking & Configuration
+        CPU_SPEED    : std_logic_vector(7 downto 0);
+        SYS_SEL      : std_logic_vector(3 downto 0);
+        ToolActive   : std_logic;
 
-   TYPE t_ot_sigs_to_system IS RECORD  
-         --Main system 
-        CPU_SPEED   : std_logic_vector(7 downto 0); --as a number
-        SYS_SEL     : unsigned(3 downto 0); --current system selection
-        ToolActive  : std_logic;
-       
-        PS2_KEYB_Int: STD_LOGIC;
-        PS2_DATA    :  std_logic_vector(7 downto 0);
+        -- PS/2 Stream Interface
+        PS2_BT_Avail : std_logic;                   -- '1' = Byte available in FIFO
+        PS2_DATA     : std_logic_vector(7 downto 0);-- Current FIFO head byte
 
-        FrameStart  : STD_LOGIC;
+        -- Frame Timing
+        FrameStart   : std_logic;                   -- VSYNC pulse / HDMI frame start
     END RECORD;
 
-   TYPE t_ot_sigs_from_system IS RECORD  
-        PS2_KEYB_READ : STD_LOGIC; --this flags that we have read the key to the ps.2 module
+    -- System status and peripheral handshaking outputs
+    TYPE t_ot_sigs_from_system IS RECORD  
+        -- PS/2 Stream Handshake
+        PS2_KEYB_READ : std_logic;                  -- FIFO pop pulse on Z80 read
         
         --Amstrad
         lower_rom_en : std_logic;
@@ -115,7 +121,6 @@ PACKAGE defs_pkg IS
         ram_page_bank1 : std_logic_vector(2 downto 0);
         ram_page_bank2 : std_logic_vector(2 downto 0);
         ram_page_bank3 : std_logic_vector(2 downto 0);
-
 
    END RECORD;
 

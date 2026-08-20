@@ -100,7 +100,7 @@ BEGIN
         ELSIF rising_edge(CLK) THEN
             IF FRMint='0' then
                dOUT <= x"00";
-            elsif OTSigs_in.PS2_KEYB_Int='1'  THEN 
+            elsif OTSigs_in.PS2_BT_Avail='1'  THEN 
                dOUT <= x"02";
             else
                dOUT <= x"07";

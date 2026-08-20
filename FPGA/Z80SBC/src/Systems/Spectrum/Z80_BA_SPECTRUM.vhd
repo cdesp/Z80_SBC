@@ -182,7 +182,7 @@ BEGIN
 
             case dec_state is
                 when IDLE =>
-                    if OTSigs_in.PS2_KEYB_Int = '1' then
+                    if OTSigs_in.PS2_BT_Avail = '1' then
                         ps2_data_byte <= OTSigs_in.PS2_DATA;
                         ps2_rd_req    <= '1';
                         dec_state     := DECODE_BYTE;

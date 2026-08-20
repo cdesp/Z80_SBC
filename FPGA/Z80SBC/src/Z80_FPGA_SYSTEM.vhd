@@ -194,7 +194,8 @@ architecture structural of Z80_FPGA_SYSTEM is
     --BUS ARBITER 
     signal BADEV1           : std_logic;
     signal BADEV2           : std_logic;
-    signal L_BA_WAIT_N      : std_logic;
+    signal BA_WAIT_N        : std_logic;
+    signal BA_BUSREQ_N      : std_logic;
     
     signal master_in        : t_z80_to_system;
     signal master_out       : t_system_to_z80;
@@ -1145,22 +1146,33 @@ begin
         );
 
 
+        --Z80 In signals
         master_in.Z80_DATA    <= Z80_DATA_IN_INT;
+        master_in.Z80_ADDR    <= Z80_LA_BUS_INT;
         master_in.Z80_MREQ_N  <= nMREQ_r;
         master_in.Z80_IORQ_N  <= nIORQ_r;
-        master_in.Z80_M1_N      <= l_m1_n;
+        master_in.Z80_M1_N    <= L_M1_N;
         master_in.Z80_WR_N    <= nWR_CPU_r;
-        master_in.Z80_RD_N    <= nRD_CPU_r;
-        master_in.Z80_ADDR    <= Z80_LA_BUS_INT;
+        master_in.Z80_RD_N    <= nRD_CPU_r;        
+        master_in.BUS_ACK_N   <= LBUSACK_N;
         master_in.INT_REQ_N   <= nINT_REQ_PERIPH;
 
-        sotsigs_in.PS2_KEYB_Int <= sPS2_BTRDY when sNewByteForNMI='0' else '0'; --active high only activate if nmi does not want it
+        --Other system In signals
+        sotsigs_in.PS2_BT_Avail <= sPS2_BTRDY when sNewByteForNMI='0' else '0'; --active high only activate if nmi does not want it
         sotsigs_in.PS2_DATA     <= PS2_DATA_OUT;
         sotsigs_in.CPU_SPEED    <= clk_reg_out;
         sotsigs_in.ToolActive   <= sTools_Act;
-        sotsigs_in.SYS_SEL      <= system_selection;
+        sotsigs_in.SYS_SEL      <= std_logic_vector(system_selection);
         sotsigs_in.FrameStart   <= '1' when video_timing.h_cnt=0 and video_timing.v_cnt=1 else '0';
        
+        --Z80 OUT signals
+        WITH system_selection SELECT
+        master_out <= bootld_out WHEN "0000",
+                      atlas_out WHEN "0001",
+                      nb_out    WHEN "0010",
+                      zx_out    WHEN "0011",
+                      am_out    WHEN "0100",
+                      bootld_out WHEN OTHERS;
 
         nINTMMU         <= master_out.MMU_nMAP_REG_N;
         nINTMMU_ro      <= master_out.MMU_nSET_RO_N;
@@ -1173,19 +1185,14 @@ begin
         VD_DSn          <= master_out.VD_DS_N ;
         I2C_CSn         <= master_out.I2C_CS_N;
         SYS_CSn         <= master_out.SYS_CS_N;
-        L_BA_WAIT_N     <= master_out.Z80_WAIT_N;
+        BA_BUSREQ_N     <= master_out.Z80_BUSREQ_N;
+        BA_WAIT_N       <= master_out.Z80_WAIT_N;
         LINT_N          <= master_out.Z80_INT_N; 
         sISDout         <= master_out.isDOut;
         sDataout        <= master_out.DataOut;
 
-        WITH system_selection SELECT
-        master_out <= bootld_out WHEN "0000",
-                      atlas_out WHEN "0001",
-                      nb_out    WHEN "0010",
-                      zx_out    WHEN "0011",
-                      am_out    WHEN "0100",
-                      bootld_out WHEN OTHERS;
 
+       --Other system In signals 
        WITH system_selection SELECT
         sotsigs_out <=sDMsigs_out WHEN "0000",
                       sDMsigs_out WHEN "0001",
@@ -1757,7 +1764,11 @@ begin
     SN_DSn <='0' WHEN BADEV1='0' AND BADEV2='1' ELSE '1'; --LAUD_CS_N
 
 
--- Z80 CPU WAIT IMPLEMENTATION
+    -- Z80 CPU WAIT IMPLEMENTATION  
+    -- no real Z80WAIT signal so we freeze the cpu
+    -- TODO: BA_WAIT_N from systems make it work
+
+    --L_WAIT_N <= BA_WAIT_N AND (OTHER SIGNALS) 
 
     --FREEZE the cpu  -- implement wait states     
     process(CLK_IN,reset_n_sync2)   
@@ -1766,7 +1777,7 @@ begin
             -- We want to run the clock only if NOT (Freeze Condition) 
             if AM_CAPTURE='1' then
                 LCLOCK <= '1'; -- FREEZE: CPU stops mid-access
-            elsif (l_wait_n = '0') then
+            elsif (l_wait_n = '0') then -- used for sn76489 sound chip
                 LCLOCK <= '1'; -- FREEZE: CPU stops mid-access
             else
                 LCLOCK <= CLK_Z80_INT; -- RUN: Normal operation
@@ -1774,8 +1785,8 @@ begin
         end if; 
     end process;
 
-    --L_WAIT_N <= L_BA_WAIT_N AND (OTHER SIGNALS)
-
+    
+    -- wait states for the sn76489 
     process(CLK_IN, reset_n_sync2)
     begin
         if reset_n_sync2 = '0' then

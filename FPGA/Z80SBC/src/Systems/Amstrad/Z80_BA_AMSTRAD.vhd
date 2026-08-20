@@ -251,7 +251,7 @@ BEGIN
      
             case dec_state is
                 when IDLE =>
-                    if OTSigs_in.PS2_KEYB_Int = '1' then
+                    if OTSigs_in.PS2_BT_Avail = '1' then
                         ps2_data_byte <= OTSigs_in.PS2_DATA;
                         ps2_rd_req    <= '1'; -- pop this byte from the PS/2 FIFO
                         dec_state     := DECODE_BYTE;
@@ -528,7 +528,7 @@ int_reg <= not r_int;
 --=====================================================================
 
 
-    system_en <= '1' when OTSigs_in.SYS_SEL=4  else '0';
+    system_en <= '1' when OTSigs_in.SYS_SEL="0100"  else '0'; --4=amstrad
 
 dbg_crtc_r12 <= crtc_regs(12);
 dbg_crtc_r13 <= crtc_regs(13);
