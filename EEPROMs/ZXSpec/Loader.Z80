@@ -232,7 +232,7 @@ CONTOK3:        PUSH DE
                 LD A,0 
                 LD DE, 0;0 = all read (LASTREAD)
                 LD IX, (LASTADDR)
-                SCF                                
+                CP $01  ;SETS CF AND CLEARS Z                                
                 PUSH AF		;save old regs on old sp
                 PUSH BC
                 PUSH DE

@@ -337,7 +337,28 @@ architecture structural of Z80_FPGA_SYSTEM is
     signal sNewByteForNMI   : std_logic := '0'; -- active high
     signal sNMIClear        : std_logic := '1'; -- active low
 
+    -- sram clear
 
+    signal CLEAR_ACTIVE : std_logic;
+
+    signal CLEAR_START  : std_logic;
+    signal CLEAR_BUSY    : std_logic := '0';
+    signal CLEAR_DONE    : std_logic := '0';
+
+    signal CLEAR_PAGE   : std_logic_vector(7 downto 0);
+
+    signal CLEAR_ADDR   : std_logic_vector(19 downto 0);
+    signal CLEAR_DATA   : std_logic_vector(7 downto 0);
+
+    signal CLEAR_CE_N   : std_logic;
+    signal CLEAR_WE_N   : std_logic;
+    signal SRAM_WR_N_INT : std_logic;
+    signal CLEAR_BUSREQ_N : std_logic :='1'; --0 to ask for busreq 
+
+    --signal to issue the start safely only once
+    signal first_out_seen : std_logic := '0';
+
+    
 
 --debug signals
     signal capturedata : std_logic := '0';
@@ -848,6 +869,40 @@ architecture structural of Z80_FPGA_SYSTEM is
         );
     end component Z80_NMI_Handler;
 
+    component SRAM_PAGE_CLEAR is
+        generic (
+            ADDR_WIDTH      : integer := 20;
+            PAGE_WIDTH      : integer := 7;
+            OFFSET_WIDTH    : integer := 13;
+
+            -- Number of FPGA clocks for the SRAM write pulse.
+            -- At 50 MHz, 3 clocks = 60 ns.
+            WRITE_CYCLES    : integer := 3
+        );
+        port (
+            CLK             : in  std_logic;
+            RESET_N         : in  std_logic;
+
+            -- Clear request
+            START           : in  std_logic;
+            PAGE_NUMBER     : in  std_logic_vector(PAGE_WIDTH-1 downto 0);
+
+            -- Z80 bus arbitration
+            BUSACK_N        : in  std_logic;
+            BUSREQ_N        : out std_logic;
+
+            -- SRAM control
+            SRAM_ADDR       : out std_logic_vector(ADDR_WIDTH-1 downto 0);
+            SRAM_DATA       : out std_logic_vector(7 downto 0);
+            SRAM_CE_N       : out std_logic;
+            SRAM_WE_N       : out std_logic;
+
+            -- Status
+            BUSY            : out std_logic;
+            DONE            : out std_logic
+        );
+    end component;
+
 begin
 
     -- ***************************************************************
@@ -908,6 +963,25 @@ begin
         end if;
     end process;
 
+    -- clear sram after reset on 1st out and only once
+    process(CLK_IN, nreset)
+    begin
+        if nreset = '0' then
+            first_out_seen <= '0';
+            clear_start    <= '0';
+        elsif rising_edge(CLK_IN) then
+            -- Default: one-clock pulse
+            clear_start <= '0';
+            if first_out_seen = '0' then
+                if (nIORQ_r = '0') and                          --out 00,xx
+                   (nWR_CPU_r   = '0') and
+                   (Z80_LA_BUS_INT(7 downto 0) = x"00") then
+                    clear_start    <= '1';
+                    first_out_seen <= '1';
+                end if;
+            end if;
+        end if;
+    end process;
 
     -- ***************************************************************
     -- ** PIN TO INTERNAL VECTOR MAPPING (CONVENIENCE) **
@@ -1321,6 +1395,37 @@ begin
     end process;
 
 --========== debugging  end
+
+
+--========== SRAM CLEAR PAGE
+
+    CLEAR_PAGE <= x"7f";
+
+    u_sram_clear : entity work.SRAM_PAGE_CLEAR
+    generic map (
+        ADDR_WIDTH   => 20,
+        PAGE_WIDTH   => 7,
+        OFFSET_WIDTH => 13,
+        WRITE_CYCLES => 3
+    )
+    port map (
+        CLK         => CLK_IN,
+        RESET_N     => nRESET,
+
+        START       => CLEAR_START,
+        PAGE_NUMBER => CLEAR_PAGE(6 downto 0),
+
+        BUSACK_N    => LBUSACK_N,
+        BUSREQ_N    => CLEAR_BUSREQ_N,
+
+        SRAM_ADDR   => CLEAR_ADDR,
+        SRAM_DATA   => CLEAR_DATA,
+        SRAM_CE_N   => CLEAR_CE_N,
+        SRAM_WE_N   => CLEAR_WE_N,
+
+        BUSY        => CLEAR_BUSY,
+        DONE        => CLEAR_DONE
+    );
 
 
     DPVRAM_Inst : entity work.DPVRAM
@@ -1796,53 +1901,101 @@ begin
     sMMURD <= '0' when MASTER_OUT.MMU_nMAP_RD_N = '0' else '1';
     sMMUBank <= sMMUBank_raw when sMMURD = '0' else (others => '1');
 
-    LWR_N <= 'Z' when flash_prog='0' else MMU_WR; --FlRam and Sram control
+    
     L_RD_N <= 'Z'; --read only make the signal in
+
+    LWR_N <= 'Z' when flash_prog='0' else SRAM_WR_N_INT; --FlRam and Sram control
+    SRAM_WR_N_INT <=
+      CLEAR_WE_N when CLEAR_BUSY = '1'
+      else MMU_WR;
 
     
     -- A. Chip Enables to Physical Pins
-    LRAMEN3_N <= '1' when flash_prog='0' else MMU_nCE0; -- 1MB SRAM
-    LRAMEN2_N <= '0' when flash_prog='0' else MMU_nCE1; -- 512Kb Flash RAM    
-
-    -- B. MMU Extended Address (A13-A19) to Physical Address Pins
-    -- MMU_EA_INT is (20 DOWNTO 13). We map A13-A19 to the external pins.
-    EA19 <= 'Z' when flash_prog='0' else MMU_EA_INT(19);
-    EA18 <= 'Z' when flash_prog='0' else MMU_EA_INT(18);
-    EA17 <= 'Z' when flash_prog='0' else MMU_EA_INT(17);
-    EA16 <= 'Z' when flash_prog='0' else MMU_EA_INT(16);
-    EA15 <= 'Z' when flash_prog='0' else MMU_EA_INT(15);
-    EA14 <= 'Z' when flash_prog='0' else MMU_EA_INT(14);
-    EA13 <= 'Z' when flash_prog='0' else MMU_EA_INT(13);
-
-    -- C. Data Bus (LD0-LD7) Tristate output
-    -- Data is driven when Z80_DATA_OE is asserted (TBD logic)
-    LD7 <= Z80_DATA_OUT_INT(7) when nRD_CPU_r = '0' and sEnableDataOut='0' else 'Z';
-    LD6 <= Z80_DATA_OUT_INT(6) when nRD_CPU_r = '0' and sEnableDataOut='0' else 'Z';
-    LD5 <= Z80_DATA_OUT_INT(5) when nRD_CPU_r = '0' and sEnableDataOut='0' else 'Z';
-    LD4 <= Z80_DATA_OUT_INT(4) when nRD_CPU_r = '0' and sEnableDataOut='0' else 'Z';
-    LD3 <= Z80_DATA_OUT_INT(3) when nRD_CPU_r = '0' and sEnableDataOut='0' else 'Z';
-    LD2 <= Z80_DATA_OUT_INT(2) when nRD_CPU_r = '0' and sEnableDataOut='0' else 'Z';
-    LD1 <= Z80_DATA_OUT_INT(1) when nRD_CPU_r = '0' and sEnableDataOut='0' else 'Z';
-    LD0 <= Z80_DATA_OUT_INT(0) when nRD_CPU_r = '0' and sEnableDataOut='0' else 'Z';
+    LRAMEN3_N <= '1' when flash_prog = '0'
+        else '0' when CLEAR_BUSY = '1'
+        else MMU_nCE0; -- 1MB SRAM
+    LRAMEN2_N <= '0' when flash_prog = '0'
+        else '1' when CLEAR_BUSY = '1'
+        else MMU_nCE1; -- 512Kb Flash RAM    
     
-    -- D. Address Bus (LA0-LA15) Tristate output
-    -- Address bus is currently passive in the FPGA, assuming the Z80 is always the master.
-    LA0<='Z';
-    LA1<='Z';
-    LA2<='Z';
-    LA3<='Z';
-    LA4<='Z';
-    LA5<='Z';
-    LA6<='Z';
-    LA7<='Z'; 
-    LA8<='Z';
-    LA9<='Z';
-    LA10<='Z';
-    LA11<='Z';
-    LA12<='Z';
-    LA13<='Z';
-    LA14<='Z';
-    LA15<='Z';
+
+
+    -- Data Bus (LD0-LD7) Tristate output
+    -- Data is driven when Z80_DATA_OE is asserted (TBD logic)
+    LD7 <= CLEAR_DATA(7) when CLEAR_BUSY = '1' else
+           Z80_DATA_OUT_INT(7) when nRD_CPU_r = '0' and sEnableDataOut = '0' else
+           'Z';
+    LD6 <= CLEAR_DATA(6) when CLEAR_BUSY = '1' else
+           Z80_DATA_OUT_INT(6) when nRD_CPU_r = '0' and sEnableDataOut = '0' else
+           'Z';
+    LD5 <= CLEAR_DATA(5) when CLEAR_BUSY = '1' else
+           Z80_DATA_OUT_INT(5) when nRD_CPU_r = '0' and sEnableDataOut = '0' else
+           'Z';
+    LD4 <= CLEAR_DATA(4) when CLEAR_BUSY = '1' else
+           Z80_DATA_OUT_INT(4) when nRD_CPU_r = '0' and sEnableDataOut = '0' else
+           'Z';
+    LD3 <= CLEAR_DATA(3) when CLEAR_BUSY = '1' else
+           Z80_DATA_OUT_INT(3) when nRD_CPU_r = '0' and sEnableDataOut = '0' else
+           'Z';
+    LD2 <= CLEAR_DATA(2) when CLEAR_BUSY = '1' else
+           Z80_DATA_OUT_INT(2) when nRD_CPU_r = '0' and sEnableDataOut = '0' else
+           'Z';
+    LD1 <= CLEAR_DATA(1) when CLEAR_BUSY = '1' else
+           Z80_DATA_OUT_INT(1) when nRD_CPU_r = '0' and sEnableDataOut = '0' else
+           'Z';
+    LD0 <= CLEAR_DATA(0) when CLEAR_BUSY = '1' else
+           Z80_DATA_OUT_INT(0) when nRD_CPU_r = '0' and sEnableDataOut = '0' else
+           'Z';
+    
+    -- Address Bus (LA0-LA15) Tristate output
+    -- Normally passive: Z80 is the address master.
+    -- During SRAM page clear, FPGA temporarily drives A0-A12.
+
+    LA0 <= CLEAR_ADDR(0) when CLEAR_BUSY = '1' else 'Z';
+    LA1 <= CLEAR_ADDR(1) when CLEAR_BUSY = '1' else 'Z';
+    LA2 <= CLEAR_ADDR(2) when CLEAR_BUSY = '1' else 'Z';
+    LA3 <= CLEAR_ADDR(3) when CLEAR_BUSY = '1' else 'Z';
+    LA4 <= CLEAR_ADDR(4) when CLEAR_BUSY = '1' else 'Z';
+    LA5 <= CLEAR_ADDR(5) when CLEAR_BUSY = '1' else 'Z';
+    LA6 <= CLEAR_ADDR(6) when CLEAR_BUSY = '1' else 'Z';
+    LA7 <= CLEAR_ADDR(7) when CLEAR_BUSY = '1' else 'Z';
+    LA8 <= CLEAR_ADDR(8) when CLEAR_BUSY = '1' else 'Z';
+    LA9 <= CLEAR_ADDR(9) when CLEAR_BUSY = '1' else 'Z';
+    LA10 <= CLEAR_ADDR(10) when CLEAR_BUSY = '1' else 'Z';
+    LA11 <= CLEAR_ADDR(11) when CLEAR_BUSY = '1' else 'Z';
+    LA12 <= CLEAR_ADDR(12) when CLEAR_BUSY = '1' else 'Z';
+
+    -- LA13-LA15 are NOT part of the 20-bit SRAM address
+    -- EA13-EA19 are separate extended address pins.
+    LA13 <= 'Z';
+    LA14 <= 'Z';
+    LA15 <= 'Z';
+
+    -- MMU Extended Address
+    -- Normally driven by MMU.
+    -- During SRAM page clear, FPGA drives the selected page.
+
+    EA19 <= CLEAR_ADDR(19) when CLEAR_BUSY = '1' else
+            'Z' when flash_prog = '0' else
+            MMU_EA_INT(19);
+    EA18 <= CLEAR_ADDR(18) when CLEAR_BUSY = '1' else
+            'Z' when flash_prog = '0' else
+            MMU_EA_INT(18);
+    EA17 <= CLEAR_ADDR(17) when CLEAR_BUSY = '1' else
+            'Z' when flash_prog = '0' else
+            MMU_EA_INT(17);
+    EA16 <= CLEAR_ADDR(16) when CLEAR_BUSY = '1' else
+            'Z' when flash_prog = '0' else
+            MMU_EA_INT(16);
+    EA15 <= CLEAR_ADDR(15) when CLEAR_BUSY = '1' else
+            'Z' when flash_prog = '0' else
+            MMU_EA_INT(15);
+    EA14 <= CLEAR_ADDR(14) when CLEAR_BUSY = '1' else
+            'Z' when flash_prog = '0' else
+            MMU_EA_INT(14);
+    EA13 <= CLEAR_ADDR(13) when CLEAR_BUSY = '1' else
+            'Z' when flash_prog = '0' else
+            MMU_EA_INT(13);
 
     -- F. Placeholder: Audio Mux Select
 --    LAUDMUX_SEL <= '0'; -- Default to one channel for now
@@ -1869,7 +2022,9 @@ begin
         end if;
     end process;
 
-    LBUSREQ_N <= '0' when flash_prog='0' and sTools_Act='0' else '1'; -- Low to force Z80 into Tristate (Bus Acknowledgment requested)
+    LBUSREQ_N <= '0' when flash_prog='0' and sTools_Act='0' 
+            else '0' when CLEAR_BUSREQ_N = '0'    
+            else '1'; -- Low to force Z80 into Tristate (Bus Acknowledgment requested)
     nmi_input_clean <= L_NMI_N;
     L_NMI_N <= '0' when fpga_drive_nmi_low = '1' else 'Z';
 
