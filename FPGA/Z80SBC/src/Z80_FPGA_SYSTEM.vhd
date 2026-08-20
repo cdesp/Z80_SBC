@@ -426,7 +426,7 @@ architecture structural of Z80_FPGA_SYSTEM is
         );
     end component;
 
-    component Z80_Bus_Arbiter
+    component Z80_BA_Bootloader
         port (
             CLK_FPGA          : in  std_logic;
             -- Z80 Side
@@ -1078,7 +1078,7 @@ begin
     -- ***************************************************************
     -- ** Z80 BUS ARBITER INSTANTIATION **
     -- ***************************************************************
-    BA_Bootld: Z80_Bus_Arbiter
+    BA_Bootld: Z80_BA_Bootloader
         port map (
             CLK_FPGA          => CLK_IN,
             CLK               => CLK_Z80_INT,             -- Z80 Operating Clock

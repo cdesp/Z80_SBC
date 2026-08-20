@@ -3,7 +3,7 @@ USE ieee.std_logic_1164.all;
 USE IEEE.NUMERIC_STD.ALL;
 USE work.defs_pkg.ALL; -- Import MMU I/O address constants
 
-ENTITY Z80_Bus_Arbiter IS
+ENTITY Z80_BA_Bootloader IS
     PORT (
         CLK_FPGA            : in  std_logic;
         -- Z80 Side
@@ -19,9 +19,9 @@ ENTITY Z80_Bus_Arbiter IS
         -- Video registers
         VDRegs_out          : OUT t_video_regs
     );
-END Z80_Bus_Arbiter;
+END Z80_BA_Bootloader;
 
-ARCHITECTURE behavioral OF Z80_Bus_Arbiter IS
+ARCHITECTURE behavioral OF Z80_BA_Bootloader IS
     
     -- Internal signal for I/O Address (A0-A7)
     SIGNAL Z80_IO_ADDR      : STD_LOGIC_VECTOR(7 DOWNTO 0);
