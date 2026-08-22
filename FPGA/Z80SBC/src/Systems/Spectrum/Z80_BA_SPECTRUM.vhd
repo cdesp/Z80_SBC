@@ -64,11 +64,22 @@ ARCHITECTURE behavioral OF Z80_BA_Spectrum IS
     -- bit0 = Right Ctrl (E0 14)
     -- bit1 = Right Alt  (E0 11)
 
-
+    signal ULA_REG1: std_logic_vector(7 downto 0) := (others => '0');
 BEGIN
 
-      
-        
+        process(all)
+            variable v_out : t_ot_sigs_from_system;
+        begin
+            v_out := C_OT_SIGS_DEFAULT;
+            v_out.SYS_SEL := OTSigs_in.SYS_SEL;
+        --ZX Spectrum Keyboard Scanner
+        --to get another key from ps/2 keyboard
+            v_out.PS2_KEYB_READ := ps2_rd_req;
+
+            OTSigs_out <= v_out;
+        end process;
+
+        Z80_Out.Z80_BUSREQ_N <= '1';
   
         -- Example INT_N pulse generator in your top-level FPGA module
         process(CLK_FPGA)
@@ -98,9 +109,6 @@ BEGIN
     Z80_out.DataOut <= dOUT WHEN Z80_In.Z80_IORQ_N='0' and Z80_In.Z80_RD_N='0'  AND  Z80_IO_ADDR=C_ULA_PORT
                 else  "00000000";
 
---ZX Spectrum Keyboard Scanner
-     -- to get another key from ps/2 keyboard
-    OTSigs_out.PS2_KEYB_READ <= ps2_rd_req;
 
     -- READ FROM ULA (combinational, always reflects the currently addressed row)
     -- Bits 0-4: keyboard matrix, active-low (0 = pressed)
@@ -360,17 +368,25 @@ BEGIN
     --------------------------------------------------------------------------------
     PROCESS (CLK, nRESET) -- Z80 CLOCK
     BEGIN
-        IF nRESET = '0' THEN
-            VDRegs_out.REG1 <= "00000000";
+        IF nRESET = '0' THEN            
+            ULA_REG1 <= "00000000";
         ELSIF rising_edge(CLK) THEN
             -- WRITE TO ULA
             IF Z80_In.Z80_IORQ_N = '0' and Z80_In.Z80_WR_N = '0' AND Z80_IO_ADDR = C_ULA_PORT THEN
-                VDRegs_out.REG1 <= Z80_In.Z80_Data;
+                ULA_REG1 <= Z80_In.Z80_Data;
             END IF;
      
          --   isULA_in <= not (Z80_In.Z80_IORQ_N = '0' and Z80_In.Z80_RD_N = '0' and Z80_IO_ADDR = C_ULA_PORT);
         END IF;
     END PROCESS;
+
+    process(all)
+        variable v_VDRegs : t_video_regs;
+    begin
+        v_VDRegs := DUMMY_VDREGS;
+        v_VDRegs.REG1 := ULA_REG1;
+        VDRegs_out <= v_VDRegs;
+    end process;
      
 
 

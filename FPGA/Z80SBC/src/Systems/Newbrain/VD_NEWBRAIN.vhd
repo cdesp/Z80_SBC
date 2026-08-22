@@ -38,12 +38,12 @@ architecture RTL of NewbrainVideo is
     constant ACTIVE_HEIGHT : integer := 500;
     constant START_Y       : integer := (600 - ACTIVE_HEIGHT) / 2;
 
-    signal sRV    : std_logic;
-    signal sFS    : std_logic;
-    signal s3240  : std_logic;
-    signal sUCR   : std_logic;
-    signal s80L   : std_logic;
-    signal TVP    : std_logic;
+    signal sRV    : std_logic := '0';
+    signal sFS    : std_logic := '0';
+    signal s3240  : std_logic := '0';
+    signal sUCR   : std_logic := '0';
+    signal s80L   : std_logic := '0';
+    signal TVP    : std_logic := '0';
     
    
     signal memaddr_reg : unsigned(15 downto 0) := (others => '0');

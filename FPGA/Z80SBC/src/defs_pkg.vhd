@@ -51,7 +51,7 @@ PACKAGE defs_pkg IS
     constant BR_CLK_DIV : integer := 14; -- Integer divisor for 50MHz clock 
     -- Actual Baud Rate: (50,000,000 / 27) / 16 ~= 115,740.74 bps (0.47% error, which is acceptable)
 
--- Signals coming FROM the Z80 / Arbiter TO the system cores
+    -- Signals coming FROM the Z80 / Arbiter TO the system cores
     TYPE t_z80_to_system IS RECORD      
         -- Z80 Side    
         Z80_Data    : STD_LOGIC_VECTOR(7 DOWNTO 0);
@@ -64,6 +64,20 @@ PACKAGE defs_pkg IS
         INT_REQ_N   : STD_LOGIC;                     -- Master Peripheral Interrupt Request (Active Low)
         BUS_ACK_N   : STD_LOGIC;
     END RECORD;
+
+    TYPE t_z80_to_sys_raw IS RECORD      
+        -- Z80 Side    
+        Z80_Data_raw    : STD_LOGIC_VECTOR(7 DOWNTO 0);
+        Z80_MREQ_N_raw  : STD_LOGIC;
+        Z80_IORQ_N_raw  : STD_LOGIC;
+        Z80_M1_N_raw    : STD_LOGIC;
+        Z80_WR_N_raw    : STD_LOGIC;
+        Z80_RD_N_raw    : STD_LOGIC;
+        Z80_ADDR_raw    : STD_LOGIC_VECTOR(15 DOWNTO 0);
+        INT_REQ_N_raw   : STD_LOGIC;                     -- Master Peripheral Interrupt Request (Active Low)
+        BUS_ACK_N_raw   : STD_LOGIC;
+    END RECORD;
+
 
     -- Signals coming OUT of each system core BACK to the Z80 / Arbiter
     TYPE t_system_to_z80 IS RECORD
@@ -98,8 +112,8 @@ PACKAGE defs_pkg IS
     TYPE t_ot_sigs_to_system IS RECORD  
         -- Master Clocking & Configuration
         CPU_SPEED    : std_logic_vector(7 downto 0);
-        SYS_SEL      : std_logic_vector(3 downto 0);
         ToolActive   : std_logic;
+        SYS_SEL       : std_logic_vector(3 downto 0); --system selection to subsystem
 
         -- PS/2 Stream Interface
         PS2_BT_Avail : std_logic;                   -- '1' = Byte available in FIFO
@@ -113,7 +127,10 @@ PACKAGE defs_pkg IS
     TYPE t_ot_sigs_from_system IS RECORD  
         -- PS/2 Stream Handshake
         PS2_KEYB_READ : std_logic;                  -- FIFO pop pulse on Z80 read
-        
+        SYS_SEL       : std_logic_vector(3 downto 0); --system selection to top       
+   END RECORD;
+
+    TYPE t_amstrad_sigs IS RECORD        
         --Amstrad
         lower_rom_en : std_logic;
         upper_rom_en : std_logic;
@@ -150,7 +167,32 @@ PACKAGE defs_pkg IS
         CRTC_R13 => (others => '0')
     );
 
+    constant C_OT_SIGS_DEFAULT : t_ot_sigs_from_system := (
+        PS2_KEYB_READ => '0',
+        SYS_SEL       => "0000"
+    );
+    
+
     type crtc_reg_array is array (0 to 17) of std_logic_vector(7 downto 0);
+
+    --MMU interface change pages from fpga
+    TYPE t_mmu_intf IS RECORD      
+        FPGA_MMU_WE     : std_logic;                    -- Strobe to update MMU bank
+        FPGA_MMU_BANK   : std_logic_vector(2 downto 0); -- Target Slot (0..7)
+        FPGA_MMU_PAGE   : std_logic_vector(7 downto 0); -- Physical Page ID
+    END RECORD;
+
+    type t_mmu_banks is record
+        -- Live MMU input lines for initial dynamic context tracking
+        BANK0    : std_logic_vector(7 downto 0);
+        BANK1    : std_logic_vector(7 downto 0);
+        BANK2    : std_logic_vector(7 downto 0);
+        BANK3    : std_logic_vector(7 downto 0);
+        BANK4    : std_logic_vector(7 downto 0);
+        BANK5    : std_logic_vector(7 downto 0);
+        BANK6    : std_logic_vector(7 downto 0);
+        BANK7    : std_logic_vector(7 downto 0);
+    end record;
 
 END defs_pkg;
 

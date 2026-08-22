@@ -10,27 +10,33 @@
         <File path="src/clocks_pll/clocks_pll.v" type="file.verilog" enable="1"/>
         <File path="src/clocks_pll/clocks_pll_mod.v" type="file.verilog" enable="1"/>
         <File path="src/dvi_tx/dvi_tx.v" type="file.verilog" enable="1"/>
-        <File path="src/pll_init.v" type="file.verilog" enable="1"/>        
+        <File path="src/pll_init.v" type="file.verilog" enable="1"/>
         <File path="src/DP_VideoRam/DPVRAM.vhd" type="file.vhdl" enable="1"/>
         <File path="src/MMU.vhd" type="file.vhdl" enable="1"/>
         <File path="src/RegisterN.vhd" type="file.vhdl" enable="1"/>
-        <File path="src/SRAM_Clear.vhd" type="file.vhdl" enable="1"/>        
-        <File path="src/VD_GenericZ80_module.vhd" type="file.vhdl" enable="1"/>
-        <File path="src/VD_HDMI_Controller.vhd" type="file.vhdl" enable="1"/>        
-        <File path="src/VD_types_pkg.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/SRAM_Clear.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/Systems/Amstrad/Amstrad_TOP.vhd" type="file.vhdl" enable="1"/>
         <File path="src/Systems/Amstrad/VD_Amstrad.vhd" type="file.vhdl" enable="1"/>
         <File path="src/Systems/Amstrad/Z80_BA_AMSTRAD.vhd" type="file.vhdl" enable="1"/>
         <File path="src/Systems/Amstrad/Z80_BA_AMSTRAD_CRTC.vhd" type="file.vhdl" enable="1"/>
         <File path="src/Systems/Amstrad/Z80_BA_AMSTRAD_MMU.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/Systems/Atlas/Atlas_TOP.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/Systems/Atlas/VD_Atlas_video.vhd" type="file.vhdl" enable="1"/>
         <File path="src/Systems/Atlas/Z80_BA_Atlas.vhd" type="file.vhdl" enable="1"/>
-        <File path="src/Systems/Atlas/VD_Atlas_video.vhd" type="file.vhdl" enable="1"/>        
+        <File path="src/Systems/BootLD/Bootloader_TOP.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/Systems/BootLD/VD_Bootloader.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/Systems/BootLD/Z80_BA_Bootloader.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/Systems/Newbrain/Newbrain_TOP.vhd" type="file.vhdl" enable="1"/>
         <File path="src/Systems/Newbrain/VD_NEWBRAIN.vhd" type="file.vhdl" enable="1"/>
         <File path="src/Systems/Newbrain/Z80_BA_Newbrain.vhd" type="file.vhdl" enable="1"/>
-        <File path="src/Systems/Spectrum/Z80_BA_SPECTRUM.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/Systems/Spectrum/BA_SPECTRUM_LOADER.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/Systems/Spectrum/Spectrum_TOP.vhd" type="file.vhdl" enable="1"/>
         <File path="src/Systems/Spectrum/VD_SPECTRUM.vhd" type="file.vhdl" enable="1"/>
-        <File path="src/Systems/Spectrum/BA_SPECTRUM_LOADER.vhd" type="file.vhdl" enable="1"/>        
-        <File path="src/Systems/BootLD/VD_Bootloader.vhd" type="file.vhdl" enable="1"/>        
-        <File path="src/Systems/BootLD/Z80_BA_Bootloader.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/Systems/Spectrum/Z80_BA_SPECTRUM.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/Systems/Z80_SYSTEM_TOP.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/VD_GenericZ80_module.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/VD_HDMI_Controller.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/VD_types_pkg.vhd" type="file.vhdl" enable="1"/>
         <File path="src/Z80_FPGA_SYSTEM.vhd" type="file.vhdl" enable="1"/>
         <File path="src/Z80_NMI_Handler.vhd" type="file.vhdl" enable="1"/>
         <File path="src/clkDiv50.vhd" type="file.vhdl" enable="1"/>
@@ -44,6 +50,6 @@
         <File path="src/uart_master/uart_master.vhd" type="file.vhdl" enable="1"/>
         <File path="src/z80_to_gowin_16550_wrapper.vhd" type="file.vhdl" enable="1"/>
         <File path="src/Z80SBC.cst" type="file.cst" enable="1"/>
-        <File path="src/Z80SBC.rao" type="file.gao" enable="0"/>
+        <File path="src/Z80SBC.rao" type="file.gao" enable="1"/>
     </FileList>
 </Project>

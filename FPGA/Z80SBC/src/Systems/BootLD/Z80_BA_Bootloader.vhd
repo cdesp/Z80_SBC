@@ -35,7 +35,16 @@ ARCHITECTURE behavioral OF Z80_BA_Bootloader IS
     signal io_strobe : std_logic;
 
 BEGIN
-    OTSigs_out.PS2_KEYB_READ <= '0'; --notused
+    Z80_Out.Z80_BUSREQ_N <= '1';
+    VDRegs_out <= DUMMY_VDREGS;
+
+    process(all)
+        variable v_out : t_ot_sigs_from_system;
+    begin
+        v_out := C_OT_SIGS_DEFAULT;
+        v_out.SYS_SEL := OTSigs_in.SYS_SEL;
+        OTSigs_out <= v_out;
+    end process;
 
     -- Map lower 8 bits of Z80 address bus for I/O decoding
     Z80_IO_ADDR <= Z80_In.Z80_ADDR(7 DOWNTO 0);

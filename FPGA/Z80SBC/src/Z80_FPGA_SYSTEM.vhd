@@ -141,6 +141,11 @@ architecture structural of Z80_FPGA_SYSTEM is
     signal sMMURD               : std_logic := '1'; -- Port 0: Read banks (Active Low)  
     signal sMMUBank             : std_logic_vector(7 downto 0);
     signal sMMUBank_raw         : std_logic_vector(7 downto 0);
+    signal s_SYS_BANK_WE        : STD_LOGIC := '0' ; --active high
+    signal s_SYS_BANK_SEL       : STD_LOGIC_VECTOR(2 downto 0);
+    signal s_SYS_BANK_PAGE      : STD_LOGIC_VECTOR(7 downto 0);
+    signal s_mmu_banks          : t_mmu_banks;
+    signal s_mmu_intf           : t_mmu_intf;
 
     
     -- General Control Signals
@@ -197,6 +202,7 @@ architecture structural of Z80_FPGA_SYSTEM is
     signal BA_WAIT_N        : std_logic;
     signal BA_BUSREQ_N      : std_logic;
     
+    signal Z80_In_raw       : t_z80_to_sys_raw;
     signal master_in        : t_z80_to_system;
     signal master_out       : t_system_to_z80;
     signal sOTSigs_in       : t_ot_sigs_to_system;
@@ -205,10 +211,6 @@ architecture structural of Z80_FPGA_SYSTEM is
     signal sISDout      : std_logic;
     signal sDataout     : STD_LOGIC_VECTOR(7 DOWNTO 0);
 
-    --System select
-    signal SYS_CSn          : std_logic; -- system select 
-    signal reg_system_sel_n : std_logic; --register for system selection
-    signal system_selection : unsigned(3 downto 0) := (others => '0');
 
 
     -- INTERNAL RAM SIGNALS
@@ -271,10 +273,6 @@ architecture structural of Z80_FPGA_SYSTEM is
     signal video_timing     : video_bus_in;      
      -- The multiplexed bus sent to the HDMI controller
     signal selected_video   : video_bus_out;
-    -- Control Signals
-    signal video_selection : unsigned(3 downto 0) := (others => '0');
-    signal reg_video_sel_n  : std_logic;
-    signal VD_DSn           : std_logic; --for video registers
 
     --SND76489 SIGNALS
     signal SN_DSn           : std_logic; --for SN76489
@@ -308,9 +306,9 @@ architecture structural of Z80_FPGA_SYSTEM is
     signal szxSigs_out      : t_ot_sigs_from_system;
     signal sIS_SPECTRUM     :std_logic:='0';
     signal sSPEC_icept_actv :std_logic:='0';
-    signal sSPEC_BANK_PAGE  : std_logic_vector(7 downto 0) := (others => '0');    
-    signal sSPEC_BANK_SEL   : std_logic_vector(2 downto 0) := (others => '0'); --bank selection 0-7
-    signal sSPEC_BANK_WE    : std_logic;
+--    signal sSPEC_BANK_PAGE  : std_logic_vector(7 downto 0) := (others => '0');    
+--    signal sSPEC_BANK_SEL   : std_logic_vector(2 downto 0) := (others => '0'); --bank selection 0-7
+--    signal sSPEC_BANK_WE    : std_logic;
  
         --Amstrad
     signal am_bus_out       : video_bus_out;  --Amstrad video controller
@@ -321,9 +319,7 @@ architecture structural of Z80_FPGA_SYSTEM is
     signal sCPC_BANK_PAGE   : std_logic_vector(7 downto 0) := (others => '0');    
     signal sCPC_BANK_SEL    : std_logic_vector(2 downto 0) := (others => '0'); --bank selection 0-7
     signal sCPC_BANK_WE     : std_logic;
-    signal sAmstradEN       : std_logic :='0'; --active high 
-    signal sAmstradTry      : std_logic :='0'; --active high this go high to signal we want to set amstrad sys
-    signal amstrad_booted_flag : std_logic :='0'; --active high
+
 
 
         --NMI tools
@@ -359,7 +355,8 @@ architecture structural of Z80_FPGA_SYSTEM is
     --signal to issue the start safely only once
     signal first_out_seen : std_logic := '0';
 
-    
+
+    signal system_selection : unsigned(3 downto 0) := (others => '0');
 
 --debug signals
     signal capturedata : std_logic := '0';
@@ -379,530 +376,10 @@ architecture structural of Z80_FPGA_SYSTEM is
 
 
 
-    
 
-
-    component Clock_Manager
-        port (
-            CLK_IN              : in  std_logic;
-            RST_N               : in  std_logic;
-            Z80_CLK_SEL         : in  std_logic_vector(7 downto 0);
-            CLK_Z80             : out std_logic;
-            CLK_PIXEL           : out std_logic;
-            CLK_SN76489         : out std_logic;
-            CLK_AY38912         : out std_logic
-        );
-    end component;
-
-    component Clock_TMDS
-       port (
-            clkin :in std_logic;
-            clkout0 : out std_logic;
-            mdclk : in std_logic 
-       );
-    end component;
 
   
 
-    component z80_to_gowin_16550_wrapper is
-        port (
-            CLK_FPGA        : in  std_logic; -- 50MHz Master Clock
-            CLK_Z80         : in  std_logic; -- 4MHz Z80 System Clock
-            rst_high        : in  std_logic; -- Active High system reset
-        
-            -- Z80 Hardware Bus Interface
-            DEV_CS_N        : in  std_logic; -- Active Low from Z80 decoding
-            WRcpu_N         : in  std_logic; -- Active Low Z80 Write Strobe
-            RDcpu_N         : in  std_logic; -- Active Low Z80 Read Strobe
-            ADDR_BUS        : in  std_logic_vector(2 downto 0);  -- A2, A1, A0
-            DATA_BUS_IN     : in  std_logic_vector(7 downto 0);  -- Z80 Data Bus Out (from CPU)
-            DATA_BUS_OUT    : out std_logic_vector(7 downto 0);  -- Z80 Data Bus In (to CPU)
-    
-            testSig         : out  std_logic;
-        
-            -- Physical Serial Interface (FT232 connection)
-            sRXD             : in  std_logic; -- Serial Data In
-            sTXD             : out std_logic; -- Serial Data Out
-            sCTSn            : out std_logic  -- Output to tell FT232 to stop/go
-        );
-    end component;
-
-    component Z80_BA_Bootloader
-        port (
-            CLK_FPGA          : in  std_logic;
-            -- Z80 Side
-            CLK               : in  std_logic;
-            nRESET            : in  std_logic;
-            -- All Z80 inputs bundled together
-            Z80_In            : in  t_z80_to_system;
-            -- All system outputs bundled together
-            Z80_Out           : out t_system_to_z80;
-            -- Other signals
-            OTSigs_in         : IN t_ot_sigs_to_system;
-            OTSigs_out        : OUT t_ot_sigs_from_system;
-            -- Video registers
-            VDRegs_out        : OUT t_video_regs
-        );
-    end component;
-
-    component Z80_BA_Atlas
-        port (
-            CLK_FPGA          : in  std_logic;
-            -- Z80 Side
-            CLK               : in  std_logic;
-            nRESET            : in  std_logic;
-            -- All Z80 inputs bundled together
-            Z80_In            : in  t_z80_to_system;
-            -- All system outputs bundled together
-            Z80_Out           : out t_system_to_z80;
-            -- Other signals
-            OTSigs_in         : IN t_ot_sigs_to_system;
-            OTSigs_out        : OUT t_ot_sigs_from_system;
-            -- Video registers
-            VDRegs_out        : OUT t_video_regs
-        );
-    end component;
-
-  component Z80_BA_Newbrain
-        port (
-            CLK_FPGA          : in  std_logic;
-            -- Z80 Side
-            CLK               : in  std_logic;
-            nRESET            : in  std_logic;
-            -- All Z80 inputs bundled together
-            Z80_In            : in  t_z80_to_system;
-            -- All system outputs bundled together
-            Z80_Out           : out t_system_to_z80;
-            -- Other signals
-            OTSigs_in         : IN t_ot_sigs_to_system;
-            OTSigs_out        : OUT t_ot_sigs_from_system;
-            -- Video registers
-            VDRegs_out        : OUT t_video_regs
-        );
-    end component;
-
-    component Z80_BA_Spectrum
-        port (
-            CLK_FPGA          : in  std_logic;
-            -- Z80 Side
-            CLK               : in  std_logic;
-            nRESET            : in  std_logic;
-            -- All Z80 inputs bundled together
-            Z80_In            : in  t_z80_to_system;
-            -- All system outputs bundled together
-            Z80_Out           : out t_system_to_z80;
-            -- Other signals
-            OTSigs_in         : IN t_ot_sigs_to_system;
-            OTSigs_out        : OUT t_ot_sigs_from_system;
-            -- Video registers
-            VDRegs_out        : OUT t_video_regs
-        );
-    end component;
-
-    component Spectrum_Load_Interceptor is
-        generic (
-            TARGET_LOAD_ADDR : std_logic_vector(15 downto 0) := x"056B"
-        );
-        port (
-            CLK_IN           : in  std_logic;
-            reset_n          : in  std_logic;
-            LOADER_ACTIVE   : in  std_logic; --Active high
-
-            -- Z80 System Bus Signals
-            Z80_In              : IN  t_z80_to_system;
-
-            INTERCEPT_ACTIVE : out std_logic;
-            MMU_ADDR         : out std_logic_vector(2 downto 0);
-            MMU_DATA         : out std_logic_vector(7 downto 0);
-            MMU_WE           : out std_logic;
-            MMU_BANK0_IN     : in  std_logic_vector(7 downto 0);
-            MMU_BANK1_IN     : in  std_logic_vector(7 downto 0);
-            MMU_BANK2_IN     : in  std_logic_vector(7 downto 0);
-            MMU_BANK3_IN     : in  std_logic_vector(7 downto 0);
-            MMU_BANK4_IN     : in  std_logic_vector(7 downto 0);
-            MMU_BANK5_IN     : in  std_logic_vector(7 downto 0);
-            MMU_BANK6_IN     : in  std_logic_vector(7 downto 0);
-            MMU_BANK7_IN     : in  std_logic_vector(7 downto 0)
-        );
-    end component;
-
-   component Z80_BA_Amstrad
-        port (
-            CLK_FPGA          : in  std_logic;
-            -- Z80 Side
-            CLK               : in  std_logic;
-            nRESET            : in  std_logic;
-            -- All Z80 inputs bundled together
-            Z80_In            : in  t_z80_to_system;
-            -- All system outputs bundled together
-            Z80_Out           : out t_system_to_z80;
-            -- Other signals
-            OTSigs_in         : IN t_ot_sigs_to_system;
-            OTSigs_out        : OUT t_ot_sigs_from_system;
-            -- Video registers
-            VDRegs_out        : OUT t_video_regs
-        );
-    end component;
-
-    component MMU is
-        port (
-            CLK             :  IN  STD_LOGIC;
-            A13     : in  std_logic;
-            A14     : in  std_logic;
-            A15     : in  std_logic;
-            nMREQ   : in  std_logic;
-            nINTMMU : in  std_logic;    -- From I/O Decoder (MMU Mapping Port)
-            nSET_RO : in  std_logic;    -- From I/O Decoder (Read-Only Port)
-            nSET_RW : in  std_logic;    -- From I/O Decoder (Read/Write Port)
-            nWR_CPU : in  std_logic;    -- Z80 Write Strobe
-            nRESET  : in  std_logic;
-            DATA    : in  std_logic_vector(7 downto 0);
-            EA      : out std_logic_vector(20 downto 13);
-            nWR_OUT : out std_logic;    -- Protected Write Strobe to Memory
-            FPGA_BANK_WE    :  IN  STD_LOGIC;                     -- '1' = FPGA writes to a bank
-            FPGA_BANK_SEL   :  IN  STD_LOGIC_VECTOR(2 downto 0);  -- Selects which bank (0 to 7) to write to
-            FPGA_BANK_PAGE  :  IN  STD_LOGIC_VECTOR(7 downto 0); 
-            nCE0    : out std_logic;
-            nCE1    : out std_logic;
-            nCE2    : out std_logic;
-            nCE3    : out std_logic;
-            nCE4    : out std_logic;
-            --Page_Banks
-            MMU_BANK0_PAGE  : OUT std_logic_vector(7 downto 0);
-            MMU_BANK1_PAGE  : OUT std_logic_vector(7 downto 0);
-            MMU_BANK2_PAGE  : OUT std_logic_vector(7 downto 0);
-            MMU_BANK3_PAGE  : OUT std_logic_vector(7 downto 0);
-            MMU_BANK4_PAGE  : OUT std_logic_vector(7 downto 0);
-            MMU_BANK5_PAGE  : OUT std_logic_vector(7 downto 0);
-            MMU_BANK6_PAGE  : OUT std_logic_vector(7 downto 0);
-            MMU_BANK7_PAGE  : OUT std_logic_vector(7 downto 0);
-        );
-    end component;
-
-
-    component CPC_MMU_Bank_Sequencer is
-        Port (
-            clk             : in  std_logic;                    -- 50 MHz FPGA Clock
-            reset_n         : in  std_logic;
-            
-            -- Z80 Bus Controls
-            Z80_MREQ_N      : in  std_logic;   
-            Z80_RD_N        : in  std_logic;                     
-            Z80_WR_N        : in  std_logic;
-            Z80_ADDR        : in  std_logic_vector(15 downto 0);
-            
-            -- Config inputs from Gate Array
-            lower_rom_en    : in  std_logic;
-            upper_rom_en    : in  std_logic;
-            ram_page_bank0  : in  std_logic_vector(2 downto 0);
-            ram_page_bank1  : in  std_logic_vector(2 downto 0); -- NEW
-            ram_page_bank2  : in  std_logic_vector(2 downto 0); -- NEW
-            ram_page_bank3  : in  std_logic_vector(2 downto 0);
-
-            -- Interface to your MMU controller
-            FPGA_BANK_WE    : out std_logic;                    -- '1' when writing to MMU
-            FPGA_BANK_SEL   : out std_logic_vector(2 downto 0); -- Bank index (0 to 7)
-            FPGA_BANK_PAGE  : out std_logic_vector(7 downto 0); -- Physical page number (0x00, 0x02, etc.)
-            UPDATE_ACTIVE   : out std_logic                     -- '1' while sequence is running
-        );
-    end component;
-
-    component DPVRAM is
-    port (
-            douta: out std_logic_vector(7 downto 0); -- Port A: Z80 Read Data
-            doutb: out std_logic_vector(7 downto 0); -- Port B: Video Read Data
-            clka: in std_logic;                      -- Port A: Z80 Clock
-            ocea: in std_logic;                      -- Port A: Output Clock Enable
-            cea: in std_logic;                       -- Port A: Chip Enable
-            reseta: in std_logic;                    -- Port A: Reset
-            wrea: in std_logic;                      -- Port A: Write Enable
-            clkb: in std_logic;                      -- Port B: TMDS Clock
-            oceb: in std_logic;                      -- Port B: Output Clock Enable
-            ceb: in std_logic;                       -- Port B: Chip Enable
-            resetb: in std_logic;                    -- Port B: Reset
-            wreb: in std_logic;                      -- Port B: Write Enable (for video side)
-            ada: in std_logic_vector(15 downto 0);   -- Port A: Z80 Address (A0-A15)
-            dina: in std_logic_vector(7 downto 0);   -- Port A: Z80 Data In
-            adb: in std_logic_vector(15 downto 0);   -- Port B: Video Address (A0-A15)
-            dinb: in std_logic_vector(7 downto 0)    -- Port B: Video Data In
-    );
-    end component;
-
-   --------------------------------------------------------------------------------
-    -- Component Declaration: 16550D UART
-    --------------------------------------------------------------------------------
-    component gh_uart_16550 is
-    	port(
-    		clk      : in std_logic;
-    		BR_clk   : in std_logic;
-    		rst      : in std_logic;
-    		CS       : in std_logic;
-    		WR       : in std_logic;
-    		ADD      : in std_logic_vector(2 downto 0);
-    		D        : in std_logic_vector(7 downto 0);
-    		
-    		sRX	     : in std_logic;
-    		CTSn     : in std_logic := '1';
-    		DSRn     : in std_logic := '1';
-    		RIn      : in std_logic := '1';
-    		DCDn     : in std_logic := '1';
-    		
-    		sTX      : out std_logic;
-    		DTRn     : out std_logic;
-    		RTSn     : out std_logic;
-    		OUT1n    : out std_logic;
-    		OUT2n    : out std_logic;
-    		TXRDYn   : out std_logic;
-    		RXRDYn   : out std_logic;
-    		
-    		IRQ      : out std_logic;
-    		B_CLK    : out std_logic;
-    		RD       : out std_logic_vector(7 downto 0)
-    		);
-    end component;
-
-
-    component Z80_PS2_Bridge is
-        port (
-            CLK            : in    std_logic;
-            nRESET         : in    std_logic;
-            PS2_DS_N       : in    std_logic;
-            PS2_BT_RDY     : out    std_logic; 
-            FPGA_READ      : in std_logic; 
-            NMIClear       : in std_logic; -- Active low when low clears the  NewByteForNMI
-            NewByteForNMI  : out std_logic; --flags the nmi that a newbyte arrived to check it
-            Z80_IO_ADDR    : in    std_logic_vector(7 downto 0);
-            Z80_RD_N       : in    std_logic;
-            Z80_WR_N       : in    std_logic;
-            Z80_DATA_IN    : in    std_logic_vector(7 downto 0);
-            Z80_DATA_OUT   : out   std_logic_vector(7 downto 0);
-            PS2_CLK        : inout std_logic;
-            PS2_DATA       : inout std_logic
-        );
-    end component; 
-
-    --------------------------------------------------------------------------------
-    -- i2c inteface
-    --------------------------------------------------------------------------------
-
-  --------------------------------------------------------------------
-    -- Gowin I2C IP
-    --------------------------------------------------------------------
-    component I2C_MASTER_Top
-        port (
-            I_CLK     : in std_logic;
-            I_RESETN  : in std_logic;
-
-            I_TX_EN   : in std_logic;
-            I_WADDR   : in std_logic_vector(2 downto 0);
-            I_WDATA   : in std_logic_vector(7 downto 0);
-
-            I_RX_EN   : in std_logic;
-            I_RADDR   : in std_logic_vector(2 downto 0);
-
-            O_RDATA   : out std_logic_vector(7 downto 0);
-            O_IIC_INT : out std_logic;
-
-            SCL       : inout std_logic;
-            SDA       : inout std_logic
-        );
-    end component;
-
-
-    --****************************************************************
-    -- Video system
-    component hdmi_video_subsystem is
-        port (
-            CLK_PIXEL       : in  std_logic;
-            CLK_TMDS        : in  std_logic;
-            nRESET          : in  std_logic;
-            VIDEO_BUS_IN    : in  video_bus_out;
-            VIDEO_BUS_TIMING: out video_bus_in;
-            CKP, CKN        : out std_logic;
-            D0P, D0N        : out std_logic;
-            D1P, D1N        : out std_logic;
-            D2P, D2N        : out std_logic
-        );
-    end component;
-
-    component video_system_v80 is
-        port (
-            V_IN            : in  video_bus_in;
-            V_OUT           : out video_bus_out;
-            FPGA_CLK        : in  std_logic;
-            Z80_CLK         : in  std_logic;
-            Z80_WR_N        : in  std_logic;
-            Z80_ADDR        : in  std_logic_vector(3 downto 0);
-            Z80_DATA        : in  std_logic_vector(7 downto 0);
-            REG_SEL_N       : in  std_logic;
-            VRAM_DATA       : in  std_logic_vector(7 downto 0);
-            VRAM_ADDR       : out std_logic_vector(15 downto 0);
-            -- Video registers
-            VDRegs          : in t_video_regs
-        );
-    end component;
-
-   component BootLVideo is
-        port (
-            V_IN            : in  video_bus_in;
-            V_OUT           : out video_bus_out;
-            FPGA_CLK        : in  std_logic;
-            Z80_CLK         : in  std_logic;
-            Z80_WR_N        : in  std_logic;
-            Z80_ADDR        : in  std_logic_vector(3 downto 0);
-            Z80_DATA        : in  std_logic_vector(7 downto 0);
-            REG_SEL_N       : in  std_logic;
-            VRAM_DATA       : in  std_logic_vector(7 downto 0);
-            VRAM_ADDR       : out std_logic_vector(15 downto 0);
-            -- Video registers
-            VDRegs          : in t_video_regs
-        );
-    end component;
-
-    component AtlasVideo is
-        port (
-            V_IN            : in  video_bus_in;
-            V_OUT           : out video_bus_out;
-            FPGA_CLK        : in  std_logic;
-            Z80_CLK         : in  std_logic;
-            Z80_WR_N        : in  std_logic;
-            Z80_ADDR        : in  std_logic_vector(3 downto 0);
-            Z80_DATA        : in  std_logic_vector(7 downto 0);
-            REG_SEL_N       : in  std_logic;
-            VRAM_DATA       : in  std_logic_vector(7 downto 0);
-            VRAM_ADDR       : out std_logic_vector(15 downto 0);
-            -- Video registers
-            VDRegs          : in t_video_regs
-        );
-    end component;
-
-   component NewbrainVideo is
-        port (
-            V_IN            : in  video_bus_in;
-            V_OUT           : out video_bus_out;
-            FPGA_CLK        : in  std_logic;
-            Z80_CLK         : in  std_logic;
-            Z80_WR_N        : in  std_logic;
-            Z80_ADDR        : in  std_logic_vector(3 downto 0);
-            Z80_DATA        : in  std_logic_vector(7 downto 0);
-            REG_SEL_N       : in  std_logic;
-            VRAM_DATA       : in  std_logic_vector(7 downto 0);
-            VRAM_ADDR       : out std_logic_vector(15 downto 0);
-            -- Video registers
-            VDRegs          : in t_video_regs
-        );
-    end component;
-
-    component SpectrumVideo is
-        port (
-            V_IN            : in  video_bus_in;
-            V_OUT           : out video_bus_out;
-            FPGA_CLK        : in  std_logic;
-            Z80_CLK         : in  std_logic;
-            Z80_WR_N        : in  std_logic;
-            Z80_ADDR        : in  std_logic_vector(3 downto 0);
-            Z80_DATA        : in  std_logic_vector(7 downto 0);
-            REG_SEL_N       : in  std_logic;
-            VRAM_DATA       : in  std_logic_vector(7 downto 0);
-            VRAM_ADDR       : out std_logic_vector(15 downto 0);
-            -- Video registers
-            VDRegs          : in t_video_regs
-        );
-    end component;
-
-    component AmstradVideo is
-        port (
-            V_IN            : in  video_bus_in;
-            V_OUT           : out video_bus_out;
-            FPGA_CLK        : in  std_logic;
-            Z80_CLK         : in  std_logic;
-            Z80_WR_N        : in  std_logic;
-            Z80_ADDR        : in  std_logic_vector(3 downto 0);
-            Z80_DATA        : in  std_logic_vector(7 downto 0);
-            REG_SEL_N       : in  std_logic;
-            VRAM_DATA       : in  std_logic_vector(7 downto 0);
-            VRAM_ADDR       : out std_logic_vector(15 downto 0);
-            -- Video registers
-            VDRegs          : in t_video_regs
-        );
-    end component;
-
-
-    component Z80_NMI_Handler is
-        generic (
-            NMI_PULSE_CYCLES : integer := 4
-        );
-        port (
-            CLK_IN        : in  std_logic;
-            reset_n       : in  std_logic;
-     
-            sPS2_BTRDY    : in  std_logic;
-            sPS2_DATA     : in  std_logic_vector(7 downto 0);
-            sPS2_READ     : out std_logic;
-            sNMIClear     : out std_logic;                      -- ack pulse, 1 cycle active low
-            sNewByteForNMI: in std_logic;                       -- active high
-
-     
-            oKey_Consumed : out std_logic;
-            NMI_Key       : out std_logic;
-     
-            CPU_A         : in  std_logic_vector(15 downto 0);
-            CPU_D         : in  std_logic_vector(7 downto 0);
-            CPU_M1_n      : in  std_logic;
-            CPU_MREQ_n    : in  std_logic;
-            CPU_RD_n      : in  std_logic;
-     
-            NMI_n         : out std_logic;
-            TOOLS_ACTIVE  : out std_logic;
-     
-            MMU_ADDR      : out std_logic_vector(2 downto 0);
-            MMU_DATA      : out std_logic_vector(7 downto 0);
-            MMU_WE        : out std_logic;
-     
-            MMU_BANK0_IN  : in  std_logic_vector(7 downto 0);
-            MMU_BANK1_IN  : in  std_logic_vector(7 downto 0);
-            MMU_BANK2_IN  : in  std_logic_vector(7 downto 0);
-            MMU_BANK3_IN  : in  std_logic_vector(7 downto 0);
-            MMU_BANK4_IN  : in  std_logic_vector(7 downto 0);
-            MMU_BANK5_IN  : in  std_logic_vector(7 downto 0);
-            MMU_BANK6_IN  : in  std_logic_vector(7 downto 0);
-            MMU_BANK7_IN  : in  std_logic_vector(7 downto 0)
-        );
-    end component Z80_NMI_Handler;
-
-    component SRAM_PAGE_CLEAR is
-        generic (
-            ADDR_WIDTH      : integer := 20;
-            PAGE_WIDTH      : integer := 7;
-            OFFSET_WIDTH    : integer := 13;
-
-            -- Number of FPGA clocks for the SRAM write pulse.
-            -- At 50 MHz, 3 clocks = 60 ns.
-            WRITE_CYCLES    : integer := 3
-        );
-        port (
-            CLK             : in  std_logic;
-            RESET_N         : in  std_logic;
-
-            -- Clear request
-            START           : in  std_logic;
-            PAGE_NUMBER     : in  std_logic_vector(PAGE_WIDTH-1 downto 0);
-
-            -- Z80 bus arbitration
-            BUSACK_N        : in  std_logic;
-            BUSREQ_N        : out std_logic;
-
-            -- SRAM control
-            SRAM_ADDR       : out std_logic_vector(ADDR_WIDTH-1 downto 0);
-            SRAM_DATA       : out std_logic_vector(7 downto 0);
-            SRAM_CE_N       : out std_logic;
-            SRAM_WE_N       : out std_logic;
-
-            -- Status
-            BUSY            : out std_logic;
-            DONE            : out std_logic
-        );
-    end component;
 
 begin
 
@@ -1013,7 +490,7 @@ begin
     -- ** CLOCK MANAGER INSTANTIATION **
     -- ***************************************************************
     
-    clock_inst: Clock_Manager
+    clock_inst: entity work.Clock_Manager
         port map (
             CLK_IN              => CLK_IN,
             RST_N               => clock_en_n,
@@ -1030,7 +507,7 @@ begin
   --  LAUD_CLK <= CLK_SN76489_INT; --not used
     -- CLK_TMDS_INT and CLK_AY38912_INT are used internally
 
-    TMDS_PLL_Core : Clock_TMDS
+    TMDS_PLL_Core : entity work.Clock_TMDS
         port map (
             clkin           => CLK_IN,          -- Connects 50MHz external clock
             clkout0         => CLK_TMDS_INT,    -- Internal 200 MHz signal
@@ -1079,74 +556,67 @@ begin
     -- ***************************************************************
     -- ** Z80 BUS ARBITER INSTANTIATION **
     -- ***************************************************************
-    BA_Bootld: Z80_BA_Bootloader
-        port map (
-            CLK_FPGA          => CLK_IN,
-            CLK               => CLK_Z80_INT,             -- Z80 Operating Clock
-            nRESET            => reset_n_sync2,                -- System Reset (from external logic/button)
-            
-            Z80_In            => master_in,
-            Z80_Out           => bootld_out,
-            OTSigs_in         => sotsigs_in,
-            OTSigs_out        => open,
-            VDRegs_out        => open
-        );
-
-    BA_Atlas: Z80_BA_Atlas
-        port map (
-            CLK_FPGA          => CLK_IN,
-            CLK               => CLK_Z80_INT,             -- Z80 Operating Clock
-            nRESET            => reset_n_sync2,                -- System Reset (from external logic/button)
-            
-            Z80_In            => master_in,
-            Z80_Out           => atlas_out,
-            OTSigs_in         => sotsigs_in,
-            OTSigs_out        => open,
-            VDRegs_out        => open
-        );
+ 
 
 
-    BA_Newbrain: Z80_BA_Newbrain
+    ------------------------------------------------------------------
+    -- Master Unified System Container Instantiation
+    ------------------------------------------------------------------
+    u_System_TOP : entity work.System_TOP
         port map (
-            CLK_FPGA          => CLK_IN,
-            CLK               => CLK_Z80_INT,             -- Z80 Operating Clock
-            nRESET            => reset_n_sync2,                -- System Reset (from external logic/button)
-            
-            Z80_In            => master_in,
-            Z80_Out           => nb_out,
-            OTSigs_in         => sotsigs_in,
-            OTSigs_out        => open,
-            VDRegs_out        => nb_regs
+            CLK_FPGA     => CLK_IN,         -- Primary FPGA System Clock
+            CLK_Z80      => CLK_Z80_INT,    -- Operating Z80 Clock
+            nRESET       => nReset,           -- Global Active-Low Reset
+
+            Z80_In_raw   => Z80_In_raw,
+            -- Control & Bus Records
+            Z80_In       => master_in,          -- Input record from Z80 bus
+            Z80_Out      => master_out,         -- Output record to Z80 / multiplexers
+            OTSigs_in    => sotsigs_in,         -- Inputs from MMU, SPI, System Select
+            OTSigs_out   => sotsigs_out,        -- Outputs to peripherals & system status
+
+            -- Master HDMI / Video Generator Timing
+            V_IN         => video_timing,    -- Pixel timing reference input
+            V_OUT        => selected_video,   -- Active system pixel output stream
+
+            -- Framebuffer / Shared VRAM Connections
+            VRAM_DATA    => VRAM_DATA_TO_VCTRL,   -- VRAM Data Read Bus
+            VRAM_ADDR    => VCTRL_ADDR_BUS,       -- VRAM Address Bus
+
+            -- MMU interface to set pages in banks
+            MMU_INTF     => s_mmu_intf,
+
+            -- MMU Banks info
+            MMU_Banks    => s_mmu_banks
         );
 
-    BA_Spectrum: Z80_BA_Spectrum
-        port map (
-            CLK_FPGA          => CLK_IN,
-            CLK               => CLK_Z80_INT,             -- Z80 Operating Clock
-            nRESET            => reset_n_sync2,                -- System Reset (from external logic/button)
-            
-            Z80_In            => master_in,
-            Z80_Out           => zx_out,
-            OTSigs_in         => sotsigs_in,
-            OTSigs_out        => szxsigs_out,
-            VDRegs_out        => zx_regs
-        );
+        s_SYS_BANK_WE   <= s_mmu_intf.FPGA_MMU_WE;
+        s_SYS_BANK_SEL  <= s_mmu_intf.FPGA_MMU_BANK;
+        s_SYS_BANK_PAGE <= s_mmu_intf.FPGA_MMU_PAGE;
 
-    BA_Amstrad: Z80_BA_Amstrad
-        port map (
-            CLK_FPGA          => CLK_IN,
-            CLK               => CLK_Z80_INT,             -- Z80 Operating Clock
-            nRESET            => reset_n_sync2,                -- System Reset (from external logic/button)
-            
-            Z80_In            => master_in,
-            Z80_Out           => am_out,
-            OTSigs_in         => sotsigs_in,
-            OTSigs_out        => sAMsigs_out,
-            VDRegs_out        => am_regs
-        );
+        s_mmu_banks.Bank0 <= sBANK0_PAGE;
+        s_mmu_banks.Bank1 <= sBANK1_PAGE;
+        s_mmu_banks.Bank2 <= sBANK2_PAGE;
+        s_mmu_banks.Bank3 <= sBANK3_PAGE;
+        s_mmu_banks.Bank4 <= sBANK4_PAGE;
+        s_mmu_banks.Bank5 <= sBANK5_PAGE;
+        s_mmu_banks.Bank6 <= sBANK6_PAGE;
+        s_mmu_banks.Bank7 <= sBANK7_PAGE;
 
 
         --Z80 In signals
+        Z80_In_raw.Z80_DATA_raw    <= LD7 & LD6 & LD5 & LD4 & LD3 & LD2 & LD1 & LD0;
+        Z80_In_raw.Z80_ADDR_raw    <= LA15 & LA14 & LA13 & LA12 & LA11 & LA10 & LA9 & LA8 &
+                            LA7 & LA6 & LA5 & LA4 & LA3 & LA2 & LA1 & LA0;
+        Z80_In_raw.Z80_MREQ_N_raw  <= L_MREQ_N;
+        Z80_In_raw.Z80_IORQ_N_raw  <= L_IORQ_N;
+        Z80_In_raw.Z80_M1_N_raw    <= L_M1_N;
+        Z80_In_raw.Z80_WR_N_raw    <= LWR_CPU_N;
+        Z80_In_raw.Z80_RD_N_raw    <= L_RD_N;        
+        Z80_In_raw.BUS_ACK_N_raw   <= LBUSACK_N;
+        Z80_In_raw.INT_REQ_N_raw   <= LINT_N;
+
+        --Z80 In signals synced with the z80 clock
         master_in.Z80_DATA    <= Z80_DATA_IN_INT;
         master_in.Z80_ADDR    <= Z80_LA_BUS_INT;
         master_in.Z80_MREQ_N  <= nMREQ_r;
@@ -1161,18 +631,18 @@ begin
         sotsigs_in.PS2_BT_Avail <= sPS2_BTRDY when sNewByteForNMI='0' else '0'; --active high only activate if nmi does not want it
         sotsigs_in.PS2_DATA     <= PS2_DATA_OUT;
         sotsigs_in.CPU_SPEED    <= clk_reg_out;
-        sotsigs_in.ToolActive   <= sTools_Act;
+        sotsigs_in.ToolActive   <= sTools_Act;        
         sotsigs_in.SYS_SEL      <= std_logic_vector(system_selection);
         sotsigs_in.FrameStart   <= '1' when video_timing.h_cnt=0 and video_timing.v_cnt=1 else '0';
        
         --Z80 OUT signals
-        WITH system_selection SELECT
-        master_out <= bootld_out WHEN "0000",
-                      atlas_out WHEN "0001",
-                      nb_out    WHEN "0010",
-                      zx_out    WHEN "0011",
-                      am_out    WHEN "0100",
-                      bootld_out WHEN OTHERS;
+--        WITH system_selection SELECT
+--        master_out <= bootld_out WHEN "0000",
+--                      atlas_out WHEN "0001",
+--                      nb_out    WHEN "0010",
+--                      zx_out    WHEN "0011",
+--                      am_out    WHEN "0100",
+--                      bootld_out WHEN OTHERS;
 
         nINTMMU         <= master_out.MMU_nMAP_REG_N;
         nINTMMU_ro      <= master_out.MMU_nSET_RO_N;
@@ -1182,9 +652,9 @@ begin
         nCLK_SEL        <= master_out.CLK_SEL_RG_N;
         UART_nCS        <= master_out.UART_CS_N;
         PS2_DSn         <= master_out.PS2_DS_N when sNMI_Key='0' else '1'; -- disable keyboard for z80 when handling a Fx key;
-        VD_DSn          <= master_out.VD_DS_N ;
+       -- VD_DSn          <= master_out.VD_DS_N ;
         I2C_CSn         <= master_out.I2C_CS_N;
-        SYS_CSn         <= master_out.SYS_CS_N;
+       -- SYS_CSn         <= master_out.SYS_CS_N;
         BA_BUSREQ_N     <= master_out.Z80_BUSREQ_N;
         BA_WAIT_N       <= master_out.Z80_WAIT_N;
         LINT_N          <= master_out.Z80_INT_N; 
@@ -1192,64 +662,21 @@ begin
         sDataout        <= master_out.DataOut;
 
 
-       --Other system In signals 
-       WITH system_selection SELECT
-        sotsigs_out <=sDMsigs_out WHEN "0000",
-                      sDMsigs_out WHEN "0001",
-                      sDMsigs_out    WHEN "0010",
-                      sZXsigs_out    WHEN "0011",
-                      sAMsigs_out    WHEN "0100",
-                      sDMsigs_out WHEN OTHERS;
+        system_selection <=  unsigned(sotsigs_out.SYS_SEL);
 
     
     --active high signal to get another key from ps/2 FROM FPGA
      sPS2_READ <=    sNMI_PS2_Read when sNMI_KEY='1'
-                else sotsigs_out.PS2_KEYB_READ  when system_selection="0011" or system_selection="0100" --for zx spec or cpc 464
+                else sotsigs_out.PS2_KEYB_READ  when system_selection=3 or system_selection=4 --for zx spec or cpc 464
                 else '0';
 
 
-    -- ***************************************************************
-    -- **  LOADERS MODULE INSTANTIATION **
-    -- ***************************************************************
-
-    sIS_SPECTRUM <='1' WHEN system_selection="0011" ELSE '0';
-
-    u_Spectrum_Load_Interceptor : Spectrum_Load_Interceptor
-    generic map (
-        TARGET_LOAD_ADDR => x"0556" -- Traps target ROM execution point
-    )
-    port map (
-        CLK_IN           => CLK_IN,             -- Connect your system clock
-        reset_n          => nRESET,         -- Connect active-low reset
-        LOADER_ACTIVE    => sIS_SPECTRUM,
-        Z80_In           => master_in,
-        
-        -- Interceptor Handshake
-        INTERCEPT_ACTIVE => sSPEC_icept_actv,
-        
-        -- Memory Management Unit Control Overrides
-        MMU_ADDR         => sSPEC_BANK_SEL,
-        MMU_DATA         => sSPEC_BANK_PAGE,
-        MMU_WE           => sSPEC_BANK_WE,
-        
-        -- Current Live Context tracking lines
-        MMU_BANK0_IN     => sBANK0_PAGE,
-        MMU_BANK1_IN     => sBANK1_PAGE,
-        MMU_BANK2_IN     => sBANK2_PAGE,
-        MMU_BANK3_IN     => sBANK3_PAGE,
-        MMU_BANK4_IN     => sBANK4_PAGE,
-        MMU_BANK5_IN     => sBANK5_PAGE,
-        MMU_BANK6_IN     => sBANK6_PAGE,
-        MMU_BANK7_IN     => sBANK7_PAGE
-    );
-
-
-    -- ***************************************************************
+     -- ***************************************************************
     -- **  NMI MODULE INSTANTIATION **
     -- ***************************************************************
 
 
-    U_Z80_NMI_HANDLER : Z80_NMI_Handler
+    U_Z80_NMI_HANDLER : entity work.Z80_NMI_Handler
         generic map (
             NMI_PULSE_CYCLES => 4
         )
@@ -1294,7 +721,7 @@ begin
     -- **  MMU INSTANTIATION **
     -- ***************************************************************
 
-    mmu_inst: MMU
+    mmu_inst: entity work.MMU
         port map (
             CLK     => CLK_IN,
             A13     => Z80_LA_BUS_INT(13),             -- LA13 from Z80 bus
@@ -1329,49 +756,26 @@ begin
             MMU_BANK7_PAGE => sBANK7_PAGE
         );
 
+
+    sFPGA_BANK_WE   <=  sNMI_BANK_WE   when sTools_Act='1'  
+                   else s_SYS_BANK_WE  when system_selection=3
+                   else s_SYS_BANK_WE  when system_selection=4                    
+                   else '0'; 
+    sFPGA_BANK_SEL  <=  sNMI_BANK_SEL   when sTools_Act='1'
+                   else s_SYS_BANK_SEL  when system_selection=3
+                   else s_SYS_BANK_SEL  when system_selection=4 
+                   else (Others=>'0'); 
+    sFPGA_BANK_PAGE <=  sNMI_BANK_PAGE  when sTools_Act='1'
+                   else s_SYS_BANK_PAGE when system_selection=3
+                   else s_SYS_BANK_PAGE when system_selection=4 
+                   else (Others=>'0');  
+
+
     -- Calculate VRAM Chip Enable (cea) based on MMU output (Active High required by Port A)
     VRAM_CE_CPU_N <= MMU_nCE2;
     VRAM_CE_CPU <= NOT VRAM_CE_CPU_N;
     VRAM_WR     <=  not MMU_WR;      --MMU_WR signal Wr signal with write protection
 
-    CPC_MMU_Inst : entity work.CPC_MMU_Bank_Sequencer 
-        Port map (
-            clk             => CLK_IN,                   -- 50 MHz FPGA Clock
-            reset_n         => nReset,
-            
-            -- Z80 Bus Controls
-            Z80_MREQ_N      => L_MREQ_N,
-            Z80_RD_N        => L_RD_N,          --raw signals we need to be quick
-            Z80_WR_N        => LWR_CPU_N,       --raw signals we need to be quick
-            Z80_ADDR        => Z80_LA_BUS_INT,
-            
-            -- Config inputs from Gate Array
-            lower_rom_en    => sotsigs_out.lower_rom_en,
-            upper_rom_en    => sotsigs_out.upper_rom_en,
-            ram_page_bank0  => sotsigs_out.ram_page_bank0,
-            ram_page_bank1  => sotsigs_out.ram_page_bank1,
-            ram_page_bank2  => sotsigs_out.ram_page_bank2,
-            ram_page_bank3  => sotsigs_out.ram_page_bank3,
-
-            -- Interface to your MMU controller
-            FPGA_BANK_WE    => sCPC_BANK_WE,                   -- '1' when writing to MMU
-            FPGA_BANK_SEL   => sCPC_BANK_SEL,                  -- Bank index (0 to 7)
-            FPGA_BANK_PAGE  => sCPC_BANK_PAGE,                  -- Physical page number (0x00, 0x02, etc.)
-            UPDATE_ACTIVE   => open                             -- '1' while sequence is running
-        );
- 
-    sFPGA_BANK_WE   <=  sNMI_BANK_WE   when sTools_Act='1'  
-                   else sSPEC_BANK_WE  when system_selection=3
-                   else sCPC_BANK_WE   when system_selection=4                    
-                   else '0'; 
-    sFPGA_BANK_SEL  <=  sNMI_BANK_SEL  when sTools_Act='1'
-                   else sSPEC_BANK_SEL  when system_selection=3
-                   else sCPC_BANK_SEL  when system_selection=4 
-                   else (Others=>'0'); 
-    sFPGA_BANK_PAGE <=  sNMI_BANK_PAGE when sTools_Act='1'
-                   else sSPEC_BANK_PAGE when system_selection=3
-                   else sCPC_BANK_PAGE when system_selection=4 
-                   else (Others=>'0');  
 
 --========== debugging
 --    AM_CAPTURE <= '0' WHEN system_selection=4 AND L_MREQ_N='0' and L_RD_N='0' AND Z80_LA_BUS_INT=x"C3AC"  ELSE '0';
@@ -1467,7 +871,7 @@ begin
     --------------------------------------------------------------------------------
     --------------------------------------------------------------------------------
    
-    u_uart_translator : z80_to_gowin_16550_wrapper
+    u_uart_translator : entity work.z80_to_gowin_16550_wrapper
     port map (
         -- Global Clocks & Resets
         CLK_FPGA         => CLK_IN,              -- Your 50MHz oscillator input
@@ -1494,7 +898,7 @@ begin
 
 
 -- PS2 controller
-    PS2KeybCtrl : Z80_PS2_Bridge
+    PS2KeybCtrl : entity work.Z80_PS2_Bridge
     port map (
         CLK          => CLK_in,
         nRESET       => nRESET,
@@ -1520,7 +924,7 @@ begin
     --------------------------------------------------------------------
     -- IP INSTANCE
     --------------------------------------------------------------------
-    U1: I2C_MASTER_Top
+    U1: entity work.I2C_MASTER_Top
         port map (
             I_CLK     => CLK_IN,
             I_RESETN  => nRESET,
@@ -1579,7 +983,7 @@ begin
     -- ***************************************************************
     -- ** HDMI PHYSICAL LAYER (The Consumer) **
     -- ***************************************************************
-    U_HDMI_PHY : hdmi_video_subsystem
+    U_HDMI_PHY : entity work.hdmi_video_subsystem
         port map (
             CLK_PIXEL        => CLK_PIXEL_INT,
             CLK_TMDS         => CLK_TMDS_INT,
@@ -1597,7 +1001,7 @@ begin
     -- ***************************************************************
     
     -- Producer A: The V80 Graphics Engine
-    U_PRODUCER_V80 : video_system_v80
+    U_PRODUCER_V80 : entity work.video_system_v80
         port map (
             V_IN       => video_timing,
             V_OUT      => v80_bus_out,
@@ -1612,149 +1016,9 @@ begin
             VDRegs     => DUMMY_VDREGS
         );
 
-   U_PRODUCER_BOOTL : BootLVideo
-        port map(
-            V_IN       => video_timing,
-            V_OUT      => bootl_bus_out,
-            FPGA_CLK   => CLK_IN,
-            Z80_CLK    => CLK_Z80_INT,
-            Z80_WR_N   => nWR_CPU_r,
-            Z80_ADDR   => Z80_LA_BUS_INT(3 downto 0),
-            Z80_DATA   => Z80_DATA_IN_INT,
-            REG_SEL_N  => '1', 
-            VRAM_DATA  => VRAM_DATA_TO_VCTRL,
-            VRAM_ADDR  => VBL_ADDR_BUS,
-            VDRegs     => DUMMY_VDREGS  --atlas registers are ram based
-        );
-
-    U_PRODUCER_ATLAS : AtlasVideo
-        port map(
-            V_IN       => video_timing,
-            V_OUT      => atlas_bus_out,
-            FPGA_CLK   => CLK_IN,
-            Z80_CLK    => CLK_Z80_INT,
-            Z80_WR_N   => nWR_CPU_r,
-            Z80_ADDR   => Z80_LA_BUS_INT(3 downto 0),
-            Z80_DATA   => Z80_DATA_IN_INT,
-            REG_SEL_N  => '1', 
-            VRAM_DATA  => VRAM_DATA_TO_VCTRL,
-            VRAM_ADDR  => VAT_ADDR_BUS,
-            VDRegs     => DUMMY_VDREGS  --atlas registers are ram based
-        );
-
-    U_PRODUCER_NBRAIN : NewbrainVideo
-        port map(
-            V_IN       => video_timing,
-            V_OUT      => nb_bus_out,
-            FPGA_CLK   => CLK_IN,
-            Z80_CLK    => CLK_Z80_INT,
-            Z80_WR_N   => nWR_CPU_r,
-            Z80_ADDR   => Z80_LA_BUS_INT(3 downto 0),
-            Z80_DATA   => Z80_DATA_IN_INT,
-            REG_SEL_N  => '1', 
-            VRAM_DATA  => VRAM_DATA_TO_VCTRL,
-            VRAM_ADDR  => VNB_ADDR_BUS,
-            VDRegs     => nb_regs
-        );
-
-    U_PRODUCER_ZXSPEC : SpectrumVideo
-        port map(
-            V_IN       => video_timing,
-            V_OUT      => zx_bus_out,
-            FPGA_CLK   => CLK_IN,
-            Z80_CLK    => CLK_Z80_INT,
-            Z80_WR_N   => nWR_CPU_r,
-            Z80_ADDR   => Z80_LA_BUS_INT(3 downto 0),
-            Z80_DATA   => Z80_DATA_IN_INT,
-            REG_SEL_N  => '1', 
-            VRAM_DATA  => VRAM_DATA_TO_VCTRL,
-            VRAM_ADDR  => VZX_ADDR_BUS,
-            VDRegs     => zx_regs
-        );
-
-    U_PRODUCER_AMSTRAD : AmstradVideo
-        port map(
-            V_IN       => video_timing,
-            V_OUT      => am_bus_out,
-            FPGA_CLK   => CLK_IN,
-            Z80_CLK    => CLK_Z80_INT,
-            Z80_WR_N   => nWR_CPU_r,
-            Z80_ADDR   => Z80_LA_BUS_INT(3 downto 0),
-            Z80_DATA   => Z80_DATA_IN_INT,
-            REG_SEL_N  => '1', 
-            VRAM_DATA  => VRAM_DATA_TO_VCTRL,
-            VRAM_ADDR  => VAM_ADDR_BUS,
-            VDRegs     => am_regs
-        );
-
-    -- Video handler
-    with system_selection select
-        VCTRL_ADDR_BUS <= VBL_ADDR_BUS  when "0000",
-                          VAT_ADDR_BUS  when "0001",
-                          VNB_ADDR_BUS  when "0010",
-                          VZX_ADDR_BUS  when "0011",
-                          VAM_ADDR_BUS  when "0100",
-
-                          VAT_ADDR_BUS  when others;
-       
-
-    -- Video register from z80 is active
-    reg_video_sel_n <= '0' when (VD_DSn = '0' and LWR_N = '0') else  '1';
-    reg_system_sel_n <= '0' when (SYS_CSn = '0' and nWR_CPU_r = '0') else  '1';
-
-    process(CLK_IN, nRESET)
-    begin
-        if nRESET = '0' then
-            video_selection     <= "0000";
-            system_selection    <= "0000";
-            sAmstradTry         <= '0';
-            amstrad_booted_flag <= '0';
-        elsif rising_edge(CLK_IN) then
-            if reg_system_sel_n = '0' then
-                -- Standard path for all non-Amstrad systems OR Amstrad after its first boot
-                if Z80_DATA_IN_INT(3 downto 0) /= "0100" or amstrad_booted_flag = '1' then  
-                    system_selection <= unsigned(Z80_DATA_IN_INT(3 downto 0));  
-                    
-                    -- High nibble rule: 
-                    -- If high nibble is 0, update video to match system.
-                    -- If high nibble is NOT 0 (e.g. loading), keep the original screen/video.
-                    if Z80_DATA_IN_INT(7 downto 4) = "0000" then 
-                        video_selection <= unsigned(Z80_DATA_IN_INT(3 downto 0));
-                    end if;
-                    
-                    sAmstradTry <= '0';
-                else 
-                    -- First-time Amstrad selection: arm the trigger for the first OUT
-                    sAmstradTry <= '1';
-                    
-                    -- High nibble check for initial selection if needed
-                    if Z80_DATA_IN_INT(7 downto 4) = "0000" then
-                        video_selection <= "0100";                        
-                    end if;
-                end if;
-                
-            -- When Amstrad is armed for its very first boot, wait for the first OUT at x"7F89"
-            elsif system_selection = 0 and sAmstradTry = '1' then
-                if nIORQ_r = '0' and nWR_CPU_r = '0' and Z80_LA_BUS_INT = x"7F89" then
-                    system_selection    <= "0100";
-                    video_selection <= "0100";                    
-                    amstrad_booted_flag <= '1'; -- Mark that the first-time boot sequence is complete                    
-                    sAmstradTry <= '0'; 
-                end if;
-            end if;
-        end if;
-    end process;
-
-
-    with video_selection select
-        selected_video <= bootl_bus_out when "0000",
-                          atlas_bus_out when "0001",
-                          nb_bus_out    when "0010",
-                          zx_bus_out    when "0011",
-                          am_bus_out    when "0100",
-
-                          v80_bus_out when others;
-
+  
+    
+    
     -- ***************************************************************
     -- ** CHIP ENABLE AND EXTENDED ADDRESS PIN MAPPING **
     -- ***************************************************************
@@ -1888,14 +1152,14 @@ begin
                 clk_reg_out           when nCLK_SEL='0' and nRD_CPU_r = '0' else
                 i2c_data_out          when I2C_CSn ='0' and nRD_CPU_r = '0' else
                 sDataout              when sIsDout ='0' and nRD_CPU_r = '0' else --system specific dataout to z80
-                "0000" & std_logic_vector(system_selection)      when SYS_CSn ='0' and nRD_CPU_r = '0' else
+                "0000" & std_logic_vector(system_selection)      when master_out.SYS_CS_N ='0' and nRD_CPU_r = '0' else
                 sMMUBank              when sMMURD='0' else
                 (others => 'Z');                           -- Default if no device is selected for read
         END IF;
     END PROCESS;
          
     sEnableDataOut <= '1' when flash_prog='0' 
-           else '0' when ( UART_nCS = '0' or PS2_DSn ='0' or VRAM_CE_CPU_N = '0' or nCLK_SEL='0' or I2C_CSn ='0' or sIsDout ='0' or SYS_CSn ='0' or sMMURD = '0') and nRD_CPU_r = '0'--add i2c when it works
+           else '0' when ( UART_nCS = '0' or PS2_DSn ='0' or VRAM_CE_CPU_N = '0' or nCLK_SEL='0' or I2C_CSn ='0' or sIsDout ='0' or master_out.SYS_CS_N ='0' or sMMURD = '0') and nRD_CPU_r = '0'--add i2c when it works
            else '1';
 
      -- Determine the raw bank selection based on the address bus

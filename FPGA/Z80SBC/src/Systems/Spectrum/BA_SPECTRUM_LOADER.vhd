@@ -27,26 +27,17 @@ entity Spectrum_Load_Interceptor is
         reset_n         : in  std_logic;
         LOADER_ACTIVE   : in  std_logic; --Active high
 
-        -- Z80 System Bus Signals
-        Z80_In              : IN  t_z80_to_system;
+        -- Z80 System Bus Signals _RAW *****
+        Z80_In_raw          : in  t_z80_to_sys_raw;
 
         -- Session Control Outputs
-        INTERCEPT_ACTIVE : out std_logic;
+        INTERCEPT_ACTIVE: out std_logic;
 
         -- MMU Interface (8 banks, byte-wide, simple control bus)
-        MMU_ADDR        : out std_logic_vector(2 downto 0);
-        MMU_DATA        : out std_logic_vector(7 downto 0);
-        MMU_WE          : out std_logic;
+        MMU_Intf        : out t_mmu_intf;
 
         -- Live MMU input lines for initial dynamic context tracking
-        MMU_BANK0_IN    : in  std_logic_vector(7 downto 0);
-        MMU_BANK1_IN    : in  std_logic_vector(7 downto 0);
-        MMU_BANK2_IN    : in  std_logic_vector(7 downto 0);
-        MMU_BANK3_IN    : in  std_logic_vector(7 downto 0);
-        MMU_BANK4_IN    : in  std_logic_vector(7 downto 0);
-        MMU_BANK5_IN    : in  std_logic_vector(7 downto 0);
-        MMU_BANK6_IN    : in  std_logic_vector(7 downto 0);
-        MMU_BANK7_IN    : in  std_logic_vector(7 downto 0)
+        MMU_Banks       : in t_mmu_banks
     );
 end entity Spectrum_Load_Interceptor;
 
@@ -108,15 +99,43 @@ architecture rtl of Spectrum_Load_Interceptor is
     signal CPU_RD_n        : std_logic;
     signal CPU_WR_n        : std_logic;
 
+    signal   MMU_BANK0_IN  : std_logic_vector(7 downto 0);
+    signal   MMU_BANK1_IN  : std_logic_vector(7 downto 0);
+    signal   MMU_BANK2_IN  : std_logic_vector(7 downto 0);
+    signal   MMU_BANK3_IN  : std_logic_vector(7 downto 0);
+    signal   MMU_BANK4_IN  : std_logic_vector(7 downto 0);
+    signal   MMU_BANK5_IN  : std_logic_vector(7 downto 0);
+    signal   MMU_BANK6_IN  : std_logic_vector(7 downto 0);
+    signal   MMU_BANK7_IN  : std_logic_vector(7 downto 0);
+
+    signal   MMU_ADDR      : std_logic_vector(2 downto 0);
+    signal   MMU_DATA      : std_logic_vector(7 downto 0);
+    signal   MMU_WE        : std_logic;
+
+
 begin
 
-        CPU_A       <= z80_IN.Z80_ADDR;
-        CPU_D       <= z80_IN.Z80_Data;
-        CPU_M1_n    <= z80_IN.Z80_M1_N;
-        CPU_MREQ_n  <= z80_IN.Z80_MREQ_N;
-        CPU_IORQ_n  <= z80_IN.Z80_IORQ_N;
-        CPU_RD_n    <= z80_IN.Z80_RD_N;
-        CPU_WR_n    <= z80_IN.Z80_WR_N;
+        MMU_BANK0_IN <= MMU_Banks.BANK0;
+        MMU_BANK1_IN <= MMU_Banks.BANK1;
+        MMU_BANK2_IN <= MMU_Banks.BANK2;
+        MMU_BANK3_IN <= MMU_Banks.BANK3;
+        MMU_BANK4_IN <= MMU_Banks.BANK4;
+        MMU_BANK5_IN <= MMU_Banks.BANK5;
+        MMU_BANK6_IN <= MMU_Banks.BANK6;
+        MMU_BANK7_IN <= MMU_Banks.BANK7;
+
+        MMU_Intf.FPGA_MMU_BANK <= MMU_ADDR;
+        MMU_Intf.FPGA_MMU_PAGE <= MMU_DATA;
+        MMU_Intf.FPGA_MMU_WE   <= MMU_WE;
+        
+
+        CPU_A       <= Z80_In_raw.Z80_ADDR_raw;
+        CPU_D       <= Z80_In_raw.Z80_Data_raw;
+        CPU_M1_n    <= Z80_In_raw.Z80_M1_N_raw;
+        CPU_MREQ_n  <= Z80_In_raw.Z80_MREQ_N_raw;
+        CPU_IORQ_n  <= Z80_In_raw.Z80_IORQ_N_raw;
+        CPU_RD_n    <= Z80_In_raw.Z80_RD_N_raw;
+        CPU_WR_n    <= Z80_In_raw.Z80_WR_N_raw;
 
 
     ----------------------------------------------------------------------

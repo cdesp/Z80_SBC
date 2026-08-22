@@ -106,7 +106,16 @@ end component;
 
 
 BEGIN
-    OTSigs_out.PS2_KEYB_READ <= '0'; --notused
+    Z80_Out.Z80_BUSREQ_N <= '1';
+
+    process(all)
+        variable v_out : t_ot_sigs_from_system;
+    begin
+        v_out := C_OT_SIGS_DEFAULT;
+        v_out.SYS_SEL := OTSigs_in.SYS_SEL;
+        OTSigs_out <= v_out;
+    end process;
+
 
     Datain <= Z80_In.Z80_Data;
     nIORQin <= Z80_In.Z80_IORQ_N;
@@ -121,12 +130,30 @@ BEGIN
     Z80_out.isDOut  <= outputData;
     Z80_out.DataOut <= DATAout;
 
-    VDRegs_out.Reg1 <= ENABLEREG;
-    VDRegs_out.Reg2 <= VidCTRsig;
-    VDRegs_out.Reg3 <= "0000000"&sVideo9;
-    VDRegs_out.Reg4 <= STADDR;
+ 
+--    VDRegs_out.Reg1 <= ENABLEREG;
+--    VDRegs_out.Reg2 <= VidCTRsig;
+--    VDRegs_out.Reg3 <= "0000000"&sVideo9;
+--    VDRegs_out.Reg4 <= STADDR;
     --VDRegs_out.Reg5 <=
 
+    process(clk_FPGA, nRESET)
+        variable v_VDRegs : t_video_regs;
+    begin
+        if nRESET = '0' then
+            VDRegs_out <= DUMMY_VDREGS;
+        elsif rising_edge(clk_FPGA) then
+            -- Start with defaults
+            v_VDRegs := DUMMY_VDREGS;
+            -- Override only the registers you want
+            v_VDRegs.Reg1 := ENABLEREG;
+            v_VDRegs.Reg2 := VidCTRsig;
+            v_VDRegs.Reg3 := "0000000" & sVideo9;
+            v_VDRegs.Reg4 := STADDR;
+            -- One and only one assignment to VDRegs_out
+            VDRegs_out <= v_VDRegs;
+        end if;
+    end process;
 
     CLK20: Clock_Divider
     generic map ( CYCLE_COUNT => 1000000 )

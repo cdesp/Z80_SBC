@@ -1,6 +1,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
+use work.defs_pkg.all;
 
 entity CPC_MMU_Bank_Sequencer is
     Port (
@@ -14,17 +15,11 @@ entity CPC_MMU_Bank_Sequencer is
         Z80_ADDR        : in  std_logic_vector(15 downto 0); -- Z80 Address Bus
         
         -- Config inputs from Gate Array
-        lower_rom_en    : in  std_logic;
-        upper_rom_en    : in  std_logic;
-        ram_page_bank0  : in  std_logic_vector(2 downto 0);
-        ram_page_bank1  : in  std_logic_vector(2 downto 0);
-        ram_page_bank2  : in  std_logic_vector(2 downto 0);
-        ram_page_bank3  : in  std_logic_vector(2 downto 0);
+        amst_Sigs       : in t_amstrad_sigs;
 
+        
         -- Interface to MMU controller
-        FPGA_BANK_WE    : out std_logic;                     -- Strobe to update MMU bank
-        FPGA_BANK_SEL   : out std_logic_vector(2 downto 0); -- Target Slot (0..7)
-        FPGA_BANK_PAGE  : out std_logic_vector(7 downto 0); -- Physical Page ID
+        mmu_intf        : out  t_mmu_intf;
         UPDATE_ACTIVE   : out std_logic                      -- '1' while sequence is running
     );
 end CPC_MMU_Bank_Sequencer;
@@ -77,7 +72,7 @@ begin
     -- -------------------------------------------------------------------------
     -- 1. COMBINATIONAL LOOKUP: Instantly determine active Slot & Page (0 ns delay)
     -- -------------------------------------------------------------------------
-    process(Z80_ADDR, lower_rom_en, upper_rom_en, ram_page_bank0, ram_page_bank1, ram_page_bank2, ram_page_bank3, Z80_WR_N)
+    process(Z80_ADDR, amst_Sigs, Z80_WR_N)
         variable active_cfg : std_logic_vector(2 downto 0);
     begin
         -- Determine MMU Bank Slot Index (0..7) based on A15..A13
@@ -85,10 +80,10 @@ begin
 
         -- Map top 2 bits (A15..A14) to active 16K bank configuration
         case Z80_ADDR(15 downto 14) is
-            when "00"   => active_cfg := ram_page_bank0;
-            when "01"   => active_cfg := ram_page_bank1;
-            when "10"   => active_cfg := ram_page_bank2;
-            when "11"   => active_cfg := ram_page_bank3;
+            when "00"   => active_cfg := amst_Sigs.ram_page_bank0;
+            when "01"   => active_cfg := amst_Sigs.ram_page_bank1;
+            when "10"   => active_cfg := amst_Sigs.ram_page_bank2;
+            when "11"   => active_cfg := amst_Sigs.ram_page_bank3;
             when others => active_cfg := "000";
         end case;
 
@@ -104,7 +99,7 @@ begin
 
         else
             -- READ CYCLES: Check if ROM overlays are active
-            if (Z80_ADDR(15 downto 14) = "00" and lower_rom_en = '1') then
+            if (Z80_ADDR(15 downto 14) = "00" and amst_Sigs.lower_rom_en = '1') then
                 -- Lower OS ROM Read
                 if Z80_ADDR(13) = '0' then
                     target_page <= X"00";
@@ -112,7 +107,7 @@ begin
                     target_page <= X"01";
                 end if;
 
-            elsif (Z80_ADDR(15 downto 14) = "11" and upper_rom_en = '1') then
+            elsif (Z80_ADDR(15 downto 14) = "11" and amst_Sigs.upper_rom_en = '1') then
                 -- Upper BASIC ROM Read
                 if Z80_ADDR(13) = '0' then
                     target_page <= X"08";
@@ -139,7 +134,7 @@ begin
     begin
         if reset_n = '0' then
             state         <= IDLE;
-            FPGA_BANK_WE  <= '0';
+            mmu_intf.FPGA_MMU_WE  <= '0';
             UPDATE_ACTIVE <= '0';
         --    z80_mreq_d    <= '1';
         elsif rising_edge(clk) then
@@ -149,7 +144,7 @@ begin
             case state is
 
                 when IDLE =>
-                    FPGA_BANK_WE  <= '0';
+                    mmu_intf.FPGA_MMU_WE  <= '0';
                     UPDATE_ACTIVE <= '0';
 
                     -- Detect start of memory cycle: MREQ goes low, 
@@ -181,15 +176,15 @@ begin
 
                 when SETUP_BANK =>
                     -- Clock Tick 1: Output Slot, Page, and assert WE
-                    FPGA_BANK_SEL  <= target_slot;
-                    FPGA_BANK_PAGE <= target_page;
-                    FPGA_BANK_WE   <= '1'; -- Assert WE to trigger MMU register load
+                    mmu_intf.FPGA_MMU_BANK <= target_slot;
+                    mmu_intf.FPGA_MMU_PAGE <= target_page;
+                    mmu_intf.FPGA_MMU_WE   <= '1'; -- Assert WE to trigger MMU register load
                     
                     state          <= STROBE_BANK;
 
                 when STROBE_BANK =>
                     -- Clock Tick 2: De-assert WE (Data safely latched in MMU register)
-                    FPGA_BANK_WE <= '0';
+                    mmu_intf.FPGA_MMU_WE <= '0';
                     state        <= WAIT_BUS_RELEASE;
 
                 when WAIT_BUS_RELEASE =>

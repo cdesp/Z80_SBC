@@ -17,7 +17,10 @@ ENTITY Z80_BA_Amstrad IS
         OTSigs_in           : IN t_ot_sigs_to_system;
         OTSigs_out          : OUT t_ot_sigs_from_system;
         -- Video registers
-        VDRegs_out          : OUT t_video_regs
+        VDRegs_out          : OUT t_video_regs;
+
+        --Amstrad signals
+        amst_Sigs           : OUT t_amstrad_sigs
     );
 END Z80_BA_Amstrad;
 
@@ -158,35 +161,7 @@ signal cclk_tick      : std_logic;
 --Interrupt
 signal r_int          :std_logic := '0'; --active high
 
-    component mc6845 is
-        port (
-            CLOCK     : in  std_logic;
-            CLKEN     : in  std_logic;
-            CLKEN_CPU : in  std_logic;
-            nRESET    : in  std_logic;
-
-            -- Bus interface
-            ENABLE    : in  std_logic;
-            R_nW      : in  std_logic;
-            RS        : in  std_logic;
-            DI        : in  std_logic_vector(7 downto 0);
-            DO        : out std_logic_vector(7 downto 0);
-
-            -- Display interface
-            VSYNC     : out std_logic;
-            HSYNC     : out std_logic;
-            DE        : out std_logic;
-            CURSOR    : out std_logic;
-            LPSTB     : in  std_logic;
-
-            VGA       : in  std_logic;
-
-            -- Memory interface
-            MA        : out std_logic_vector(13 downto 0);
-            RA        : out std_logic_vector(4 downto 0);
-            test      : out std_logic_vector(3 downto 0)
-        );
-    end component;
+ 
 
     signal clk_div              : unsigned(1 downto 0) := (others => '0');
     signal ga_int_counter       : unsigned(6 downto 0);
@@ -206,15 +181,37 @@ signal r_int          :std_logic := '0'; --active high
     signal CPC_KEYB_OUT  : std_logic_vector(7 downto 0);
     signal cpc_row_sel   : std_logic_vector(3 downto 0);
 
+    signal AMS_Reg1: std_logic_vector(7 downto 0) := (others => '0');
+    signal AMS_Reg2: std_logic_vector(7 downto 0) := (others => '0');
+    signal AMS_pen_palette :  t_pen_array;
 
 
 BEGIN
+
+
+    Z80_Out.Z80_BUSREQ_N <= '1';
+    amst_Sigs.lower_rom_en    <= lower_rom_en_reg;
+    amst_Sigs.upper_rom_en    <= upper_rom_en_reg;
+    amst_Sigs.ram_page_bank0  <= ram_bank0_reg;
+    amst_Sigs.ram_page_bank1  <= ram_bank1_reg;
+    amst_Sigs.ram_page_bank2  <= ram_bank2_reg;
+    amst_Sigs.ram_page_bank3  <= ram_bank3_reg;
+
+    process(all)
+        variable v_out : t_ot_sigs_from_system;
+    begin
+        v_out := C_OT_SIGS_DEFAULT;
+        v_out.SYS_SEL := OTSigs_in.SYS_SEL;
+        --amstrad out signals
+        v_out.PS2_KEYB_READ := ps2_rd_req;
+        OTSigs_out <= v_out;
+    end process;
+
 
 --==============keyboard ========================
 
 -- Amstrad CPC Keyboard Scanner
     -- to get another key from ps/2 keyboard
-    OTSigs_out.PS2_KEYB_READ <= ps2_rd_req;
      
     --------------------------------------------------------------------------------
     -- Combinational: Output the selected row for the AY-3-8912 Port A
@@ -535,8 +532,6 @@ dbg_crtc_r13 <= crtc_regs(13);
 dbg_crtc_r14 <= crtc_regs(14);
 dbg_crtc_r15 <= crtc_regs(15);
 
-VDRegs_out.CRTC_R12 <= crtc_regs(12);
-VDRegs_out.CRTC_R13 <= crtc_regs(13);
 
 
     Z80_IO_ADDR <= Z80_In.Z80_ADDR;
@@ -568,7 +563,8 @@ VDRegs_out.CRTC_R13 <= crtc_regs(13);
             ppi_port_b <= X"00";
             ppi_port_c <= X"00";
             ppi_ctrl   <= X"9B";
-            
+
+             
         elsif rising_edge(CLK_FPGA) then
             capture1 <='0';
             -- Check for Z80 I/O Write Cycle
@@ -592,15 +588,15 @@ VDRegs_out.CRTC_R13 <= crtc_regs(13);
                         -- 01xxxxxx: Set Pen/Border Color (Palette)
                         when "01" =>
                             if selected_pen = 16 then
-                                VDRegs_out.Reg2 <= Z80_In.Z80_Data; -- Border color
+                                AMS_Reg2 <= Z80_In.Z80_Data; -- Border color
                             else
-                                VDRegs_out.pen_palette(selected_pen) <= Z80_In.Z80_Data(4 downto 0);
+                                AMS_pen_palette(selected_pen) <= Z80_In.Z80_Data(4 downto 0);
                             end if;
 
                         -- 10xxxxxx: ROM Selection, Screen Mode & Interrupt Reset
                         when "10" =>
                             -- Bit 0 & 1: Screen Mode (0, 1, 2)
-                            VDRegs_out.Reg1 <= Z80_In.Z80_Data; 
+                            AMS_Reg1 <= Z80_In.Z80_Data; 
                             
                             -- Bit 2: '0' = Lower OS ROM ON, '1' = OFF
                             lower_rom_en_reg <= not Z80_In.Z80_Data(2);  -- REVERSED
@@ -763,13 +759,19 @@ VDRegs_out.CRTC_R13 <= crtc_regs(13);
         end if;
     end process;
 
-    -- Assign internal registers to output ports
-    OTSigs_out.lower_rom_en   <= lower_rom_en_reg;
-    OTSigs_out.upper_rom_en   <= upper_rom_en_reg;
-    OTSigs_out.ram_page_bank0 <= ram_bank0_reg;
-    OTSigs_out.ram_page_bank1 <= ram_bank1_reg;
-    OTSigs_out.ram_page_bank2 <= ram_bank2_reg;
-    OTSigs_out.ram_page_bank3 <= ram_bank3_reg;
+    process(all)
+        variable v_VDRegs : t_video_regs;
+    begin
+        v_VDRegs := DUMMY_VDREGS;
+        v_VDRegs.CRTC_R12 := crtc_regs(12);
+        v_VDRegs.CRTC_R13 := crtc_regs(13);
+        v_VDRegs.Reg1 := AMS_Reg1;
+        v_VDRegs.Reg2 := AMS_Reg2;
+        v_VDRegs.pen_palette := AMS_pen_palette;
+        VDRegs_out <= v_VDRegs;
+    end process;
+
+
 
     -- ========================================================================
     -- READ OUTPUT ENABLES & DATA MULTIPLEXER
