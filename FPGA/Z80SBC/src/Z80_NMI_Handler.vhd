@@ -126,6 +126,7 @@ architecture rtl of Z80_NMI_Handler is
     constant C_TOOL_PAGE_F2    : std_logic_vector(7 downto 0) := x"85";  --flash address for Atlas Debugger
     constant C_TOOL_PAGE_F3    : std_logic_vector(7 downto 0) := x"8A";  --flash page for spectrum $8A-$8E (5 Pages)
     constant C_TOOL_PAGE_F4    : std_logic_vector(7 downto 0) := x"8F";  --flash page for amstrad   
+    constant C_TOOL_PAGE_F5    : std_logic_vector(7 downto 0) := x"94";  --flash page for amstrad   
 
     constant C_NMI_VECTOR      : std_logic_vector(15 downto 0) := x"0066"; 
 
@@ -248,6 +249,12 @@ begin
                                 oKey_Consumed    <= '1';
                                 ps2_toolkey_held <= '1';
                                 nmi_key <= '1';    
+                            elsif sPS2_DATA = C_PS2_F5 then
+                                tool_page_reg    <= C_TOOL_PAGE_F5;
+                                tool_request     <= '1';
+                                oKey_Consumed    <= '1';
+                                ps2_toolkey_held <= '1';
+                                nmi_key <= '1';    
 
                             else --not our key reject it by clear sNewByteForNMI
                                 sNMIClear<='0';
@@ -256,7 +263,8 @@ begin
                             -- this byte is the break code itself
                             if sPS2_DATA = C_PS2_F2 or
                                sPS2_DATA = C_PS2_F3 or
-                               sPS2_DATA = C_PS2_F4 then
+                               sPS2_DATA = C_PS2_F4 or
+                               sPS2_DATA = C_PS2_F5 then
                                 oKey_Consumed    <= '1';
                                 ps2_toolkey_held <= '0';
                                 nmi_key <= '1';    

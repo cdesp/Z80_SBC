@@ -45,10 +45,17 @@ architecture Structural of Amstrad_TOP is
 
     signal s_am_sigs  : t_amstrad_sigs;
 
+    signal sMMU_INTF_LD  : t_mmu_intf; 
+    signal sMMU_INTF_CPC  : t_mmu_intf; 
+
+    signal sInterActive : std_logic := '0';
+    signal sOTSigs_out : t_ot_sigs_from_system;
+
+    signal ams_wait : std_logic :='1'; --active low   trigger wait states to z80
+    signal sMMU_UPD : std_logic :='0'; --active high  trigger wait states to z80
+
 begin
 
-    -- Drive output record port
-    Z80_Out <= s_z80_out;
 
     ------------------------------------------------------------------
     -- 1. Amstrad Bus Arbiter & Device Decoder
@@ -61,7 +68,7 @@ begin
             Z80_In     => Z80_In,
             Z80_Out    => s_z80_out,
             OTSigs_in  => OTSigs_in,
-            OTSigs_out => OTSigs_out,
+            OTSigs_out => sOTSigs_out,
             VDRegs_out => s_vd_regs,
                    --Amstrad signals
             amst_Sigs => s_am_sigs      --from BA_Amstrad
@@ -106,8 +113,50 @@ begin
             amst_Sigs       => s_am_sigs,       --to CPC_MMU
 
             -- Interface to your MMU controller
-            mmu_intf        => MMU_INTF,        --to top 
-            UPDATE_ACTIVE   => open                             -- '1' while sequence is running
+            mmu_intf        => sMMU_INTF_CPC,        --to top 
+            UPDATE_ACTIVE   => sMMU_UPD              -- '1' while sequence is running
         );
+
+    MMU_INTF <= sMMU_INTF_LD when sInterActive='1' 
+             else sMMU_INTF_CPC;
+
+    u_loader : entity work.CPC_Load_Interceptor
+            generic map (
+                TARGET_ADDR_1 => x"2392",
+                TARGET_ADDR_2 => x"24AB"                
+            )
+            port map (
+                CLK_IN           => CLK_FPGA,
+                reset_n          => nRESET,
+                LOADER_ACTIVE    => SystemActive,
+                CPU_WAIT         => ams_wait,
+                Z80_In_raw       => Z80_In_raw,  --raw signals ****
+                INTERCEPT_ACTIVE => sInterActive,
+                MMU_Intf         => sMMU_INTF_LD,
+                MMU_Banks        => mmu_banks
+            );
+     
+
+    process (all)
+    variable v_out : t_ot_sigs_from_system;
+    begin
+      v_out := sOTSigs_out;  
+      v_out.LDIntceptAct := sInterActive;          
+      OTSigs_out <= v_out;
+    end process;
+
+    process (all)
+    variable v_out : t_system_to_z80;
+    begin
+      v_out := s_z80_out;  
+      if sMMU_UPD = '1' then
+         v_out.Z80_WAIT_N := '0';
+      else
+         v_out.Z80_WAIT_N := ams_wait;
+      end if;       
+      Z80_Out <= v_out;
+    end process;
+
+
 
 end architecture Structural;

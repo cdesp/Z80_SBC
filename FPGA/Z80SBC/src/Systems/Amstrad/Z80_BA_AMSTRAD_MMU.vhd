@@ -19,7 +19,7 @@ entity CPC_MMU_Bank_Sequencer is
 
         
         -- Interface to MMU controller
-        mmu_intf        : out  t_mmu_intf;
+        mmu_intf        : out  t_mmu_intf;        
         UPDATE_ACTIVE   : out std_logic                      -- '1' while sequence is running
     );
 end CPC_MMU_Bank_Sequencer;
@@ -185,9 +185,10 @@ begin
                 when STROBE_BANK =>
                     -- Clock Tick 2: De-assert WE (Data safely latched in MMU register)
                     mmu_intf.FPGA_MMU_WE <= '0';
+                    UPDATE_ACTIVE <= '0';
                     state        <= WAIT_BUS_RELEASE;
 
-                when WAIT_BUS_RELEASE =>
+                when WAIT_BUS_RELEASE =>                    
                     -- Wait until Z80 finishes current MREQ cycle before looking for next access
                     if Z80_MREQ_N = '1' then
                         state <= IDLE;

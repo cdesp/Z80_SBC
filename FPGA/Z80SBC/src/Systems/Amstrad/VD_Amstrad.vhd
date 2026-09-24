@@ -201,7 +201,7 @@ variable base_addr : unsigned(15 downto 0);
                 end if;
             end if;
 
-            ------------------------------------------------------------
+           ------------------------------------------------------------
             -- 2. PIXEL DECODER & PALETTE LOOKUP
             ------------------------------------------------------------
              if in_active = '1' then
@@ -214,9 +214,11 @@ variable base_addr : unsigned(15 downto 0);
                     -- MODE 0 (160x200, 16 Colors)
                     when "00" =>
                         if sub_px < 4 then
-                            pen_idx_v := to_integer(unsigned'(bitmap_shift(0) & bitmap_shift(2) & bitmap_shift(4) & bitmap_shift(6)));
+                            -- Left pixel (Pixel 0): Bits 1,5,3,7
+                            pen_idx_v := to_integer(unsigned'(bitmap_shift(1) & bitmap_shift(5) & bitmap_shift(3) & bitmap_shift(7)));
                         else
-                            pen_idx_v := to_integer(unsigned'(bitmap_shift(1) & bitmap_shift(3) & bitmap_shift(5) & bitmap_shift(7)));
+                            -- Right pixel (Pixel 1): Bits 0,4,2,6
+                            pen_idx_v := to_integer(unsigned'(bitmap_shift(0) & bitmap_shift(4) & bitmap_shift(2) & bitmap_shift(6)));
                         end if;
 
                     -- MODE 1 (320x200, 4 Colors)
@@ -231,6 +233,7 @@ variable base_addr : unsigned(15 downto 0);
 
                     -- MODE 2 (640x200, 2 Colors)
                     when "10" =>
+                        -- Your Mode 2 is already correct!
                         bit_idx := 7 - sub_px;
                         if bitmap_shift(bit_idx) = '1' then
                             pen_idx_v := 1;

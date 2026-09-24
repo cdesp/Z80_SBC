@@ -185,6 +185,7 @@ signal r_int          :std_logic := '0'; --active high
     signal AMS_Reg2: std_logic_vector(7 downto 0) := (others => '0');
     signal AMS_pen_palette :  t_pen_array;
 
+    signal oldOutEnb : std_logic := '0';
 
 BEGIN
 
@@ -202,6 +203,7 @@ BEGIN
     begin
         v_out := C_OT_SIGS_DEFAULT;
         v_out.SYS_SEL := OTSigs_in.SYS_SEL;
+        v_out.LDIntceptAct := OTSigs_in.LDIntceptAct;
         --amstrad out signals
         v_out.PS2_KEYB_READ := ps2_rd_req;
         OTSigs_out <= v_out;
@@ -281,7 +283,7 @@ BEGIN
                             -- Standard (Set 2) keys
                             case ps2_data_byte is
                                 -- Row 0 (Partial - Symbols & Numpad)
-                                when X"01" => kb_matrix(0)(3) <= val; -- F9
+                                when X"01" => kb_matrix(0)(3) <= '1'; -- F9
                                 when X"0B" => kb_matrix(0)(4) <= val; -- F6
                                 when X"04" => kb_matrix(0)(5) <= val; -- F3
                                 when X"71" => kb_matrix(0)(7) <= val; -- Numpad .
@@ -415,7 +417,7 @@ u_mc6845 : entity work.mc6845
         nRESET      => nRESET,
         
         -- Bus interface (Map your Z80 register write interface to the MC6845 inputs)
-        ENABLE      => not Z80_In.Z80_IORQ_N, -- Active high
+        ENABLE      => (not Z80_In.Z80_IORQ_N) and system_en, -- Active high
         R_nW        => Z80_In.Z80_WR_N,  -- Low write, High read
         RS          => Z80_In.Z80_ADDR(8),-- Typically Register Select is tied to A8 or your CRTC address decode
         DI          => Z80_In.Z80_Data,
@@ -458,7 +460,7 @@ vsync_signal <= crtc_vsync;
     hsync_falling_edge <= '1' when (hsync_delayed = '1' and crtc_hsync = '0') else '0';
     vsync_rising_edge  <= '1' when (vsync_delayed = '0' and crtc_vsync = '1') else '0';
 
-    int_ack <= '1' when Z80_In.Z80_IORQ_N = '0' and Z80_In.Z80_M1_N = '0' else '0';
+    int_ack <= '1' when (Z80_In.Z80_IORQ_N = '0' and Z80_In.Z80_M1_N = '0') or system_en='0' else '0';
 
     process(CLK_FPGA, nRESET)
     begin
@@ -781,8 +783,8 @@ dbg_crtc_r15 <= crtc_regs(15);
     Z80_out.isDOut <= '0' WHEN (Z80_In.Z80_IORQ_N = '0' AND Z80_In.Z80_RD_N = '0' AND (
         (Z80_IO_ADDR(PPI_MASK_A11) = '0') OR
         (Z80_IO_ADDR(CRTC_MASK_A14) = '0' AND Z80_IO_ADDR(CRTC_MASK_A8) = '1') OR
-        (Z80_IO_ADDR(FDC_MASK_A7) = '0')
-    )) ELSE '1';
+        (Z80_IO_ADDR(FDC_MASK_A7) = '0') 
+    )) and oldOutEnb='0' ELSE '1';
 
     Z80_out.DataOut <= 
         dOUT_PPI  WHEN (Z80_In.Z80_IORQ_N = '0' AND Z80_In.Z80_RD_N = '0' AND Z80_IO_ADDR(PPI_MASK_A11) = '0') ELSE
@@ -869,8 +871,9 @@ dbg_crtc_r15 <= crtc_regs(15);
 
 ----------------------
 
-
-    
+--when a tool is active or an address interception
+    oldOutEnb <= '1' when OTSigs_in.ToolActive = '1' or OTSigs_in.LDIntceptAct = '1'
+            else '0';
                        
     -- ***************************************************************
     -- ** 1. 74LS138 INPUTS (DEV0-DEV2) - Configurable for Emulation **
@@ -927,6 +930,9 @@ dbg_crtc_r15 <= crtc_regs(15);
 
     END PROCESS;
     
+
+
+
   --  io_strobe <= '1' when (Z80_In.Z80_IORQ_N = '0' and (Z80_In.Z80_WR_N = '0' or Z80_In.Z80_RD_N = '0')) 
    --              else '0';
 
@@ -940,41 +946,41 @@ io_strobe <= '0';
 
 
     -- Port 0: Write Page Mapping Registers (C_MMU_MAP_REG_ADDR = x"00")
-    Z80_Out.MMU_nMAP_REG_N <= '0' WHEN (Z80_In.Z80_IORQ_N = '0' AND Z80_In.Z80_WR_N = '0' AND Z80_IO_LOWADDR = C_MMU_MAP_REG_ADDR) and OTSigs_in.ToolActive='1'
+    Z80_Out.MMU_nMAP_REG_N <= '0' WHEN (Z80_In.Z80_IORQ_N = '0' AND Z80_In.Z80_WR_N = '0' AND Z80_IO_LOWADDR = C_MMU_MAP_REG_ADDR) and oldOutEnb='1'
                       ELSE '1';
                
     -- Port 0: Read Page Mapping Registers (C_MMU_MAP_REG_ADDR = x"00")
-    Z80_Out.MMU_nMAP_RD_N <= '0' WHEN (Z80_In.Z80_IORQ_N = '0'  AND Z80_In.Z80_RD_N = '0' AND Z80_IO_LOWADDR = C_MMU_MAP_REG_ADDR) and OTSigs_in.ToolActive='1'
+    Z80_Out.MMU_nMAP_RD_N <= '0' WHEN (Z80_In.Z80_IORQ_N = '0'  AND Z80_In.Z80_RD_N = '0' AND Z80_IO_LOWADDR = C_MMU_MAP_REG_ADDR) and oldOutEnb='1'
                       ELSE '1';
 
        
     -- Port 1: Set Read-Only Protection (C_MMU_SET_RO_ADDR = x"01")
-    Z80_Out.MMU_nSET_RO_N  <= '0' WHEN (Z80_In.Z80_IORQ_N = '0' AND Z80_In.Z80_WR_N = '0' AND Z80_IO_LOWADDR = C_MMU_SET_RO_ADDR) and OTSigs_in.ToolActive='1'
+    Z80_Out.MMU_nSET_RO_N  <= '0' WHEN (Z80_In.Z80_IORQ_N = '0' AND Z80_In.Z80_WR_N = '0' AND Z80_IO_LOWADDR = C_MMU_SET_RO_ADDR) and oldOutEnb='1'
                      ELSE '1';
                       
     -- Port 2: Set Read/Write Protection (C_MMU_SET_RW_ADDR = x"02")
-    Z80_Out.MMU_nSET_RW_N  <= '0' WHEN (Z80_In.Z80_IORQ_N = '0' AND Z80_In.Z80_WR_N = '0' AND Z80_IO_LOWADDR = C_MMU_SET_RO_ADDR) and OTSigs_in.ToolActive='1'
+    Z80_Out.MMU_nSET_RW_N  <= '0' WHEN (Z80_In.Z80_IORQ_N = '0' AND Z80_In.Z80_WR_N = '0' AND Z80_IO_LOWADDR = C_MMU_SET_RW_ADDR) and oldOutEnb='1'
                       ELSE '1';
                       
     -- Z80 Clock Selection Register Write Strobe Generation
     -- This signal is active low when the Z80 reads/writes  to the I/O port (nIORQ=0)
     -- whose address matches the CLK_SEL_PORT_ADDR (x"80").
-    Z80_Out.CLK_SEL_RG_N    <= '0' when (Z80_In.Z80_IORQ_N = '0' and Z80_IO_LOWADDR = CLK_SEL_PORT_ADDR) and OTSigs_in.ToolActive='1'
+    Z80_Out.CLK_SEL_RG_N    <= '0' when (Z80_In.Z80_IORQ_N = '0' and Z80_IO_LOWADDR = CLK_SEL_PORT_ADDR) and oldOutEnb='1'
                    else '1';
 
-    Z80_Out.UART_CS_N       <= '0' when (Z80_In.Z80_IORQ_N = '0' and  Z80_IO_LOWADDR(7 downto 3) = UART_PORT_BASE(7 downto 3)) and OTSigs_in.ToolActive='1'
+    Z80_Out.UART_CS_N       <= '0' when (Z80_In.Z80_IORQ_N = '0' and  Z80_IO_LOWADDR(7 downto 3) = UART_PORT_BASE(7 downto 3)) and oldOutEnb='1'
                      else '1';
 
-    Z80_Out.PS2_DS_N        <= '0' when (Z80_In.Z80_IORQ_N = '0' and (Z80_IO_LOWADDR = C_PS2_PORT_ADDR OR Z80_IO_LOWADDR = std_logic_vector(unsigned(C_PS2_PORT_ADDR) + 1) )) and OTSigs_in.ToolActive='1'
+    Z80_Out.PS2_DS_N        <= '0' when (Z80_In.Z80_IORQ_N = '0' and (Z80_IO_LOWADDR = C_PS2_PORT_ADDR OR Z80_IO_LOWADDR = std_logic_vector(unsigned(C_PS2_PORT_ADDR) + 1) )) and oldOutEnb='1'
                   else '1';
 
-    Z80_Out.VD_DS_N         <= '0' when (Z80_In.Z80_IORQ_N = '0' and Z80_IO_LOWADDR = C_VD_PORT_ADDR) and OTSigs_in.ToolActive='1'
+    Z80_Out.VD_DS_N         <= '0' when (Z80_In.Z80_IORQ_N = '0' and Z80_IO_LOWADDR = C_VD_PORT_ADDR) and oldOutEnb='1'
                   else '1';
 
-    Z80_Out.I2C_CS_N        <= '0' when (Z80_In.Z80_IORQ_N = '0' and Z80_IO_LOWADDR(7 downto 3) =  C_I2C_PORT_ADDR_BASE(7 downto 3)) and OTSigs_in.ToolActive='1'
+    Z80_Out.I2C_CS_N        <= '0' when (Z80_In.Z80_IORQ_N = '0' and Z80_IO_LOWADDR(7 downto 3) =  C_I2C_PORT_ADDR_BASE(7 downto 3)) and oldOutEnb='1'
                   else '1';
 
-    Z80_Out.SYS_CS_N        <= '0' when (Z80_In.Z80_IORQ_N = '0' and Z80_IO_LOWADDR = C_SYS_PORT_ADDR) and OTSigs_in.ToolActive='1'
+    Z80_Out.SYS_CS_N        <= '0' when (Z80_In.Z80_IORQ_N = '0' and Z80_IO_LOWADDR = C_SYS_PORT_ADDR) and oldOutEnb='1'
                   else '1';
 
 

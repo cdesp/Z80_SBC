@@ -1,6 +1,33 @@
 
+       
+	@MYRAMBANK EQU 1; AT $2000
 
-        BOOTMENU EQU $02AC
+	;SYSTEMS
+	@BOOTLOADER	EQU 0 ;NOT USED
+	@ATLAS 		EQU 1 ;NOT USED
+	@NEWBRAIN 	EQU 2 ;NOT USED
+	@ZXSPECTRUM 	EQU 3
+	@AMSTRAD 	EQU 4
+
+	@DIRECTORY DEFM "/"
+        DB 0
+	@DIR_ZX DEFM "SPECTRUM"	;8 CHARS
+        DB 0
+	@DIR_AM DEFM "AMSTRAD " ;8 CHARS
+        DB 0
+
+	@DEMOFNAME  DEFM "SPECMAN .TAP"
+        DB 0	
+
+	@DIROPNERR  DEFM "ER OPEN DIR"
+        DB 0             
+
+@MYDISKERROR:   CALL RS_TXT
+                CALL RS_NEWLINE
+                RET	  
+
+;@BEF_SP_CHANGE EQU DO_SP_CHANGE		;NOTHING TO DO HERE	
+;@EX_BF_SP_CHNG EQU EX_DO_SP_CHNG	;NOTHING TO DO HERE
 
 ;MAIN ROUTINE  FOR NMI ENTRY 0066H
 @SHOWDIR:
@@ -28,7 +55,7 @@
 		LD C,DEVMMU
 		OUT (C),A	;CANT USE MMU SET CALL HERE SAFELY
 		CALL CHECKID
-		;JR C,SKIP1 ;not used cause we have to clear the ram page on bootloader or on fpga on reset
+		JR C,SKIP1 ;not used cause we have to clear the ram page on bootloader or on fpga on reset
 		LD A,E 		;RESTORE A AS OLD PAGE ON 7
 		LD (OLDBNK7),A  ;SAVE AS VAR
                 LD A,D 		
@@ -55,9 +82,18 @@ SKIP1:		LD HL,0
                 LD (HL),A 
                 INC HL
                 LD (HL),A 
-                LD HL,DIRECTORY
+		LD A,(OLDSYS) ;GET CURRENT SYSTEM
+		CP ZXSPECTRUM
+		JR NZ, NXTSYS1
+		LD HL, DIR_ZX
+		JR SETDIR
+NXTSYS1:	CP AMSTRAD		
+		JR NZ,DEFSYS
+		LD HL, DIR_AM
+		JR SETDIR
+DEFSYS:         LD HL,DIRECTORY
                 ;OPEN HE DIRECTORY
-                CALL STRG_DIRNMCHG        ;THIS PUTS THE NEW DIR ON THE DIRNM VAR
+SETDIR:         CALL STRG_DIRNMCHG        ;THIS PUTS THE NEW DIR ON THE DIRNM VAR
                 CALL STRG_OPENCDIR      ;THIS OPENS THE DIRNM VAR	
 		JR NC,DIROP
                 LD HL,DIROPNERR
@@ -122,10 +158,8 @@ MENUOK:		LD A,12
 		POP DE
 		POP BC
 		POP AF
+		EI
 		RETN
-
-@TEST    	DEFM "VGA TEST"
-		DB 0
 
 ;THIS ONE IS CALLED FOR EACH DIR ENTRY 32BYTES
 ;DATA IN USBBUF ON HL

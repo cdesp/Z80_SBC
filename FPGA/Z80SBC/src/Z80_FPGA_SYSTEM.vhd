@@ -631,8 +631,9 @@ begin
         sotsigs_in.PS2_BT_Avail <= sPS2_BTRDY when sNewByteForNMI='0' else '0'; --active high only activate if nmi does not want it
         sotsigs_in.PS2_DATA     <= PS2_DATA_OUT;
         sotsigs_in.CPU_SPEED    <= clk_reg_out;
-        sotsigs_in.ToolActive   <= sTools_Act;        
-        sotsigs_in.SYS_SEL      <= std_logic_vector(system_selection);
+        sotsigs_in.ToolActive   <= sTools_Act;  
+        sotsigs_in.LDIntceptAct <= sotsigs_out.LDIntceptAct; --just pass through set on loaders
+        sotsigs_in.SYS_SEL      <= std_logic_vector(system_selection); -- set on system top
         sotsigs_in.FrameStart   <= '1' when video_timing.h_cnt=0 and video_timing.v_cnt=1 else '0';
        
         --Z80 OUT signals
@@ -1033,6 +1034,7 @@ begin
     -- TODO: BA_WAIT_N from systems make it work
 
     --L_WAIT_N <= BA_WAIT_N AND (OTHER SIGNALS) 
+    
 
     --FREEZE the cpu  -- implement wait states     
     process(CLK_IN,reset_n_sync2)   
@@ -1040,6 +1042,8 @@ begin
        if rising_edge(CLK_IN) then            
             -- We want to run the clock only if NOT (Freeze Condition) 
             if AM_CAPTURE='1' then
+                LCLOCK <= '1'; -- FREEZE: CPU stops mid-access
+            elsif (BA_WAIT_N = '0') then -- used for system wait states
                 LCLOCK <= '1'; -- FREEZE: CPU stops mid-access
             elsif (l_wait_n = '0') then -- used for sn76489 sound chip
                 LCLOCK <= '1'; -- FREEZE: CPU stops mid-access

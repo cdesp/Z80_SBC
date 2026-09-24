@@ -1,4 +1,9 @@
-;this is the main function SAVED INTO PAGE $8D
+;this is the main function SAVED INTO PAGE $8B
+
+@VGA_PRCH        EQU $0000       ;NOT USED NO VIDEO
+@PS2ISK          EQU $0000       ;NOT USED NO KEYBOARD
+@READCHAR        EQU $0000       ;NOT USED NO KEYBOARD
+@MNG_DIR_ENTRY   EQU $0000       ;NOT USED NO DIRLIST
 
 @MYRAMBANK       EQU 1   ;WHERE WE PUT OUR RAM PAGE $7F
 

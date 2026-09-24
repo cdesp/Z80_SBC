@@ -1,0 +1,939 @@
+;this is the main function SAVED INTO PAGE $90
+;THIS IS ON BANK 1 = $2000
+;OUR VARS ARE ON BANK 0 =$0000
+;OUR ENTRY POINT IS ON BANK 1 
+
+@VGA_PRCH       EQU 0000 ; NOT USED
+@PS2ISK         EQU 0000 ; NOT USED
+@READCHAR       EQU 0000 ; NOT USED
+@MNG_DIR_ENTRY  EQU 0000 ; NOT USED
+
+@MYRAMBANK       EQU 0   ;WHERE WE PUT OUR RAM PAGE $7F
+
+@DIRECTORY DEFM "AMSTRAD "      ;8 CHARS
+          DB 0
+;@DEMOFNAME  DEFM "3DPINBAL.CDT"
+@DEMOFNAME  DEFM "3DINVADE.CDT" ;8.3 CHARS
+          DB 0
+
+@AMSENTRY EQU KEYCTR ;USE THIS TO SAVE THE ENTRY POINT OPEN OR DIRECT
+;AMSTRAD RAM PAGES
+AMS_PAGE_0 EQU $0A
+AMS_PAGE_1 EQU $0B
+AMS_PAGE_2 EQU $03
+AMS_PAGE_3 EQU $04
+
+;PRINTS A ZT MESSAGE FOLLOWING THE CALL TO RS232
+@PRINTDBGMSG:	
+                LD (SAVEHL),HL
+                PUSH AF
+                POP HL
+                LD (SAVEAF),HL
+                POP HL
+		CALL RS_TXT ; PRINTS A ZT STRING ON HL 
+		PUSH HL ;CONTINUE AFTER THE MESG			
+                LD HL,(SAVEAF)
+                PUSH HL
+                POP AF                
+                LD HL, (SAVEHL)                
+		RET
+
+
+@SHOWOLDREGS:      PUSH HL
+                PUSH DE
+                PUSH BC
+                PUSH AF
+              
+                CALL PRINTDBGMSG
+                DEFM '--------OLDREGS--------'
+                DB 10,13,0
+
+
+                CALL PRINTDBGMSG
+                DEFM 'IY='
+                DB 0
+                LD HL,(OLDIY)
+                CALL PRINT_HL
+                CALL PRINTDBGMSG
+                DEFM 'IX='
+                DB 0
+                LD HL,(OLDIX)
+                CALL PRINT_HL
+                CALL PRINTDBGMSG
+                DEFM 'HL='
+                DB 0
+                LD HL,(OLDHL)
+                CALL PRINT_HL
+                CALL PRINTDBGMSG
+                DEFM 'DE='
+                DB 0
+                LD HL,(OLDDE)
+                CALL PRINT_HL
+                CALL PRINTDBGMSG
+                DEFM 'BC='
+                DB 0
+                LD HL,(OLDBC)
+                CALL PRINT_HL
+                CALL PRINTDBGMSG
+                DEFM 'AF='
+                DB 0
+                LD HL,(OLDAF)
+                CALL PRINT_HL
+                CALL PRINTDBGMSG
+                DEFM 'OBNK='
+                DB 0
+                LD A,(OLDBNK7)
+                CALL PRINT_A
+                CALL PRINTDBGMSG
+                DEFM 'SYS='
+                DB 0
+                LD A,(OLDSYS)
+                CALL PRINT_A
+                CALL PRINTDBGMSG
+                DEFM 'OLDSP='
+                DB 0
+                LD HL,0
+                OR A
+                ADC HL,SP
+                CALL PRINT_HL
+                POP AF
+                POP BC
+                POP DE
+                POP HL
+                RET
+
+@SHOWNEWREGS:   PUSH HL
+                PUSH DE
+                PUSH BC
+                PUSH AF
+                PUSH HL
+
+                CALL PRINTDBGMSG
+                DEFM '--------NEWREGS--------'
+                DB 10,13,0
+
+                CALL PRINTDBGMSG
+                DEFM 'IY='
+                DB 0
+                PUSH IY
+                POP HL
+                CALL PRINT_HL
+                CALL PRINTDBGMSG
+                DEFM 'IX='
+                DB 0
+                PUSH IX
+                POP HL
+                CALL PRINT_HL
+                CALL PRINTDBGMSG
+                DEFM 'HL='
+                DB 0
+                POP HL
+                CALL PRINT_HL
+                CALL PRINTDBGMSG
+                DEFM 'DE='
+                DB 0
+                PUSH DE
+                POP HL
+                CALL PRINT_HL
+                CALL PRINTDBGMSG
+                DEFM 'BC='
+                DB 0
+                PUSH BC
+                POP HL
+                CALL PRINT_HL
+                CALL PRINTDBGMSG
+                DEFM 'AF='
+                DB 0
+                PUSH AF
+                POP HL
+                CALL PRINT_HL
+
+                POP AF
+                POP BC
+                POP DE
+                POP HL
+                RET                
+
+;THIS IS BEFORE THE OLD SP CHANGE -- NO CALL CAUSE OF THE SP 
+;BUT AFTER THE RAM PAGE IS ON
+;MYRAMBANK SHOULD BE SET ON THE OLD SYSTEM ROM TO BE SAFE
+@BEF_SP_CHANGE: JR NC, VARCLR   ;NC MEANS VARS CLEARED
+                CALL OS_PRINTMSG
+                DEFM "VARS OK"
+                DB 10,13,0  
+                JR BSC_NEXT
+
+VARCLR:         CALL OS_PRINTMSG
+                DEFM "VARS CLEARED"
+                DB 10,13,0     
+
+BSC_NEXT:       POP HL ;OUR IY HAS 1 OR 2
+                LD A,L
+                LD (AMSENTRY),A
+                ;PRINT DEBUG MESGS
+                CP 1
+                JR Z, SCASINOPEN
+                CALL OS_PRINTMSG
+                DEFM "CAS IN DIRECT"
+                DB 10,13,0  
+                JR BSC_NEXT2
+SCASINOPEN:     CALL OS_PRINTMSG
+                DEFM "CAS IN OPEN"
+                DB 10,13,0       
+
+ BSC_NEXT2:     POP IX
+                POP HL
+                POP DE
+                POP BC
+                POP AF
+                POP IY   ;ORIGINAL IY LAST
+                
+                ;save old registers
+                LD (OLDIY),IY
+                LD (OLDIX),IX
+                LD (OLDHL),HL
+                LD (OLDDE),DE
+                LD (OLDBC),BC
+                PUSH AF
+                POP HL
+		LD (OLDAF),HL                
+
+                ;print old regs -DEBUG
+                CALL SHOWOLDREGS
+                ; DEBUG END
+
+                ;restore REGS                
+                LD DE,(OLDDE)
+                LD BC,(OLDBC)                
+                LD HL,(OLDAF)
+                PUSH HL
+                POP AF                
+                LD HL,(OLDHL)    
+                PUSH AF		;save old regs on old sp
+                PUSH BC
+                PUSH DE
+                PUSH HL		
+                PUSH IX
+                PUSH IY	                                	
+                JP DO_SP_CHANGE
+
+
+
+;ZX BASIC SET 
+;HL TO THE FILENAME
+;BC BYTES TO LOAD
+;DE THE DESTINATION IN RAM
+
+
+@MAINROUTINE:   LD HL, DIRECTORY
+                CALL RS_TXT
+                CALL RS_NEWLINE
+                LD HL, FILENAME
+                CALL RS_TXT
+                CALL RS_NEWLINE
+                LD A,(DIROPENED)
+                OR A 
+                JR NZ, CONTOK1
+                LD HL,DIRNM
+                LD A,'\' ;'
+                LD (HL),A 
+                INC HL
+                XOR A 
+                LD (HL),A 
+                INC HL
+                LD (HL),A 
+                CALL OS_PRINTMSG
+                DEFM "OPENING DIRECTORY"
+                DB 10,13,0
+                LD HL,DIRECTORY
+                ;OPEN THE DIRECTORY
+                CALL STRG_DIRNMCHG        ;THIS PUTS THE NEW DIR ON THE DIRNM VAR
+                CALL STRG_OPENCDIR      ;THIS OPENS THE DIRNM VAR
+                JR NC,CONTOK
+                LD HL,DIROPNERR
+                JP MYDISKERROR
+CONTOK:         ;DIRECTORY OPENED OK
+                LD A,1
+                LD (DIROPENED),A
+                LD HL,0
+                LD (BYTESREAD),HL               
+CONTOK1:        LD A,(FILEOPENED)
+                OR A 
+                JR NZ, CONTOK2 ;ALREADY OPEN
+                ;OPEN THE FILE
+                CALL OS_PRINTMSG
+                DEFM "OPENING FILE"
+                DB 10,13,0
+                LD HL,FILENAME             ;DEFAULT DEMOFNAME
+                CALL COPYFNAME
+                XOR A                      ; Read-only
+                CALL STRG_OPNFILE
+                JR Z, CONTOK2B
+                LD HL, FILOPNERR
+                JP MYDISKERROR   
+CONTOK2B:       ;FILE OPENED OK
+                LD A,1
+                LD (FILEOPENED),A
+                ;GET TOTAL BYTES ON FILE BC:DE
+                CALL STRG_GETSIZE
+                LD (TOTBYTES),BC        ;HIGH THIS IS THE REAL FILE SIZE
+                LD (TOTBYTES+2),DE     ;LOW
+                XOR A
+                LD (BYTESLOADED),A      ;ZERO
+                LD (BYTESLOADED+1),A
+                LD A,'T'
+                CALL RS_TX
+                PUSH DE
+                POP HL
+                PUSH BC
+                POP DE
+                CALL B2D32
+                LD HL,B2DBUF
+                CALL RS_TXT
+                CALL RS_NEWLINE
+;here only for the first time
+;skip tzx header      
+                LD DE,MENU
+                LD BC,10                 ;SKIP ZXTape!+eofm+mjver+mnver
+                CALL LOAD_DATA                           
+                JP NZ, ERROREXIT
+;here when file is opened 
+;the main loading is here
+;check if load or direct                
+CONTOK2:        LD HL,(OLDHL)           ;TARGET BUFFER IS HL USED ON DIRECT 
+                LD (LASTADDR),HL        ;LOGICAL BYTES ARE ON LOGICBYTES
+                
+                CALL RS_NEWLINE
+                CALL OS_PRINTMSG
+                DEFM "========================================================"
+                DB 10,13,0
+
+                ;CHECK BLOCK TYPE
+CHKBLTP:        CALL DO_TZX     ;WILL RETURN WITH DE THE BYTE LENGTH, FILE AT THE START OF THE DATA BLOCK
+                JP C, ERROREXIT
+                LD A,(AMSENTRY)
+                CP 1                    ;OPEN
+                JP NZ, DODIRECT
+
+
+DOOPEN:         PUSH DE
+                POP HL
+                LD A,'O'
+                CALL RS_TX                
+                CALL PRINT_HL
+                PUSH HL
+                POP BC     
+                DEC BC                  ;MINUS 1 FOR THE SYNC ID                           
+                LD DE,MENU              ;OUR BUFFER 
+                CALL PR_BYTLOD ;DEBUG BYTES TO LOAD
+                CALL LOAD_DATA
+                JP NZ, ERROREXIT                                
+                PUSH HL
+                LD HL,MENU              ;COPY ONLY THE 128 BYTES TO THE DEST BUFFER
+                LD DE,(OLDDE)           ;TARGET BUFFER IS DE
+                LD BC,128               ;HEADER IS 128 BYTES 
+                LDIR
+                ;DEBUG FILENAME               
+                LD HL,MENU
+                CALL RS_TXT
+                POP HL
+                JP EXIT0 ;PARSING FOR THE 128 BYTES HAPPENS ON EXIT
+
+;------------------------------------------------------------------------------
+; GETMIN
+; Inputs:  HL = NUM1, DE = NUM2
+; Outputs: A = 1 if NUM1 < NUM2 (HL < DE)
+;          A = 0 if NUM1 >= NUM2 (HL >= DE)
+; Modifies: AF, HL
+;------------------------------------------------------------------------------
+GETMIN:
+    OR A            ; Clear carry flag before 16-bit subtraction
+    SBC HL, DE      ; Perform HL = HL - DE
+
+    JR C, .IS_LESS  ; If carry is set, HL was strictly smaller than DE (HL < DE)
+    XOR A           ; HL >= DE -> Return A = 0
+    RET
+
+.IS_LESS:
+    LD A, 1         ; HL < DE  -> Return A = 1
+    RET
+
+
+
+
+;------------------------------------------------------------------------------
+; LD_DIRECT
+; Inputs:  BC = Total payload bytes to read
+;          (LASTADDR) = Target RAM buffer address
+; Outputs: (LASTADDR) = Updated RAM address past final payload byte
+;          BC = 0
+;------------------------------------------------------------------------------
+LD_DIRECT:
+    CALL PR_BYTLOD
+    ; --- Check if remaining bytes (BC) > 256 ---
+    LD H, B           ; Move BC into HL for 16-bit subtraction
+    LD L, C 
+    PUSH HL    
+        CALL OS_PRINTMSG
+        DEFM "####BYTES TO LOAD:"
+        DB 0
+    POP HL
+        CALL PRINT_HL
+
+
+
+    LD DE, 257          ; Compare threshold (256 + 1)
+    OR A                ; Clear carry
+    SBC HL, DE          ; If BC >= 256, Carry = 0
+    JR C, .LAST_CHUNK   ; If BC < 256, handle final partial/full chunk without checksum
+
+    ; --- Standard 256-Byte Chunk (Reads 258 bytes to pull the 2-byte checksum) ---
+    PUSH BC             ; Save total remaining count
+    LD DE, (LASTADDR)   ; Get target RAM destination
+    LD BC, 258          ; Request 256 payload bytes + 2 checksum bytes
+    CALL LOAD_SAFE      ; LOAD_SAFE returns updated DE = LASTADDR + 258
+
+    ; Adjust destination pointer (roll back 2 checksum bytes)
+    DEC DE
+    DEC DE
+    LD (LASTADDR), DE   ; Save clean destination address
+    
+    LD HL,(BLOCKBYTES)  ;TOTAL BLOCK BYTES
+    OR A
+    LD DE,258           ;HOW MANY WE LOADED
+    ADC HL,DE
+    LD (BLOCKBYTES),HL                            
+
+    ; Decrement remaining payload count by 256
+    POP BC              ; Restore total remaining count
+    LD H, B
+    LD L, C
+    LD DE, 256
+    OR A
+    SBC HL, DE          ; BC = BC - 256
+    LD B, H
+    LD C, L
+
+    PUSH HL    
+        CALL OS_PRINTMSG
+        DEFM "####REMAINING BYTES:"
+        DB 0
+    POP HL
+        CALL PRINT_HL
+
+
+    ; Loop if more bytes remain, else finish
+    LD A, B
+    OR C
+    JR NZ, LD_DIRECT
+    RET
+
+.LAST_CHUNK:
+    ; --- Final Chunk (< 256 bytes)
+    LD A, B
+    OR C
+    RET Z              ; Exit immediately if BC == 0
+ 
+    PUSH BC
+    LD DE, (LASTADDR)   ; Get current target address
+    CALL LOAD_SAFE      ; LOAD_SAFE reads exact remaining BC bytes; returns updated DE
+    LD (LASTADDR), DE   ; Save final target address
+    POP BC
+    LD HL,(BLOCKBYTES)  ;TOTAL BLOCK BYTES
+    OR A
+    ADC HL,BC
+    LD (BLOCKBYTES),HL                            
+
+    LD BC, 0            ; All bytes read
+    RET
+
+
+
+;DISCARDS BYTES FROM THE FILE ON DISK
+;HL HAS THE NUMBER TO SKIP
+DISCARD:        
+                PUSH HL
+                CALL OS_PRINTMSG
+                DEFM "****DISCARDING(BLOCKBYTES):"
+                DB 0
+                POP HL
+                CALL PRINT_HL
+
+
+DISCARD0:       LD A,H
+                OR L
+                RET Z
+                PUSH HL
+                LD DE, MENU             ;SAVE TO MENU FOR DISCARDING
+                LD BC,1                 ;LOAD 1 BYTE    
+                CALL LOAD_DATA                
+                ;NO ERROR CHECKING
+                POP HL
+                DEC HL                  ; 1 BYTE DISCARDED                
+                JR DISCARD0
+
+
+;GET BYTES TO LOAD
+;LOGIC BYTES OR BLOCKBYTES
+; HL = BLOCK BYTES
+; DE = LOGICBYTES
+; BC = DIFFERENCE
+; A  = 1 IF BLOCKBYTES<LOGICBYTES
+GETBYTLOD:      PUSH HL
+                LD DE,(LOGICBYTES)  
+                CALL GETMIN                
+                LD B,H
+                LD C,L
+                POP HL
+                RET
+
+;LASTBLOCKBT = RAW BYTES DATA+GARBAGE
+;BLOCKBYTES = HOW MANY WE LOADED DATA+CHKSUM
+;RET HL THE BYTES TO DISCARD
+CALCDISCARD:
+        LD HL,(LASTBLOCKBT)
+        LD DE,(BLOCKBYTES)
+        OR A
+        SBC HL,DE
+        DEC HL          ;-1???
+        PUSH HL    
+        CALL OS_PRINTMSG
+        DEFM "****NEW CALC DISCARDING :"
+        DB 0
+        POP HL
+        CALL PRINT_HL
+        RET
+
+
+;HL THE BYTES TO LOAD FROM BLOCK
+DODIRECT:       LD (LASTBLOCKBT),DE   ;FROM CAS IN DIRECT 3 BYTE HEADER+15,+16,+17 RAW BYTES TO LOAD
+                PUSH DE
+                POP HL
+                LD A,'R'
+                CALL RS_TX
+                CALL PRINT_HL
+                ;DEBUG
+                PUSH HL
+                LD HL, (LOGICBYTES) 
+                CALL PRINT_HL
+                LD HL,(LASTADDR)
+                CALL PRINT_HL
+                POP HL
+                
+                LD HL,0
+                LD (BLOCKBYTES),HL      ;COUNTS THE BYTES WE LOAD ON THIS BLOCK                
+                
+                LD HL,(BLOCKDLEN)
+                ;HL HAS THE BYTES TO READ FROM BLOCK
+                CALL GETBYTLOD ;A=1 IF BLOCKBYTES<LOGICBYTES
+                ;DEC HL                  ;N-1 CAUSE OF THE SYNC BYTE WE ALREADY READ
+                ;HL= BLOCK BYTES-1
+                ;DE= LOGIC BYTES
+                ;BC= DIFERRENCE
+                LD DE,(BLOCKDLEN)       ;BLOCK REAL DATA LEN NOT LOGICAL DATA USUALLY 2048
+                DEC A
+                JR Z, .BLKLOG;TO BLOCK<LOGIC
+                ;BLOCK>LOGIC
+                ;LOAD ALL LOGIC
+                LD DE,(LOGICBYTES)      ;WHATS LEFT - WE DECREASE THIS AFTER LOADING EACH BLOCK 2048
+                LD (BLOCKDLEN),DE       ;LAST BLOCK 
+
+.BLKLOG         LD A,'0'
+                CALL RS_TX
+                LD B, D
+                LD C, E 
+                ;DE= DEST ADDR = LASTADDR NO NEED TO PASS
+                ;BC= BYTES TO READ
+                PUSH BC
+                CALL LD_DIRECT
+                POP DE
+                CALL CALCDISCARD        ;RESULT IN HL
+                CALL PR_BYTLOD           
+                CALL DISCARD            ;HL BYTES TO DISCARD
+                ;CHECK IF WE LOADED ALL THE BYTES                
+                LD HL,(LOGICBYTES)                
+                LD DE,(BLOCKDLEN)
+                OR A
+                SBC HL,DE
+                LD (LOGICBYTES),HL ;SAVE THE REMAINING LOGIC BYTES
+                JP C, .BLKDONE
+                JP Z, .BLKDONE
+                ;HL THE REMAINING BYTES TO LOAD
+                        ;PUSH HL
+                        ;LD DE,2048
+                        ;OR A
+                        ;SBC HL,DE ;REM-2048
+                        ;JR C, ;<2048 LAST BLOCK
+                ;>=2048
+                CALL PR_BYTLOD  
+                LD DE,MENU
+                LD BC,128+19               ;LOAD HEADER 19 + BASIC HEADER 128 BYTES                
+                CALL LOAD_DATA
+                ;MENU+16,17 TOTAL CURRENT BLOCK LEN
+                ;MENU+20 = FILENAME
+                ;FN+16=BLOCK NUMBER
+                ;FN+17=LAST BLOCK FLAG
+                ;FN+18=FILETYPE
+                ;FN+19,20= BLOCK DATA LEN
+                ;FN+21,22= LOAD ADDRESS
+                ;FN+23=FIRST BLOCK FLAG
+                ;FN+24,25=LOGICAL LENGTH
+                ;FN+26,27=EXEC ADDRESS
+                LD HL,(MENU+16) ;TOTAL CURRENT BLOCK LEN
+                LD DE,128       ; 128 BYTES WE ALREADY LOADED
+                OR A
+                SBC HL,DE
+                ;HL THE BYTES TO DISCARD
+                CALL DISCARD            ;HL BYTES TO DISCARD
+
+                CALL PR_BYTLOD  
+                ;LD DE, (MENU+20+19) ;BLOCK DATALEN
+                ;DESTADDR = LASTADDR = FN+21,21 = LOAD ADDRESS
+                JP  CHKBLTP;LOAD NEXT BLOCK
+
+.BLKDONE:       
+
+;HERE WE FINISH THE LOADING
+ALLDONE:        LD A,'C'
+                CALL RS_TX
+                CALL PR_BYTLOD          ;DEBUG
+
+                LD A,'+'
+                CALL RS_TX
+                JP EXIT0
+
+
+          
+
+
+PR_BYTLOD:      PUSH AF
+                PUSH HL
+                PUSH DE
+                PUSH BC
+
+                CALL RS_NEWLINE
+                CALL OS_PRINTMSG
+                DEFM "****FILE POINTER(BYTESLOADED):"
+                DB 0
+                LD HL,(BYTESLOADED)
+                CALL PRINT_HL
+
+                CALL OS_PRINTMSG
+                DEFM "****DEST ADDR(LASTADDR):"
+                DB 0
+                LD HL,(LASTADDR)
+                CALL PRINT_HL
+                
+                CALL OS_PRINTMSG
+                DEFM "****BYTES TO LOAD (LOGIC):"
+                DB 0
+                LD HL,(LOGICBYTES)
+                CALL PRINT_HL
+
+                CALL OS_PRINTMSG
+                DEFM "****BLOCK RAW BYTES (LASTBLOCKBT):"
+                DB 0
+                LD HL,(LASTBLOCKBT)
+                CALL PRINT_HL
+
+                CALL OS_PRINTMSG
+                DEFM "****BLOCK DATA BYTES(BLOCKDLEN):"
+                DB 0
+                LD HL,(BLOCKDLEN)
+                CALL PRINT_HL
+
+                CALL OS_PRINTMSG
+                DEFM "****BLOCK LOADED BYTES RAW(BLOCKBYTES):"
+                DB 0
+                LD HL,(BLOCKBYTES)
+                CALL PRINT_HL
+                CALL RS_NEWLINE
+
+                POP BC
+                POP DE
+                POP HL
+                POP AF
+                RET
+
+@ERROREXIT:     JP MAINEXIT
+
+@EXIT0:         LD A,'X'
+                CALL RS_TX
+                JP MAINEXIT ;SP IS RESTORED TO AMSTRAD THEN EX_BD_SP_CHNG IS CALLED
+
+                ;DE THE DESTINATION
+                ;BC THE BYTES TO LOAD
+                ;HL, BC: The number of bytes actually read.
+@LOAD_DATA:      
+                CALL STRG_BLKREAD   
+                PUSH AF  
+                PUSH HL                 ;HL THE BYTES ACTUALLY LOADED
+                PUSH DE
+                LD DE,(BYTESLOADED)     ;TOTAL BYTES LOADED FROM DISK ON THE OPENED FILE
+                OR A
+                ADC HL,DE
+                LD (BYTESLOADED),HL
+                POP DE
+                POP HL 
+                POP AF                     
+                RET Z
+                LD HL, FILREDERR
+                JP MYDISKERROR ;RET FROM THERE
+
+
+
+;=============================================================================
+; LOAD_SAFE
+; Input:  DE = Destination Target Address
+;         BC = Bytes to Read
+; Output: DE = Next Destination Address (DE_old + BC)
+;         Z flag = 1 (Success) / 0 (Error)
+;=============================================================================
+LOAD_SAFE:      
+        LD A, D
+        CP $40
+        JR NC, LOAD_DIRECT        ; Target DE >= &4000: Standard RAM, no remap needed
+
+        ; --- Target is below &4000 ---
+        PUSH HL
+        LD HL, $4000
+        OR A
+        SBC HL, DE               ; HL = Bytes remaining below &4000 limit
+        
+        PUSH BC
+        XOR A
+        SBC HL, BC               ; Compare (LimitBytes - RequestedBytes)
+        POP BC
+        POP HL
+        JR C, SPLIT_REMAPPED_LOAD ; If BC > LimitBytes -> Split required!
+
+; --- Case 1: All bytes fit below &4000 ---
+LOAD_SINGLE_REMAPPED:
+        CALL LOAD_VIA_BANK23
+        RET
+
+; --- Case 2: Crosses &4000 Boundary ---
+SPLIT_REMAPPED_LOAD:
+        PUSH BC                  ; Save total requested length
+
+        ; Part 1 Size = &4000 - DE
+        LD HL, $4000
+        OR A
+        SBC HL, DE               ; HL = Part 1 size
+        
+        PUSH HL
+        LD B, H
+        LD C, L                  ; BC = Part 1 size
+        CALL LOAD_VIA_BANK23     ; Load Part 1 (DE becomes &4000)
+        POP HL                   ; HL = Part 1 size
+        POP BC                   ; BC = Total requested length
+        RET NZ                   ; Exit if load failed
+
+        ; Calculate Part 2 Size = Total (BC) - Part 1 (HL)
+        OR A
+        SBC HL, BC
+        ; Negate HL to get (BC - Part 1)
+        XOR A
+        SUB L
+        LD L, A
+        SBC A, A
+        SUB H
+        LD H, A                  ; HL = Part 2 size
+
+        LD B, H
+        LD C, L                  ; BC = Part 2 size
+        ; DE is now exactly &4000!
+
+LOAD_DIRECT:
+        JP LOAD_DATA             ; Load directly to &4000+ without remapping
+
+;=============================================================================
+; LOAD_VIA_BANK23
+; Input:  DE = Target Address (< &4000)
+;         BC = Byte Count
+; Output: DE = Updated Target Address (DE_old + BC)
+;=============================================================================
+LOAD_VIA_BANK23:
+        LD A, B
+        OR C
+        RET Z                    ; Return if 0 bytes
+
+        ; 1. Map CPC RAM (&0000-&3FFF) into FPGA Bank 2 & 3 (&4000-&7FFF)
+        CALL FPGA_MAP_CPC_RAM_TO_BANK23
+
+        ; 2. Translate DE to Bank 2/3 window address (&4000 offset)
+        SET 6, D                 ; Adds &4000 to DE (Bit 6 = &40)
+
+        ; 3. Stream data directly to mapped memory
+        CALL LOAD_DATA
+        PUSH AF                  ; Save error status / Z flag
+
+        ; 4. Restore original FPGA Bank 2 & 3 mapping
+        CALL FPGA_RESTORE_BANK23
+
+        ; 5. Translate DE back to original address coordinates
+        RES 6, D                 ; Subtracts &4000 from DE
+        POP AF                   ; Restore Z flag
+        RET
+
+FPGA_MAP_CPC_RAM_TO_BANK23:
+        PUSH BC
+        LD A,AMS_PAGE_0
+        LD B,2
+        CALL MMU_MAP
+        LD A,AMS_PAGE_1
+        LD B,3
+        CALL MMU_MAP
+        POP BC
+        RET
+
+
+FPGA_RESTORE_BANK23:
+        PUSH BC
+        LD A,AMS_PAGE_2
+        LD B,2
+        CALL MMU_MAP
+        LD A,AMS_PAGE_3
+        LD B,3
+        CALL MMU_MAP
+        POP BC
+        RET
+
+
+
+
+;VARS ARE VALID , OUR SP IS NOT
+@EX_BF_SP_CHNG: ;MANIPULATE NEEDED VARS=REGS
+                POP IY
+                POP IX
+                POP HL
+                POP DE
+                POP BC                
+                LD A,(AMSENTRY)
+                CP 1
+                JR NZ, DO_EXDIRECT
+                ;CAS IN LOAD EXIT PARAMS ON REGISTER SET
+DO_EXLOAD:      POP AF  ;NOW WE HAVE THE OLD REGISTERS 
+                LD BC,(MENU+26)         ;EXEC ADDR
+                LD (EXEADDR),BC         ;SAVE FOR LATER USE
+                LD HL,(MENU+19)         ;BLOCK DATA LENGTH
+                LD (BLOCKDLEN),HL
+
+                ;DEBUG
+                LD A,'W'
+                CALL RS_TX
+                CALL RS_NEWLINE                
+
+                LD HL,MENU
+                LD DE,$B807
+                LD BC,28
+                LDIR            ;COPY FILENAME AND OTHER TAPE HEADER PARAMS
+
+                LD HL,(EXEADDR)         ;EXEC ADDRESS
+                CALL PRINT_HL
+                LD A, ($B819)              ;FILETYPE
+                CALL PRINT_A
+                LD HL,($B81C)         ;LOAD ADDRESS
+                CALL PRINT_HL
+                LD HL,($B81F)         ;LOGICAL LENGTH
+                CALL PRINT_HL
+                LD HL,($B821)         ;EXE ADDRESS
+                CALL PRINT_HL
+                ;RETURN VALUES    
+
+
+                XOR A
+                ;LD ($B81E), A   ; BLOCK NUMBER IS 0
+                INC A                   ;ZF=0         
+                LD A, 3
+                LD ($B802), A           ; Mark stream as OPEN
+                LD HL,(OLDDE)
+                LD ($B803),HL
+                LD A,1
+                LD ($B8CC),A
+
+                ; --- 3. Return Registers for CAS IN OPEN (&BC77) ---
+                LD A, ($B819)           ; File Type (&00=BASIC, &02=BIN, etc.)
+                LD DE, ($B81C)          ; Load Address
+                LD BC, ($B81F)          ; Total Logical Length
+                LD HL, ($B821)          ; Execution Address
+
+                LD (LOGICBYTES),BC        ;SAVE LOGIC(TOTAL) BYTES TO READ 
+                LD HL, $B807          ;BASIC BUFFER      
+                CALL SHOWNEWREGS ;DEBUG                 
+                SCF          
+                JR EBS_EXIT
+DO_EXDIRECT:    POP AF;GET AF  AND CAS IN DIRECT EXIT PARAMS ON REGISTER SET
+                ;DE=LASTADDR +1
+                ;DEBUG                
+                PUSH AF 
+                LD A,'U'
+                CALL RS_TX
+                CALL RS_NEWLINE                
+                POP HL
+                PUSH HL
+                CALL PRINT_HL          ; AF
+                LD HL,(LOGICBYTES)    ;BC BYTES LEFT
+                CALL PRINT_HL
+                LD HL,(OLDBC)         ;DE BYTES READ 
+                CALL PRINT_HL
+                LD HL, (EXEADDR)      ;HL EXECUTE ADDRESS
+                CALL PRINT_HL
+                
+                ;RETURN VALUES                    
+                LD HL,($B817)           ;BLOCK NUMBER
+                INC (HL)
+
+                LD A,$FF
+                LD ($B818),A             ;LAST BLOCK FLAG
+                LD A,3
+                LD ($B802),A             ; STREAM STATE IS OPEN
+
+                POP AF
+                LD A,0
+                DEC A                   ;;DIRECT ALWAYS RETURN FF AND NO ZERO FLAG                
+                LD BC,(LOGICBYTES)      ;BYTES LEFT
+                LD DE,(BLOCKDLEN)       ;BYTES READ ON LAST BLOCK
+                LD HL,(EXEADDR)         ;EXC ADDRESS  
+                CALL SHOWNEWREGS ;DEBUG              
+                SCF                
+
+EBS_EXIT:       PUSH AF		;save old regs on old sp
+                PUSH BC
+                PUSH DE
+                PUSH HL		
+                PUSH IX
+                PUSH IY	    
+                CALL PR_BYTLOD            	
+                LD A, 127
+                LD BC, $FBE4
+                OUT (C),A     ;SIGNAL FPGA TO CHECK FOR THE NEXT RET AND SWITCH BANKS BACK
+                JP EX_DO_SP_CHNG
+
+FILREDERR  DEFM "ER READ FILE"
+          DB 0    
+FILOPNERR  DEFM "ER OPEN FILE"
+          DB 0    
+@DIROPNERR  DEFM "ER OPEN DIR"
+          DB 0             
+
+@MYDISKERROR:   PUSH AF
+                CALL RS_TXT
+                CALL RS_NEWLINE
+                POP AF
+                RET
+
+ORG $0200 ; next file should be VARS
+NOP
+
+
+
+
+
+
+
+
+
+
+
+

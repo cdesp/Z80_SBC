@@ -3,6 +3,8 @@
 ;JP MAINEXIT TO RETURN
 ;BEF_SP_CHANGE ALSO ARE JUMPED AND SHOULD JP TO DO_SP_CHANGE
 ;BEF_SP_CHANGE:  JP DO_SP_CHANGE
+;EX_BF_SP_CHNG FOR EXITING
+;EX_BF_SP_CHNG: JP EX_DO_SP_CHNG
 
 		GLOBAL LASTVAR 
 
@@ -19,7 +21,7 @@
                 @MMU_PORT EQU DEVMMU
                 @MMU_READ_PORT EQU DEVMMU
 
-;MAIN ENTRY FOR LOAD ISSUED FROM SPECTRUM
+;MAIN ENTRY FOR LOAD ISSUED FROM AMSTRAD
 @MENTRY:        NOP
 		DI
                 PUSH AF		;save old regs on old sp
@@ -28,14 +30,19 @@
                 PUSH HL		
                 PUSH IX
                 PUSH IY	
-		;PUSH DE
-		;POP IY		;IY=DE = EXPECTED LENGTH
+
 		IN A,(DEVSYS)           ;current system should be saved and
 		LD D,A			;SAVE TO D
                 LD A,$F0		;HIGH NIBBLE TO KEEP THE VIDEO SCREEN, LOW NIBBLE TO SET SYSTEM
                 OUT (DEVSYS),A          ;SET NEW SYSTEM  0 AS BOOTLOADER 				
 		LD B,MYRAMBANK		;READ OLD page  OF our ram bank
-		CALL MMU_READ	;A THE PAGE
+                SLA B   ;PUT IT ON HIGH BYTES
+                SLA B
+                SLA B
+                SLA B
+                SLA B  
+                LD C,MMU_READ_PORT              
+		IN A,(C)		
 		LD E,A 		;SAVE TO E
 		LD A,$7F	;LAST RAM PAGE IS OUR VAR PAGE ON BANK 7
 		LD B,MYRAMBANK
@@ -52,8 +59,10 @@
 		LD (OLDBNK7),A  ;SAVE AS VAR
                 LD A,D 		
 		LD (OLDSYS),A   ;SAVE SYS VAR	
-		CALL PRINT_A		
-SKIP1:		JP BEF_SP_CHANGE
+		;CALL PRINT_A				
+		SCF
+		CCF
+SKIP1:		JP BEF_SP_CHANGE;IF CF THEN VARS ALREADY THERE
 @DO_SP_CHANGE:	LD HL,0
 		ADD HL,SP 	;HL HAS THE SP
 		LD (OLDSP),HL		
@@ -65,6 +74,7 @@ SKIP1:		JP BEF_SP_CHANGE
 		JP EX_BF_SP_CHNG
 @EX_DO_SP_CHNG:	LD A,(OLDSYS) 
 		LD D, A
+		;call PRINT_A
 		LD A,(OLDBNK7)
 		LD B,MYRAMBANK
 		SLA B 
@@ -85,54 +95,5 @@ SKIP1:		JP BEF_SP_CHANGE
 		EI
                 RET
 
-;ROUTINE THAT CHECKS IF THIS IS THE FIRST TIME RUNNING TO INITIALIZE VAR
-@CHECKID:	PUSH DE
-		LD A,(ID)
-		CP $14
-		JR NZ,FIRST
-		LD A,(ID+1)
-		CP $34
-		JR NZ, FIRST
-		LD A,(ID+2)
-		CP $94
-		JR NZ, FIRST
-		LD A,(ID+3)
-		CP $194
-		JR NZ, FIRST
-		CALL OS_PRINTMSG
-                DEFM "VARS OK"
-                DB 10,13,0  
-		NOP       				
-		POP DE
-		SCF
-		RET
 
-@FIRST:         CALL OS_PRINTMSG
-                DEFM "CLEARING VARS"
-                DB 10,13,0         
-		LD HL,OSVARS
-		XOR A
-		LD (HL),A
-		LD DE,OSVARS+1
-		LD BC,OSVARSEND-OSVARS
-		LDIR
-		LD A,$14
-		LD (ID),A
-		LD A,$34
-		LD (ID+1),A
-		LD A,$94
-		LD (ID+2),A
-		LD A,$194
-		LD (ID+3),A
-		LD A,1
-		LD (INITRUN),A
-		LD HL,DEMOFNAME
-		LD DE,FILENAME
-		LD BC,13
-		LDIR
-		LD A,1
-		LD (SCRNST),A
-		POP DE
-		AND 1		
-		RET
-
+include VARS_CHK.Z80

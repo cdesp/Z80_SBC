@@ -1,0 +1,81 @@
+;FILE TO HANDLE THE TZX FILES
+;FILE SHOULD ALREADY BE OPEN AND AT THE 1ST BLOCK ID
+
+TMPBYTE EQU MENU; 
+
+
+GETBID:         LD A,'B'
+                CALL RS_TX
+                LD DE,BLOCKTYPE
+                LD BC,1                 ;BLOCK ID
+                CALL LOAD_DATA     
+                JP NZ, ERROREXIT ;ABORT
+                LD A,(BLOCKTYPE)
+                ;DEBUG
+                CALL PRINT_A
+                CALL RS_NEWLINE
+                LD A,(BLOCKTYPE)
+                RET
+
+DO_TEXT:        LD A,'T'
+                CALL RS_TX
+                LD DE,TMPBYTE
+                LD BC,1                 ;TEXT LENGTH 1 BYTE
+                CALL LOAD_DATA     
+                JP NZ, ERROREXIT ;ABORT
+                LD A,(TMPBYTE)
+                ;DEBUG
+                CALL PRINT_A
+                CALL RS_NEWLINE
+                LD A,(TMPBYTE)
+                ;
+                LD DE,MENU+128
+                LD B,0
+                LD C,A
+                CALL LOAD_DATA          ;SKIP A BYTES
+                JP NZ, ERROREXIT ;ABORT
+                JR DO_TZX
+
+DO_PAUSE:       LD A,'P'
+                CALL RS_TX
+                LD DE,TMPBYTE
+                LD BC,2                 ;PAUSE LENGTH 2 BYTES
+                CALL LOAD_DATA     
+                JP NZ, ERROREXIT ;ABORT
+                LD A,(TMPBYTE)
+                JR DO_TZX       ;JUST CONTINUE
+
+DO_TSDATABLOCK: LD A,'D'
+                CALL RS_TX
+                LD DE,TMPBYTE
+                LD BC,18 + 1                ;18 BYTES FOR THE BLOCK +1 COMMA OR SYNC BYTE
+                CALL LOAD_DATA     
+                JP NZ, ERROREXIT ;ABORT
+                LD HL, TMPBYTE+15   ;SKIP 15 BYTES
+                LD E,(HL)       ;3 BYTES DATALENGTH WE USE 2        
+                INC HL
+                LD D,(HL)
+                INC HL          ;HIGH HIGH BYTE      
+                ;DEBUG
+                PUSH DE
+                POP HL
+                CALL PRINT_HL
+                CALL RS_NEWLINE
+                ;
+                XOR A           ;CLEAR CARRY AND ZERO FLAG           
+                RET       ;RETURN WE GOT THE DATABLOCK
+
+;DE THE DESTINATION BUFFER
+@DO_TZX:         
+                CALL GETBID
+                CP $30          ;TEXT
+                JR Z, DO_TEXT
+                CP $20
+                JR Z, DO_PAUSE
+                CP $11
+                JR Z, DO_TSDATABLOCK ;TURBO SPEED DATA BLOCK
+                CALL PRINT_A
+                LD A,'E'
+                CALL RS_TX
+                SCF
+                RET

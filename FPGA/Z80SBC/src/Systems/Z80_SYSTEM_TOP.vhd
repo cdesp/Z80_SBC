@@ -127,27 +127,8 @@ begin
             MMU_Banks    => MMU_Banks
         );
 
-    -- System 1: ZX Spectrum
-    u_Spectrum : entity work.Spectrum_TOP
-        port map (
-            CLK_FPGA     => CLK_FPGA,
-            CLK          => CLK_Z80,
-            nRESET       => nRESET,
-            SystemActive => spec_active,
-            Z80_In_raw   => Z80_In_raw,
-            Z80_In       => Z80_In,
-            Z80_Out      => spec_z80_out,
-            OTSigs_in    => OTSigs_in,
-            OTSigs_out   => spec_ot_out,
-            V_IN         => V_IN,
-            V_OUT        => spec_v_out,
-            VRAM_DATA    => VRAM_DATA,
-            VRAM_ADDR    => spec_vram_addr,
-            MMU_INTF     => spec_MMU_INTF,
-            MMU_Banks    => MMU_Banks
-        );
-
-    -- System 2: Atlas
+ 
+    -- System 1: Atlas
     u_Atlas : entity work.Atlas_TOP
         port map (
             CLK_FPGA     => CLK_FPGA,
@@ -167,7 +148,7 @@ begin
             MMU_Banks    => MMU_Banks
         );
 
-    -- System 3: Newbrain
+    -- System 2: Newbrain
     u_Newbrain : entity work.Newbrain_TOP
         port map (
             CLK_FPGA     => CLK_FPGA,
@@ -184,6 +165,27 @@ begin
             VRAM_DATA    => VRAM_DATA,
             VRAM_ADDR    => newb_vram_addr,
             MMU_INTF     => newb_MMU_INTF,
+            MMU_Banks    => MMU_Banks
+        );
+
+
+   -- System 3: ZX Spectrum
+    u_Spectrum : entity work.Spectrum_TOP
+        port map (
+            CLK_FPGA     => CLK_FPGA,
+            CLK          => CLK_Z80,
+            nRESET       => nRESET,
+            SystemActive => spec_active,
+            Z80_In_raw   => Z80_In_raw,
+            Z80_In       => Z80_In,
+            Z80_Out      => spec_z80_out,
+            OTSigs_in    => OTSigs_in,
+            OTSigs_out   => spec_ot_out,
+            V_IN         => V_IN,
+            V_OUT        => spec_v_out,
+            VRAM_DATA    => VRAM_DATA,
+            VRAM_ADDR    => spec_vram_addr,
+            MMU_INTF     => spec_MMU_INTF,
             MMU_Banks    => MMU_Banks
         );
 
@@ -276,6 +278,11 @@ begin
         end case;
        
         OTSigs_out.SYS_SEL <= std_logic_vector(system_selection);
+        if amst_ot_out.LDIntceptAct='1' or spec_ot_out.LDIntceptAct='1' or newb_ot_out.LDIntceptAct='1' or atla_ot_out.LDIntceptAct='1' or boot_ot_out.LDIntceptAct='1' then
+          OTSigs_out.LDIntceptAct <= '1';
+        else
+          OTSigs_out.LDIntceptAct <= '0'; 
+        end if;
     end process;
 
 

@@ -113,6 +113,7 @@ PACKAGE defs_pkg IS
         -- Master Clocking & Configuration
         CPU_SPEED    : std_logic_vector(7 downto 0);
         ToolActive   : std_logic;
+        LDIntceptAct : std_logic; --loader intercept active 
         SYS_SEL       : std_logic_vector(3 downto 0); --system selection to subsystem
 
         -- PS/2 Stream Interface
@@ -127,7 +128,8 @@ PACKAGE defs_pkg IS
     TYPE t_ot_sigs_from_system IS RECORD  
         -- PS/2 Stream Handshake
         PS2_KEYB_READ : std_logic;                  -- FIFO pop pulse on Z80 read
-        SYS_SEL       : std_logic_vector(3 downto 0); --system selection to top       
+        SYS_SEL       : std_logic_vector(3 downto 0); --system selection to top  
+        LDIntceptAct  : std_logic; -- address intereption active to top   
    END RECORD;
 
     TYPE t_amstrad_sigs IS RECORD        
@@ -169,7 +171,8 @@ PACKAGE defs_pkg IS
 
     constant C_OT_SIGS_DEFAULT : t_ot_sigs_from_system := (
         PS2_KEYB_READ => '0',
-        SYS_SEL       => "0000"
+        SYS_SEL       => "0000",
+        LDIntceptAct  => '0'
     );
     
 

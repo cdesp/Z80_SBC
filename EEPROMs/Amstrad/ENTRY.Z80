@@ -1,0 +1,23 @@
+
+;========================================================================
+; AT $0000
+
+
+DS 2392H-$     ;$2392H IS CAS IN OPEN COMMAND  BC77
+                NOP
+                DI
+CASOPEN:        PUSH IY; IY SAVED
+                LD IY,1                
+                JP MENTRY
+DS 24ABH-$     ;$24ABH IS CAS IN DIRECT COMMAND  BC83
+                NOP
+                DI
+CASDIRT:        PUSH IY
+                LD IY,2
+                JP MENTRY
+
+
+
+
+
+

@@ -97,7 +97,181 @@
             </Bus>
             <Signal capture_enable="true">sISDout</Signal>
             <Signal capture_enable="true">sEnableDataOut</Signal>
+            <Signal capture_enable="true">u_System_TOP/u_Amstrad/u_Arbiter/dec_state</Signal>
             <Signal capture_enable="true">u_System_TOP/reg_system_sel_n</Signal>
+            <Signal capture_enable="true">sOTSigs_in.ToolActive</Signal>
+            <Bus capture_enable="true" name="U_Z80_NMI_HANDLER/seq_state[8:0]">
+                <Signal>U_Z80_NMI_HANDLER/seq_state.seq_idle</Signal>
+                <Signal>U_Z80_NMI_HANDLER/seq_state.seq_save_ctx</Signal>
+                <Signal>U_Z80_NMI_HANDLER/seq_state.seq_do_nmi</Signal>
+                <Signal>U_Z80_NMI_HANDLER/seq_state.seq_wait_vector</Signal>
+                <Signal>U_Z80_NMI_HANDLER/seq_state.seq_wr_bank0</Signal>
+                <Signal>U_Z80_NMI_HANDLER/seq_state.seq_wr_bank0_w</Signal>
+                <Signal>U_Z80_NMI_HANDLER/seq_state.seq_wait_retn</Signal>
+                <Signal>U_Z80_NMI_HANDLER/seq_state.seq_restore</Signal>
+                <Signal>U_Z80_NMI_HANDLER/seq_state.seq_restore_w</Signal>
+            </Bus>
+            <Signal capture_enable="true">PS2KeybCtrl/PS2_BT_RDY</Signal>
+            <Signal capture_enable="true">PS2KeybCtrl/FPGA_READ</Signal>
+            <Signal capture_enable="true">PS2KeybCtrl/NMIClear</Signal>
+            <Signal capture_enable="true">PS2KeybCtrl/NewByteForNMI</Signal>
+            <Bus capture_enable="true" name="PS2KeybCtrl/fifo_count[4:0]">
+                <Signal>PS2KeybCtrl/fifo_count[4]</Signal>
+                <Signal>PS2KeybCtrl/fifo_count[3]</Signal>
+                <Signal>PS2KeybCtrl/fifo_count[2]</Signal>
+                <Signal>PS2KeybCtrl/fifo_count[1]</Signal>
+                <Signal>PS2KeybCtrl/fifo_count[0]</Signal>
+            </Bus>
+            <Signal capture_enable="true">u_System_TOP/u_Amstrad/u_Arbiter/int_ack</Signal>
+            <Bus capture_enable="true" name="u_System_TOP/u_Amstrad/u_Arbiter/ga_int_counter[6:0]">
+                <Signal>u_System_TOP/u_Amstrad/u_Arbiter/ga_int_counter[6]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_Arbiter/ga_int_counter[5]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_Arbiter/ga_int_counter[4]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_Arbiter/ga_int_counter[3]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_Arbiter/ga_int_counter[2]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_Arbiter/ga_int_counter[1]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_Arbiter/ga_int_counter[0]</Signal>
+            </Bus>
+            <Signal capture_enable="true">u_System_TOP/u_Amstrad/u_Arbiter/hsync_falling_edge</Signal>
+            <Signal capture_enable="true">u_System_TOP/u_Amstrad/u_Arbiter/vsync_rising_edge</Signal>
+            <Signal capture_enable="true">u_System_TOP/u_Amstrad/u_Arbiter/crtc_vsync</Signal>
+            <Signal capture_enable="true">u_System_TOP/u_Amstrad/u_Arbiter/crtc_hsync</Signal>
+            <Signal capture_enable="true">u_System_TOP/u_Amstrad/u_Arbiter/r_int</Signal>
+            <Signal capture_enable="true">u_System_TOP/u_Amstrad/u_Arbiter/system_en</Signal>
+            <Bus capture_enable="true" name="u_System_TOP/u_Amstrad/u_Arbiter/CPC_KEYB_OUT[7:0]">
+                <Signal>u_System_TOP/u_Amstrad/u_Arbiter/CPC_KEYB_OUT[7]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_Arbiter/CPC_KEYB_OUT[6]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_Arbiter/CPC_KEYB_OUT[5]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_Arbiter/CPC_KEYB_OUT[4]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_Arbiter/CPC_KEYB_OUT[3]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_Arbiter/CPC_KEYB_OUT[2]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_Arbiter/CPC_KEYB_OUT[1]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_Arbiter/CPC_KEYB_OUT[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="u_System_TOP/u_Amstrad/u_Arbiter/dOUT_PPI[7:0]">
+                <Signal>u_System_TOP/u_Amstrad/u_Arbiter/dOUT_PPI[7]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_Arbiter/dOUT_PPI[6]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_Arbiter/dOUT_PPI[5]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_Arbiter/dOUT_PPI[4]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_Arbiter/dOUT_PPI[3]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_Arbiter/dOUT_PPI[2]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_Arbiter/dOUT_PPI[1]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_Arbiter/dOUT_PPI[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="u_System_TOP/u_Amstrad/u_Arbiter/Z80_Out.DataOut[7:0]">
+                <Signal>u_System_TOP/u_Amstrad/u_Arbiter/Z80_Out.DataOut[7]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_Arbiter/Z80_Out.DataOut[6]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_Arbiter/Z80_Out.DataOut[5]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_Arbiter/Z80_Out.DataOut[4]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_Arbiter/Z80_Out.DataOut[3]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_Arbiter/Z80_Out.DataOut[2]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_Arbiter/Z80_Out.DataOut[1]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_Arbiter/Z80_Out.DataOut[0]</Signal>
+            </Bus>
+            <Signal capture_enable="true">u_System_TOP/u_Amstrad/u_Arbiter/Z80_Out.isDOut</Signal>
+            <Bus capture_enable="true" name="u_System_TOP/u_Amstrad/u_Arbiter/ppi_port_c[7:0]">
+                <Signal>u_System_TOP/u_Amstrad/u_Arbiter/ppi_port_c[7]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_Arbiter/ppi_port_c[6]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_Arbiter/ppi_port_c[5]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_Arbiter/ppi_port_c[4]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_Arbiter/ppi_port_c[3]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_Arbiter/ppi_port_c[2]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_Arbiter/ppi_port_c[1]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_Arbiter/ppi_port_c[0]</Signal>
+            </Bus>
+            <Signal capture_enable="true">u_System_TOP/u_Amstrad/u_Arbiter/oldOutEnb</Signal>
+            <Signal capture_enable="true">u_System_TOP/u_Amstrad/u_Arbiter/OTSigs_in.ToolActive</Signal>
+            <Signal capture_enable="true">u_System_TOP/u_Amstrad/u_Arbiter/OTSigs_out.LDIntceptAct</Signal>
+            <Bus capture_enable="true" name="u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK0[7:0]">
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK0[7]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK0[6]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK0[5]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK0[4]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK0[3]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK0[2]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK0[1]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK0[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK1[7:0]">
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK1[7]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK1[6]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK1[5]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK1[4]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK1[3]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK1[2]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK1[1]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK1[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK2[7:0]">
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK2[7]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK2[6]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK2[5]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK2[4]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK2[3]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK2[2]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK2[1]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK2[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK3[7:0]">
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK3[7]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK3[6]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK3[5]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK3[4]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK3[3]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK3[2]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK3[1]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK3[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK4[7:0]">
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK4[7]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK4[6]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK4[5]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK4[4]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK4[3]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK4[2]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK4[1]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK4[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK5[7:0]">
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK5[7]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK5[6]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK5[5]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK5[4]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK5[3]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK5[2]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK5[1]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK5[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK6[7:0]">
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK6[7]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK6[6]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK6[5]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK6[4]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK6[3]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK6[2]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK6[1]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK6[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK7[7:0]">
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK7[7]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK7[6]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK7[5]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK7[4]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK7[3]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK7[2]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK7[1]</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/MMU_Banks.BANK7[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="u_System_TOP/u_Amstrad/u_loader/seq_state[7:0]">
+                <Signal>u_System_TOP/u_Amstrad/u_loader/seq_state.seq_idle</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/seq_state.seq_save_ctx</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/seq_state.seq_swap_bank0</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/seq_state.seq_swap_bank0_w</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/seq_state.seq_wait_out_port</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/seq_state.seq_wait_ret</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/seq_state.seq_restore</Signal>
+                <Signal>u_System_TOP/u_Amstrad/u_loader/seq_state.seq_restore_w</Signal>
+            </Bus>
         </SignalList>
         <Triggers>
             <Trigger index="0">
@@ -147,6 +321,7 @@
                     </Bus>
                 </SignalList>
             </Trigger>
+            <Trigger index="3"/>
             <Trigger index="4">
                 <SignalList>
                     <Bus restorename="master_in.Z80_ADDR[15:0]">
@@ -174,54 +349,126 @@
                     <Signal>LINT_N</Signal>
                 </SignalList>
             </Trigger>
-            <Trigger index="6"/>
-            <Trigger index="7">
+            <Trigger index="6">
                 <SignalList>
-                    <Signal>sTools_Act</Signal>
+                    <Signal>LINT_N</Signal>
                 </SignalList>
             </Trigger>
-            <Trigger index="8"/>
-            <Trigger index="9"/>
-            <Trigger index="10"/>
+            <Trigger index="7">
+                <SignalList>
+                    <Signal>u_System_TOP/u_Amstrad/u_Arbiter/r_int</Signal>
+                </SignalList>
+            </Trigger>
+            <Trigger index="8">
+                <SignalList>
+                    <Signal>u_System_TOP/u_Amstrad/u_Arbiter/crtc_hsync</Signal>
+                </SignalList>
+            </Trigger>
+            <Trigger index="9">
+                <SignalList>
+                    <Signal>L_IORQ_N</Signal>
+                </SignalList>
+            </Trigger>
+            <Trigger index="10">
+                <SignalList>
+                    <Bus restorename="master_in.Z80_ADDR[15:0]">
+                        <Signal>master_in.Z80_ADDR[15]</Signal>
+                        <Signal>master_in.Z80_ADDR[14]</Signal>
+                        <Signal>master_in.Z80_ADDR[13]</Signal>
+                        <Signal>master_in.Z80_ADDR[12]</Signal>
+                        <Signal>master_in.Z80_ADDR[11]</Signal>
+                        <Signal>master_in.Z80_ADDR[10]</Signal>
+                        <Signal>master_in.Z80_ADDR[9]</Signal>
+                        <Signal>master_in.Z80_ADDR[8]</Signal>
+                        <Signal>master_in.Z80_ADDR[7]</Signal>
+                        <Signal>master_in.Z80_ADDR[6]</Signal>
+                        <Signal>master_in.Z80_ADDR[5]</Signal>
+                        <Signal>master_in.Z80_ADDR[4]</Signal>
+                        <Signal>master_in.Z80_ADDR[3]</Signal>
+                        <Signal>master_in.Z80_ADDR[2]</Signal>
+                        <Signal>master_in.Z80_ADDR[1]</Signal>
+                        <Signal>master_in.Z80_ADDR[0]</Signal>
+                    </Bus>
+                </SignalList>
+            </Trigger>
             <Trigger index="11"/>
             <Trigger index="12">
                 <SignalList>
-                    <Signal>u_System_TOP/reg_system_sel_n</Signal>
+                    <Bus restorename="u_System_TOP/u_Amstrad/u_Arbiter/dOUT_PPI[7:0]">
+                        <Signal>u_System_TOP/u_Amstrad/u_Arbiter/dOUT_PPI[7]</Signal>
+                        <Signal>u_System_TOP/u_Amstrad/u_Arbiter/dOUT_PPI[6]</Signal>
+                        <Signal>u_System_TOP/u_Amstrad/u_Arbiter/dOUT_PPI[5]</Signal>
+                        <Signal>u_System_TOP/u_Amstrad/u_Arbiter/dOUT_PPI[4]</Signal>
+                        <Signal>u_System_TOP/u_Amstrad/u_Arbiter/dOUT_PPI[3]</Signal>
+                        <Signal>u_System_TOP/u_Amstrad/u_Arbiter/dOUT_PPI[2]</Signal>
+                        <Signal>u_System_TOP/u_Amstrad/u_Arbiter/dOUT_PPI[1]</Signal>
+                        <Signal>u_System_TOP/u_Amstrad/u_Arbiter/dOUT_PPI[0]</Signal>
+                    </Bus>
                 </SignalList>
             </Trigger>
-            <Trigger index="13"/>
+            <Trigger index="13">
+                <SignalList>
+                    <Bus restorename="u_System_TOP/u_Amstrad/u_Arbiter/ppi_port_c[7:0]">
+                        <Signal>u_System_TOP/u_Amstrad/u_Arbiter/ppi_port_c[7]</Signal>
+                        <Signal>u_System_TOP/u_Amstrad/u_Arbiter/ppi_port_c[6]</Signal>
+                        <Signal>u_System_TOP/u_Amstrad/u_Arbiter/ppi_port_c[5]</Signal>
+                        <Signal>u_System_TOP/u_Amstrad/u_Arbiter/ppi_port_c[4]</Signal>
+                        <Signal>u_System_TOP/u_Amstrad/u_Arbiter/ppi_port_c[3]</Signal>
+                        <Signal>u_System_TOP/u_Amstrad/u_Arbiter/ppi_port_c[2]</Signal>
+                        <Signal>u_System_TOP/u_Amstrad/u_Arbiter/ppi_port_c[1]</Signal>
+                        <Signal>u_System_TOP/u_Amstrad/u_Arbiter/ppi_port_c[0]</Signal>
+                    </Bus>
+                </SignalList>
+            </Trigger>
             <Trigger index="14">
                 <SignalList>
-                    <Signal>U_Z80_NMI_HANDLER/retn_detected</Signal>
+                    <Signal>u_System_TOP/u_Amstrad/u_Arbiter/Z80_Out.isDOut</Signal>
                 </SignalList>
             </Trigger>
             <Trigger index="15">
                 <SignalList>
-                    <Signal>sTools_Act</Signal>
+                    <Bus restorename="master_in.Z80_ADDR[15:0]">
+                        <Signal>master_in.Z80_ADDR[15]</Signal>
+                        <Signal>master_in.Z80_ADDR[14]</Signal>
+                        <Signal>master_in.Z80_ADDR[13]</Signal>
+                        <Signal>master_in.Z80_ADDR[12]</Signal>
+                        <Signal>master_in.Z80_ADDR[11]</Signal>
+                        <Signal>master_in.Z80_ADDR[10]</Signal>
+                        <Signal>master_in.Z80_ADDR[9]</Signal>
+                        <Signal>master_in.Z80_ADDR[8]</Signal>
+                        <Signal>master_in.Z80_ADDR[7]</Signal>
+                        <Signal>master_in.Z80_ADDR[6]</Signal>
+                        <Signal>master_in.Z80_ADDR[5]</Signal>
+                        <Signal>master_in.Z80_ADDR[4]</Signal>
+                        <Signal>master_in.Z80_ADDR[3]</Signal>
+                        <Signal>master_in.Z80_ADDR[2]</Signal>
+                        <Signal>master_in.Z80_ADDR[1]</Signal>
+                        <Signal>master_in.Z80_ADDR[0]</Signal>
+                    </Bus>
                 </SignalList>
             </Trigger>
         </Triggers>
         <MatchUnits>
-            <MatchUnit index="0" enabled="0" match_type="0" counter_enable="0" counter_width="5" counter="6" countinuous="0" func="0" value0="000000111" value1="000000000" trigger="0"/>
+            <MatchUnit index="0" enabled="0" match_type="0" counter_enable="0" counter_width="5" counter="6" countinuous="0" func="0" value0="000001011" value1="000000000" trigger="0"/>
             <MatchUnit index="1" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="010000" value1="000000" trigger="1"/>
-            <MatchUnit index="2" enabled="0" match_type="4" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="4" value0="1111111000000000" value1="0000000000000000" trigger="2"/>
+            <MatchUnit index="2" enabled="0" match_type="4" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="4" value0="0000000000000000" value1="0000000000000000" trigger="2"/>
             <MatchUnit index="3" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="1" value0="11111111" value1="00000000" trigger="3"/>
-            <MatchUnit index="4" enabled="0" match_type="4" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="5" value0="1111111111111110" value1="0000000000000000" trigger="4"/>
+            <MatchUnit index="4" enabled="0" match_type="4" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="5" value0="0000000000000000" value1="0000000000000000" trigger="4"/>
             <MatchUnit index="5" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="0" value1="0" trigger="5"/>
-            <MatchUnit index="6" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="00111011010111" value1="00000000000000" trigger="6"/>
-            <MatchUnit index="7" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="1" value1="0" trigger="7"/>
-            <MatchUnit index="8" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
-            <MatchUnit index="9" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="10" value1="00" trigger="9"/>
-            <MatchUnit index="10" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="6" enabled="1" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="0" value1="0" trigger="6"/>
+            <MatchUnit index="7" enabled="1" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="1" value1="0" trigger="7"/>
+            <MatchUnit index="8" enabled="1" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="1" value0="1" value1="0" trigger="8"/>
+            <MatchUnit index="9" enabled="1" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="0" value1="0" trigger="9"/>
+            <MatchUnit index="10" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="1111010001000001" value1="0000000000000000" trigger="10"/>
             <MatchUnit index="11" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
-            <MatchUnit index="12" enabled="1" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="0" value1="0" trigger="12"/>
-            <MatchUnit index="13" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
-            <MatchUnit index="14" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="1" value1="0" trigger="14"/>
-            <MatchUnit index="15" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="1" value1="0" trigger="15"/>
+            <MatchUnit index="12" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="1" value0="11111111" value1="00000000" trigger="12"/>
+            <MatchUnit index="13" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="00000000" value1="00000000" trigger="13"/>
+            <MatchUnit index="14" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="0" value1="0" trigger="14"/>
+            <MatchUnit index="15" enabled="0" match_type="4" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="3" value0="1111010100000000" value1="0000000000000000" trigger="15"/>
         </MatchUnits>
         <Expressions type="Static">
-            <Expression>M12</Expression>
+            <Expression>M6&amp;M7&amp;M8&amp;M9</Expression>
         </Expressions>
     </AoCore>
-    <GAO_ID>0001010111110111</GAO_ID>
+    <GAO_ID>0101111110100011</GAO_ID>
 </GAO_CONFIG>
