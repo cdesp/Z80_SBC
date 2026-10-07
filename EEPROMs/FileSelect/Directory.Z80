@@ -9,6 +9,10 @@
 	@ZXSPECTRUM 	EQU 3
 	@AMSTRAD 	EQU 4
 
+	PGRAMST		EQU $1A ;STARTING PAGE AT RAM TO FIT 819200 BYTES
+	PGTMP 		EQU NUMBUF
+	PGOLD		EQU NUMBUF+2
+
 	@DIRECTORY DEFM "/"
         DB 0
 	@DIR_ZX DEFM "SPECTRUM"	;8 CHARS
@@ -21,6 +25,15 @@
 
 	@DIROPNERR  DEFM "ER OPEN DIR"
         DB 0             
+
+	TZX_FILE DEFM ".TZX"
+	DB 0
+
+	CDP_FILE DEFM ".CDP"
+	DB 0
+
+	TAPE_PRT EQU $E5 ;TAPE PORT REGISTER
+
 
 @MYDISKERROR:   CALL RS_TXT
                 CALL RS_NEWLINE
@@ -114,8 +127,9 @@ DIROPNED: 	CALL  OS_PRINTMSG
 		CALL GETMNUSEL
 		JR NC, MENUOK
 		CALL  OS_PRINTMSG
-		DEFM "MENU EMPTY!"
-		DB 0		
+		DEFM "MENU EMPTY OR CANCEL!"
+		DB 0
+		JP DOEXIT		
 
 		;HL POINTS TO THE STRING SELECTED
 		;A POINTS TO THE NUMBER ON THE LIST
@@ -133,9 +147,84 @@ MENUOK:		LD A,12
 		CALL STRG_CLSFILE ;CLOSE FILE IF ONE IS OPENED
 		POP HL
 		CALL OS_PRINTTEXT
+		CALL NO_TAPE 	;SIGNAL FPGA NO TAPE
+		LD HL,FILENAME
+		LD DE,TZX_FILE
+		CALL CHK_SUBSTR
+		JR NC, FILECOPY  ; FOUND
+		LD HL,FILENAME
+		LD DE,CDP_FILE  ; IT IS A CDT FILE I JUST PUT P TO DISTINGUISH THE PULSE 
+		CALL CHK_SUBSTR
+		JR NC, FILECOPY  ; FOUND
+		;HERE IF NOT FOUND		
+		JP DOEXIT ;NO COPY
+FILECOPY:;;COPY FILE TO RAM
+		CALL  OS_PRINTMSG
+		DEFM "COPYING FILE TO RAM"
+		DB 0
+                LD HL,FILENAME             ;DEFAULT DEMOFNAME
+                CALL COPYFNAME
+                XOR A                      ; Read-only
+                CALL STRG_OPNFILE
+                JR Z, DOCOPY
+		CALL  OS_PRINTMSG
+		DEFM "ERROR OPENING FILE"
+		DB 0
+                JP DOEXIT   
+
+DOCOPY:		LD B,4
+		CALL MMU_READ
+		LD (PGOLD),A
+
+		LD A, PGRAMST
+		LD (PGTMP),A
+		
+		
+DCP_LOOP:	
+		LD A,(PGTMP)
+		LD B, 4	;BANK 4
+		CALL PUTPGINBANK
+
+                LD DE,$8000 ;START OF BANK 4
+                LD BC,$2000
+                CALL STRG_BLKREAD                              
+                JP NZ, ERROREXIT
+		LD A, $20
+		CP H
+		JR NZ, COPDN
+		XOR A
+		CP L
+		JR NZ, COPDN
+		LD HL,PGTMP
+		INC (HL)		;NEXT PAGE
+		JR DCP_LOOP
 
 
-		;RESTORE SYSTEM PAGES AND SYSTEM AND EXIT
+COPDN:		LD A,(PGTMP)
+		CALL PRINT_A
+		CALL  OS_PRINTMSG
+		DEFM "COPY DONE"
+		DB 0
+		CALL RS_NEWLINE
+		CALL STRG_CLSFILE
+		LD A,(PGOLD) ;RESTORE OLD PAGE
+		CALL PRINT_A
+		LD B, 4	;BANK 4
+		CALL PUTPGINBANK				
+		CALL RS_NEWLINE
+		XOR A
+		LD (DIROPENED),A
+		LD (FILEOPENED),A
+		CALL SET_TAPE	;SIGNAL FPGA WE COPIED A FILE TO RAM
+		JR DOEXIT
+
+
+ERROREXIT:	CALL  OS_PRINTMSG
+		DEFM "ERROR LOADING FILE"
+		DB 0
+
+
+DOEXIT:		;RESTORE SYSTEM PAGES AND SYSTEM AND EXIT
 		;RESTORE SP
 		LD HL,(OLDSP)		
 		LD SP,HL	;SP RESTORED VARS NO LONGER NEEDED
@@ -160,6 +249,69 @@ MENUOK:		LD A,12
 		POP AF
 		EI
 		RETN
+
+
+SET_TAPE:	LD A,1
+		OUT (TAPE_PRT),A
+		RET
+
+NO_TAPE:	LD A,0
+		OUT (TAPE_PRT),A
+		RET
+
+;==============================================================================
+; CHK_SUBSTR
+; Checks if ZT substring (DE) is contained in ZT main string (HL).
+; Returns: 
+;   - NC and A = 0-based offset index if found
+;   - C if substring is not found
+;==============================================================================
+CHK_SUBSTR:
+    LD   B, 0               ; B = current match start index (0 to 255)
+
+.outer_loop:
+    LD   A, (HL)            ; Read current character from main string
+    OR   A                  ; Is main string at end (0x00)?
+    JR   Z, .not_found      ; If main string ended, substring was not found
+
+    ; Save pointers to test candidate match at current position
+    PUSH HL
+    PUSH DE
+
+.inner_loop:
+    LD   A, (DE)            ; Read character from substring
+    OR   A                  ; Is substring at end (0x00)?
+    JR   Z, .match_found    ; Reached end of substring -> Complete match!
+
+    LD   C, A               ; C = current substring character
+    LD   A, (HL)            ; A = current main string character
+    CP   C                  ; Do the characters match?
+    JR   NZ, .no_match      ; Mismatch -> exit inner loop
+
+    INC  HL                 ; Advance both pointers
+    INC  DE
+    JR   .inner_loop
+
+.no_match:
+    ; Clean up stack, advance outer index and pointer
+    POP  DE                 ; Restore original DE (substring head)
+    POP  HL                 ; Restore original HL (main string position)
+    INC  HL                 ; Move to next candidate position in main string
+    INC  B                  ; Increment candidate position index
+    JR   .outer_loop
+
+.match_found:
+    ; Substring matched completely
+    POP  DE                 ; Restore stack
+    POP  HL
+    LD   A, B               ; A = 0-based starting index
+    OR   A                  ; Clear Carry Flag (NC)
+    RET
+
+.not_found:
+    SCF                     ; Set Carry Flag (C) to indicate failure
+    RET
+
 
 ;THIS ONE IS CALLED FOR EACH DIR ENTRY 32BYTES
 ;DATA IN USBBUF ON HL
@@ -227,6 +379,8 @@ DE_OVER:	LD A,'K'
 		LD (DE),A
 		INC DE
 		LD (MENUPTR),DE	;NEXT ENTRY POINTER
+		LD A,'*'
+		CALL RS_TX		
 		RET
 
 ;HL POINTS TO 32BIT (4BYTES), LITTLE-ENDIAN (LSB FIRST)

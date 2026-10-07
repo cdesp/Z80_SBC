@@ -1,16 +1,16 @@
 [General]
 ipc_version=4
-file=gowin_spRAM
-module=Gowin_SPRAM
+file=RV32_RAM
+module=RV32_RAM
 target_device=gw5a25a-002
 type=ram_sp
 version=3.0
 
 [Config]
 BYTE_SIZE=0
-DEPTH=1024
+DEPTH=8192
 LANG=1
 READ=0
 RESET_MODE=true
-WIDTH=8
+WIDTH=32
 WRITE=0

@@ -17,7 +17,7 @@ entity z80_to_gowin_16550_wrapper is
         DATA_BUS_IN     : in  std_logic_vector(7 downto 0);  -- Z80 Data Bus Out (from CPU)
         DATA_BUS_OUT    : out std_logic_vector(7 downto 0);  -- Z80 Data Bus In (to CPU)
 
-        testSig         : out  std_logic;
+        uart_idle       : out  std_logic;
         
         -- Physical Serial Interface (FT232 connection)
         sRXD             : in  std_logic; -- Serial Data In
@@ -53,6 +53,17 @@ architecture Behavioral of z80_to_gowin_16550_wrapper is
             RTSn     : out std_logic
         );
     end component;
+
+    constant CLK_HZ         : natural := 50_000_000;   -- your real CLK_IN frequency
+    constant UART_BAUD      : natural := 115200;       -- the baud rate the Z80 uses
+    constant UART_IDLE_CLKS : natural := 11 * (CLK_HZ / UART_BAUD);      -- one frame plus a bit
+    -- UART monitor
+    signal rxd_q           : std_logic_vector(1 downto 0) := "11";
+    signal txrdy_q         : std_logic_vector(1 downto 0) := "10";
+    signal rxrdy_q         : std_logic_vector(1 downto 0) := "10";
+    signal uart_idle_cnt   : natural range 0 to UART_IDLE_CLKS := 0;
+    signal z80_uart_idle   : std_logic := '0';
+    signal txrdy_n, rxrdy_n : std_logic;               -- from UART_MASTER_Top
 
     -- Emulated 16550 registers
     signal reg_dll       : std_logic_vector(7 downto 0) := x"1B"; -- Default 115200 divisor at 50MHz
@@ -94,9 +105,30 @@ architecture Behavioral of z80_to_gowin_16550_wrapper is
 
     signal reg_mcr : std_logic_vector(7 downto 0) := x"00";
 
-
+    signal nreset : std_logic;
 
 begin
+    nreset <= not rst_high;
+
+    -- UART idle: lines quiet, TX buffer empty, no unread RX data, no Z80 access, for one frame
+    process(CLK_FPGA)
+    begin
+        if rising_edge(CLK_FPGA) then
+            rxd_q   <= rxd_q(0)   & sRXD;
+            txrdy_q <= txrdy_q(0) & txrdy_n;
+            rxrdy_q <= rxrdy_q(0) & rxrdy_n;
+
+            if nRESET = '0' or sTXD = '0' or rxd_q(1) = '0' or DEV_CS_N = '0'
+               or txrdy_q(1) = '1'          -- TX buffer not empty (assumes TxRDYn = 0 means empty)
+               or rxrdy_q(1) = '0' then     -- received byte waiting (assumes RxRDYn = 0 means data)
+                uart_idle_cnt <= 0;
+            elsif uart_idle_cnt /= UART_IDLE_CLKS then
+                uart_idle_cnt <= uart_idle_cnt + 1;
+            end if;
+        end if;
+    end process;
+
+    uart_idle <= '1' when uart_idle_cnt = UART_IDLE_CLKS else '0';
 
     -- Active-low reset logic for Gowin IP
     ip_resetn <= not rst_high;
@@ -301,8 +333,7 @@ end process;
             RTSn     => open --ip_rtsn           -- Tracked to feed back to physical flow control pin
         );
  
-
-        testSig <= reg_mcr(0);
+       
         ip_rtsn <= '0';
 
 

@@ -33,6 +33,9 @@ ARCHITECTURE behavioral OF Z80_BA_Bootloader IS
     SIGNAL LS139_BA_OUT : STD_LOGIC_VECTOR(1 DOWNTO 0);
     SIGNAL ISLS139 : STD_LOGIC :='1';
     signal io_strobe : std_logic;
+  
+    SIGNAL sTapeReg : STD_LOGIC_VECTOR(7 DOWNTO 0);
+    
 
 BEGIN
     Z80_Out.Z80_BUSREQ_N <= '1';
@@ -43,6 +46,7 @@ BEGIN
     begin
         v_out := C_OT_SIGS_DEFAULT;
         v_out.SYS_SEL := OTSigs_in.SYS_SEL;
+        v_out.TapeReg := sTapeReg;
         OTSigs_out <= v_out;
     end process;
 
@@ -152,6 +156,17 @@ BEGIN
 
     Z80_Out.SYS_CS_N        <= '0' when (Z80_In.Z80_IORQ_N = '0' and Z80_IO_ADDR = C_SYS_PORT_ADDR)
                   else '1';
+    
+
+    process(CLK_FPGA)
+    begin
+        if rising_edge(CLK_FPGA) then
+            if (Z80_In.Z80_IORQ_N = '0' and Z80_IO_ADDR = C_TAPE_PORT_ADDR and Z80_In.Z80_WR_N='0' ) then
+                sTapeReg <= Z80_In.Z80_Data;
+            end if; -- No 'else' needed here; holds previous state in a Flip-Flop
+        end if;
+    end process;
+
 
     -- ***************************************************************
     -- ** 3. WAIT STATE GENERATION **

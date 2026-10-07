@@ -204,8 +204,10 @@ BEGIN
         v_out := C_OT_SIGS_DEFAULT;
         v_out.SYS_SEL := OTSigs_in.SYS_SEL;
         v_out.LDIntceptAct := OTSigs_in.LDIntceptAct;
+        v_out.TapeReg := OTSigs_in.TapeReg;
         --amstrad out signals
         v_out.PS2_KEYB_READ := ps2_rd_req;
+        v_out.TapeReg(4) := ppi_port_c(4); --tape on /off
         OTSigs_out <= v_out;
     end process;
 
@@ -715,40 +717,30 @@ dbg_crtc_r15 <= crtc_regs(15);
                         when "01" =>
                             ppi_port_b <= Z80_In.Z80_Data;
 
-                        -- F6xx : Port C
+                        -- F6xx : Port C Direct Write
                         when "10" =>
-                            ppi_port_c <= Z80_In.Z80_Data;
+                            ppi_port_c  <= Z80_In.Z80_Data;
                             cpc_row_sel <= Z80_In.Z80_Data(3 downto 0);
 
                         -- F7xx : Control Register
                         when "11" =>
+                            -- Mode Set Command (Bit 7 = '1')
+                            if Z80_In.Z80_Data(7) = '1' then
+                                ppi_ctrl    <= Z80_In.Z80_Data;
+                                ppi_port_a  <= (others => '0');
+                                ppi_port_b  <= (others => '0');
+                                ppi_port_c  <= (others => '0');
+                                cpc_row_sel <= (others => '0'); -- Reset keyboard row selection
 
-                            -- Mode Set command
-                            if Z80_In.Z80_Data(7)='1' then
-                                ppi_ctrl <= Z80_In.Z80_Data;
-
-                            -- Bit Set/Reset command
+                            -- Bit Set/Reset Command (Bit 7 = '0')
                             else
-                                case Z80_In.Z80_Data(3 downto 1) is
-                                    when "000" =>
-                                        ppi_port_c(0) <= Z80_In.Z80_Data(0);
-                                    when "001" =>
-                                        ppi_port_c(1) <= Z80_In.Z80_Data(0);
-                                    when "010" =>
-                                        ppi_port_c(2) <= Z80_In.Z80_Data(0);
-                                    when "011" =>
-                                        ppi_port_c(3) <= Z80_In.Z80_Data(0);
-                                    when "100" =>
-                                        ppi_port_c(4) <= Z80_In.Z80_Data(0);
-                                    when "101" =>
-                                        ppi_port_c(5) <= Z80_In.Z80_Data(0);
-                                    when "110" =>
-                                        ppi_port_c(6) <= Z80_In.Z80_Data(0);
-                                    when "111" =>
-                                        ppi_port_c(7) <= Z80_In.Z80_Data(0);
-                                    when others =>
-                                        null;
-                                end case;
+                                -- Dynamically set single bit (0-7)
+                                ppi_port_c(to_integer(unsigned(Z80_In.Z80_Data(3 downto 1)))) <= Z80_In.Z80_Data(0);
+
+                                -- Keep cpc_row_sel in sync if a low bit (0-3) was modified
+                                if unsigned(Z80_In.Z80_Data(3 downto 1)) <= 3 then
+                                    cpc_row_sel(to_integer(unsigned(Z80_In.Z80_Data(3 downto 1)))) <= Z80_In.Z80_Data(0);
+                                end if;
                             end if;
 
                         when others =>
@@ -793,7 +785,7 @@ dbg_crtc_r15 <= crtc_regs(15);
         X"FF";
 
         -- Minimal Boot Data Read Process
-    process(Z80_IO_ADDR, Z80_In, crtc_VSYNC, ppi_port_a, ppi_port_b, ppi_port_c, ppi_ctrl, CPC_KEYB_OUT, vsync_signal)
+    process(Z80_IO_ADDR, Z80_In, crtc_VSYNC, ppi_port_a, ppi_port_b, ppi_port_c, ppi_ctrl, CPC_KEYB_OUT, vsync_signal, OTSigs_in)
     begin
         dOUT_PPI  <= X"FF";        
         dOUT_FDC  <= X"FF";
@@ -810,10 +802,13 @@ dbg_crtc_r15 <= crtc_regs(15);
                      --       dOUT_PPI <= ppi_port_a; 
                      --   end if;
 
-                    -- Port B F500
+                    -- Port B F5xx Read
                     when "01" => 
-                         -- Δίνει &1E (όταν VSYNC=0) και &1F (όταν VSYNC=1)
-                         dOUT_PPI <= "0001111" & vsync_signal;                          
+                        -- Bit 7: Unused/Expansion ('0')
+                        -- Bit 6: Tape Input
+                        -- Bits 5..1: Jumper settings / Printer ready (default '1')
+                        -- Bit 0: VSYNC signal
+                        dOUT_PPI <= '0' & OTSigs_in.TapeBit & "01111" & vsync_signal;
 
                     -- Port C F600
                     when "10" =>

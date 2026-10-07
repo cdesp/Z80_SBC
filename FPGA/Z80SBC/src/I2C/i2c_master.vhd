@@ -1070,7 +1070,7 @@ use ieee.numeric_std.all;
 library gw5a;
 use gw5a.components.all;
 
-entity I2C_MASTER_Top is
+entity F_I2C_MASTER_Top is
 port(
   I_CLK :  in std_logic;
   I_RESETN :  in std_logic;
@@ -1083,8 +1083,8 @@ port(
   O_IIC_INT :  out std_logic;
   SCL :  inout std_logic;
   SDA :  inout std_logic);
-end I2C_MASTER_Top;
-architecture beh of I2C_MASTER_Top is
+end F_I2C_MASTER_Top;
+architecture beh of F_I2C_MASTER_Top is
   signal SCL_in : std_logic ;
   signal SDA_in : std_logic ;
   signal GND_0 : std_logic ;

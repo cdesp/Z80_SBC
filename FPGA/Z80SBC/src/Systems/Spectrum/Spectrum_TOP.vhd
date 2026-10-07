@@ -94,7 +94,7 @@ begin
             port map (
                 CLK_IN           => CLK_FPGA,
                 reset_n          => nRESET,
-                LOADER_ACTIVE    => SystemActive,
+                LOADER_ACTIVE    => SystemActive and not OTSigs_in.TapeReg(0), -- tapereg(0) should be 0
                 Z80_In_raw       => Z80_In_raw,  --raw signals ****
                 INTERCEPT_ACTIVE => open,
                 MMU_Intf         => mmu_intf,

@@ -23,6 +23,10 @@ AMS_PAGE_1 EQU $0B
 AMS_PAGE_2 EQU $03
 AMS_PAGE_3 EQU $04
 
+AMS_PAGE_6 EQU $C1 ; video ram
+AMS_PAGE_7 EQU $C2 ; video ram
+
+
 ;PRINTS A ZT MESSAGE FOLLOWING THE CALL TO RS232
 @PRINTDBGMSG:	
                 LD (SAVEHL),HL
@@ -225,7 +229,14 @@ SCASINOPEN:     CALL OS_PRINTMSG
 ;DE THE DESTINATION IN RAM
 
 
-@MAINROUTINE:   LD HL, DIRECTORY
+@MAINROUTINE:   ;SET VIDEO PAGES TO BANK 6,7 NO NEED TO RESTORE FPGA DOES THIS
+                LD A, AMS_PAGE_6
+                LD B,6
+                CALL MMU_MAP
+                LD A, AMS_PAGE_7
+                LD B,7
+                CALL MMU_MAP
+                LD HL, DIRECTORY
                 CALL RS_TXT
                 CALL RS_NEWLINE
                 LD HL, FILENAME

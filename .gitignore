@@ -8,3 +8,5 @@ USBDISK/
 USBDISK - Αντιγραφή/
 EEPROMs/Atlas/Rom/AtlasOld/
 *.bmp
+FPGA/Z80SBC/src/gowin_gorv32/temp/
+FPGA/Z80SBC/src/gowin_picorv32/temp/

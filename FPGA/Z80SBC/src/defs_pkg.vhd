@@ -5,6 +5,12 @@ use IEEE.NUMERIC_STD.ALL;
 -- General Package Declaration for Project Constants
 PACKAGE defs_pkg IS
 
+    CONSTANT sys_BOOTLOADER :INTEGER    :=0;
+    CONSTANT sys_ATLAS      :INTEGER    :=1;
+    CONSTANT sys_NEWBRAIN   :INTEGER    :=2;
+    CONSTANT sys_SPECTRUM   :INTEGER    :=3;
+    CONSTANT sys_AMSTRAD    :INTEGER    :=4;
+
     -- =======================================================
     -- MMU I/O Port Definitions (Z80 Address Bus A[7:0])
     -- =======================================================
@@ -23,6 +29,7 @@ PACKAGE defs_pkg IS
     CONSTANT C_VD_PORT_ADDR    : STD_LOGIC_VECTOR(7 DOWNTO 0) := x"90"; --Video Regs video system select 
     CONSTANT C_I2C_PORT_ADDR_BASE   : STD_LOGIC_VECTOR(7 DOWNTO 0) := x"70"; --I2C
     CONSTANT C_SYS_PORT_ADDR   : STD_LOGIC_VECTOR(7 DOWNTO 0) := x"E1"; --SYSTEM SELECT 0,1,2,3...
+    CONSTANT C_TAPE_PORT_ADDR  : STD_LOGIC_VECTOR(7 DOWNTO 0) := x"E5"; --tape port register
 
 
     --LS139 Selection PORT Constants
@@ -102,7 +109,7 @@ PACKAGE defs_pkg IS
         PS2_DS_N            : std_logic;                    -- for PS/2 Keyboard Device Direct communication
         VD_DS_N             : std_logic;                    -- for Video Device Communication setting registers etc
         I2C_CS_N            : std_logic;                    -- for i2c Communication
-        SYS_CS_N            : std_logic;                    -- for system/video selection up to 16 systems
+        SYS_CS_N            : std_logic;                    -- for system/video selection up to 16 systems        
         -- Data to z80
         DataOut             : STD_LOGIC_VECTOR(7 DOWNTO 0); --data output to z80
         isDOut              : std_logic;                    --for multiplexing
@@ -122,6 +129,8 @@ PACKAGE defs_pkg IS
 
         -- Frame Timing
         FrameStart   : std_logic;                   -- VSYNC pulse / HDMI frame start
+        TapeReg      : STD_LOGIC_VECTOR(7 DOWNTO 0); --bit 0(tape loaded) and 4(tape on/off)
+        TapeBit      : std_logic;
     END RECORD;
 
     -- System status and peripheral handshaking outputs
@@ -129,7 +138,8 @@ PACKAGE defs_pkg IS
         -- PS/2 Stream Handshake
         PS2_KEYB_READ : std_logic;                  -- FIFO pop pulse on Z80 read
         SYS_SEL       : std_logic_vector(3 downto 0); --system selection to top  
-        LDIntceptAct  : std_logic; -- address intereption active to top   
+        LDIntceptAct  : std_logic; -- address intereption active to top  
+        TapeReg       : STD_LOGIC_VECTOR(7 DOWNTO 0); -- if a tape is loaded to ram page $1A (8 bit register) 
    END RECORD;
 
     TYPE t_amstrad_sigs IS RECORD        
@@ -172,7 +182,8 @@ PACKAGE defs_pkg IS
     constant C_OT_SIGS_DEFAULT : t_ot_sigs_from_system := (
         PS2_KEYB_READ => '0',
         SYS_SEL       => "0000",
-        LDIntceptAct  => '0'
+        LDIntceptAct  => '0',
+        TapeReg       => x"00"
     );
     
 

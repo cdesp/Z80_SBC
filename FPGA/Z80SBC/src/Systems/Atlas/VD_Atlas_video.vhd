@@ -123,7 +123,7 @@ signal spr_oce   : std_logic := '1';
 signal spr_ce    : std_logic := '1';
 signal spr_reset : std_logic := '1';
 signal spr_wre   : std_logic := '1';
-signal spr_ad    : std_logic_vector(12 downto 0);
+signal spr_ad    : std_logic_vector(9 downto 0);
 signal spr_din   : std_logic_vector(7 downto 0);
 
 component Gowin_SPRAM
@@ -134,7 +134,7 @@ component Gowin_SPRAM
         ce: in std_logic;
         reset: in std_logic;
         wre: in std_logic;
-        ad: in std_logic_vector(12 downto 0);
+        ad: in std_logic_vector(9 downto 0);
         din: in std_logic_vector(7 downto 0)
     );
 end component;

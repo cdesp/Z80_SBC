@@ -35,7 +35,7 @@ entity Z80_FPGA_SYSTEM is
         LA6                 : inout std_logic;                                 -- P4 Z80 ADDR BUS L2
         LA7                 : inout std_logic;                                 -- P2 Z80 ADDR BUS K1
 
-        CTS_N               : out std_logic;                                   -- P39 CTS from FPGA to FT232(RTS 22) J10
+        CTS_N               : inout std_logic;                                 -- P39 CTS from FPGA to FT232(RTS 22) J10
         DEV2                : out std_logic;                                   -- P37 DEVICE SEL 2 (74LS139 B) F6
         DEV1                : out std_logic;                                   -- P35 DEVICE SEL 1 (74LS139 A) K8
         LD0                 : inout std_logic;                                 -- P33 Z80 DATA BUS K9
@@ -76,6 +76,10 @@ entity Z80_FPGA_SYSTEM is
         L_NMI_N             : inout std_logic;                                 -- P8 Z80 NMI InOut signal def IN L11
         SCL                 : inout std_logic;                                   -- P10 SCL E10
         SDA                 : inout std_logic;                                 -- P12 SDA A10
+
+        --DUMMY use for spi on pico with the CTS_N
+        spi_clk_pad  : inout std_logic;                                         -- H11 (btn_s1)
+        spi_csn_pad  : inout std_logic;                                         -- H10 (btn_s2)
         
         -- J13 CONNECTOR 12 PIN (HDMI/DVI CONNECTIONS) Only the positive the negative are handled as PAIR
         D2N                 : out std_logic;                                   -- P5 TMDS Data Negative 2   C11
@@ -100,6 +104,7 @@ architecture structural of Z80_FPGA_SYSTEM is
  -- --- Internal Bus Vectors (For easy use within the FPGA logic) ---
     -- PHYS_ADDR_BUS_INT is the full 21-bit physical address for memory access (A0-A20)
     signal PHYS_ADDR_BUS_INT    : std_logic_vector(20 downto 0);
+    signal OUT_ADDR             : std_logic_vector(19 downto 0);
     signal Z80_LA_BUS_INT       : std_logic_vector(15 downto 0);
     signal Z80_DATA_IN_INT      : std_logic_vector(7 downto 0);
     signal Z80_DATA_OUT_INT     : std_logic_vector(7 downto 0);
@@ -107,6 +112,7 @@ architecture structural of Z80_FPGA_SYSTEM is
     signal nMREQ_r              : std_logic;
     signal nWR_CPU_r            : std_logic;
     signal nRD_CPU_r            : std_logic;
+    signal OUT_ADDR_ENB         : std_logic;
 
     -- Derived Clock Signals
     signal CLK_Z80_INT          : std_logic := '0'; -- Z80 Operating Clock (Output from Clock Manager)
@@ -234,6 +240,7 @@ architecture structural of Z80_FPGA_SYSTEM is
     signal UART_nCS        : std_logic;
     signal s_uart_data_out : std_logic_vector(7 downto 0);
     signal sCTS_N          : std_logic;
+    signal sCTS_Int          : std_logic;
     signal s_TestSig       : std_logic;
 
   
@@ -355,6 +362,74 @@ architecture structural of Z80_FPGA_SYSTEM is
     --signal to issue the start safely only once
     signal first_out_seen : std_logic := '0';
 
+    --CDT tape
+    signal sCDT_Reg     : std_logic_vector(7 downto 0):=x"00";
+    signal sTapeBitout  : std_logic := '0';
+
+    --==========ARM CPU Interface====================
+    -- UART & I2C Interfaces
+
+-- Z80 side register-interface strobes
+signal z80_tx_en : std_logic := '0';
+signal z80_rx_en : std_logic := '0';
+
+-- ARM side register interface (from cpu_top_level)
+signal arm_tx_en : std_logic;
+signal arm_rx_en : std_logic;
+signal arm_addr  : std_logic_vector(2 downto 0);
+signal arm_wdata : std_logic_vector(7 downto 0);
+
+-- I2C interrupt gated to the ARM
+signal o_int_arm : std_logic;
+
+-- Output register from the ARM (used by sCDT_Regout)
+signal sCDT_Regout_arm : std_logic_vector(7 downto 0);
+
+
+signal z80_uart_idle : std_logic := '0';
+
+    
+
+    -- I2C monitor
+    constant I2C_IDLE_WAIT_CLKS : natural := 32;
+
+    signal scl_q, sda_q    : std_logic_vector(1 downto 0) := "11";
+    signal i2c_idle_cnt    : natural range 0 to I2C_IDLE_WAIT_CLKS := 0;
+    signal z80_i2c_idle : std_logic := '0';
+
+    -- Signal for CPU Master Control
+    signal ARMMaster          : std_logic := '0';
+    signal arm_grant          : std_logic := '0';
+    
+    signal arm_dbg_cmd        : std_logic_vector(7 downto 0);
+
+    -- External SRAM / Flash Interface
+    signal ext_sram_addr : std_logic_vector(19 downto 0);
+    signal ext_sram_dq   : std_logic_vector(7 downto 0);
+    signal ext_sram_ce_n : std_logic;
+    signal ext_sram_oe_n : std_logic;
+    signal ext_sram_we_n : std_logic;
+
+    -- Boot / Control Signals
+    signal boot_start    : std_logic := '0';
+    signal boot_done     : std_logic := '0';
+
+    signal ARM_busreq_n  : std_logic := '1';
+
+    ----------------------------------------------------
+    -- Internal UART Signals
+    ----------------------------------------------------
+    signal hw_tx,   pico_tx   : std_logic;
+    signal hw_rx,   pico_rx   : std_logic;
+
+    ----------------------------------------------------
+    -- Internal I2C Signals
+    ----------------------------------------------------
+    -- Signals for HW IP (F_I2C_MASTER_Top)
+    signal hw_scl_oe          : std_logic;
+    signal hw_sda_oe          : std_logic;
+
+    -- end arm interface
 
     signal system_selection : unsigned(3 downto 0) := (others => '0');
 
@@ -635,6 +710,8 @@ begin
         sotsigs_in.LDIntceptAct <= sotsigs_out.LDIntceptAct; --just pass through set on loaders
         sotsigs_in.SYS_SEL      <= std_logic_vector(system_selection); -- set on system top
         sotsigs_in.FrameStart   <= '1' when video_timing.h_cnt=0 and video_timing.v_cnt=1 else '0';
+        sotsigs_in.TapeReg      <= sCDT_Reg;
+        sotsigs_in.TapeBit      <= sTapeBitOut;
        
         --Z80 OUT signals
 --        WITH system_selection SELECT
@@ -662,6 +739,18 @@ begin
         sISDout         <= master_out.isDOut;
         sDataout        <= master_out.DataOut;
 
+        process(CLK_IN, nReset)
+        begin
+            if nReset = '0' then
+             sCDT_Reg<= x"00";
+            elsif rising_edge(CLK_IN) then
+                if system_selection = sys_BOOTLOADER then
+                    sCDT_Reg(0) <= sotsigs_out.TapeReg(0);
+                elsif system_selection = sys_AMSTRAD then
+                   sCDT_Reg(4) <= sotsigs_out.TapeReg(4);
+                end if; -- No 'else' needed here; holds previous state in a Flip-Flop
+            end if;
+        end process;
 
         system_selection <=  unsigned(sotsigs_out.SYS_SEL);
 
@@ -867,38 +956,8 @@ begin
         oceb        => '1'                    -- Output Clock Enable (Always enabled for video)
     );
 
-    --------------------------------------------------------------------------------
-    -- UART 16550D Instantiation
-    --------------------------------------------------------------------------------
-    --------------------------------------------------------------------------------
-   
-    u_uart_translator : entity work.z80_to_gowin_16550_wrapper
-    port map (
-        -- Global Clocks & Resets
-        CLK_FPGA         => CLK_IN,              -- Your 50MHz oscillator input
-        CLK_Z80          => CLK_Z80_INT,          -- Your 4MHz Z80 system clock
-        rst_high         => reset_a_sync,        -- Your active-high reset signal
 
-        -- Z80 Hardware Bus Interface
-        DEV_CS_N         => UART_nCS,            -- Active-LOW chip select from your decoder
-        WRcpu_N          => nWR_CPU_r,              -- Active-LOW CPU write strobe
-        RDcpu_N          => nRD_CPU_r,              -- Active-LOW CPU read strobe
-        ADDR_BUS         => Z80_LA_BUS_INT(2 downto 0), -- Direct connection to bottom 3 address bits
-        DATA_BUS_IN      => Z80_DATA_IN_INT,     -- Data lines coming out of the Z80 CPU
-        DATA_BUS_OUT     => s_uart_data_out,     -- <--- Connect this to your internal read-mux databus!
-
-        testSig          => s_TestSig,
-
-        -- Physical Serial Interface (External Pins)
-        sRXD             => RXD,                 -- To physical RX pin driving the FT232
-        sTXD             => TXD,                 -- To physical TX pin driving the FT232
-        sCTSn            => sCTS_N                 -- To physical hardware flow control pin
-    ); 
-       
-    CTS_N <= 'Z';--sCTS_N;--'0';
-
-
--- PS2 controller
+    -- PS2 controller
     PS2KeybCtrl : entity work.Z80_PS2_Bridge
     port map (
         CLK          => CLK_in,
@@ -920,12 +979,44 @@ begin
     LKB_CLOCK <= sKB_CLOCK;
     LKB_DATA <= sKB_DATA;
 
+    --------------------------------------------------------------------------------
+    -- UART 16550D Instantiation
+    --------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------
+   
+    u_uart_translator : entity work.z80_to_gowin_16550_wrapper
+    port map (
+        -- Global Clocks & Resets
+        CLK_FPGA         => CLK_IN,              -- Your 50MHz oscillator input
+        CLK_Z80          => CLK_Z80_INT,          -- Your 4MHz Z80 system clock
+        rst_high         => reset_a_sync,        -- Your active-high reset signal
+
+        -- Z80 Hardware Bus Interface
+        DEV_CS_N         => UART_nCS,            -- Active-LOW chip select from your decoder
+        WRcpu_N          => nWR_CPU_r,              -- Active-LOW CPU write strobe
+        RDcpu_N          => nRD_CPU_r,              -- Active-LOW CPU read strobe
+        ADDR_BUS         => Z80_LA_BUS_INT(2 downto 0), -- Direct connection to bottom 3 address bits
+        DATA_BUS_IN      => Z80_DATA_IN_INT,     -- Data lines coming out of the Z80 CPU
+        DATA_BUS_OUT     => s_uart_data_out,     -- <--- Connect this to your internal read-mux databus!
+
+        uart_idle        => z80_uart_idle,
+
+        -- Physical Serial Interface (External Pins)
+        sRXD             => hw_rx,                 -- To physical RX pin driving the FT232
+        sTXD             => hw_tx,                 -- To physical TX pin driving the FT232
+        sCTSn            => sCTS_N                 -- To physical hardware flow control pin
+    ); 
+       
+    --CTS_N <= 'Z';--sCTS_N;--'0';
+    sCTS_Int <='Z'; --this one goes to CTS_N eventually
+
+
     --****************************************************************
     -- i2c
     --------------------------------------------------------------------
     -- IP INSTANCE
     --------------------------------------------------------------------
-    U1: entity work.I2C_MASTER_Top
+    U1: entity work.F_I2C_MASTER_Top
         port map (
             I_CLK     => CLK_IN,
             I_RESETN  => nRESET,
@@ -946,31 +1037,123 @@ begin
         );
 
     i2c_data_out <= o_rdata;
-   -- i_tx_en <= '1' when I2C_CSn='0' and LWR_CPU_N='0';
-    i_waddr <= Z80_LA_BUS_INT(2 downto 0);
-    i_wdata <= Z80_DATA_IN_INT;
-   -- i_rx_en <= '1' when I2C_CSn='0' and L_RD_N='0';
-    i_raddr <= Z80_LA_BUS_INT(2 downto 0);
-    
-
 
     process(CLK_IN)
     begin
         if rising_edge(CLK_IN) then
 
-            -- Synchronize the Z80 strobes
+            if nRESET = '0' then
+                i2c_idle_cnt <= 0;
+
+            elsif LBUSACK_N = '0' then
+                if i2c_idle_cnt /= I2C_IDLE_WAIT_CLKS then
+                    i2c_idle_cnt <= i2c_idle_cnt + 1;
+                end if;
+
+            else
+                i2c_idle_cnt <= 0;
+            end if;
+
+        end if;
+    end process;
+
+    z80_i2c_idle <= '1' when i2c_idle_cnt = I2C_IDLE_WAIT_CLKS else '0';
+
+    -- Z80 pulse generator 
+    process(CLK_IN)
+    begin
+        if rising_edge(CLK_IN) then
             wr_sync1 <= '1' when (I2C_CSn='0' and LWR_CPU_N='0') else '0';
             wr_sync2 <= wr_sync1;
 
             rd_sync1 <= '1' when (I2C_CSn='0' and L_RD_N='0') else '0';
             rd_sync2 <= rd_sync1;
 
-            -- Generate one-clock pulses
-            i_tx_en <= wr_sync1 and not wr_sync2;
-            i_rx_en <= rd_sync1 and not rd_sync2;
+            z80_tx_en <= wr_sync1 and not wr_sync2;
+            z80_rx_en <= rd_sync1 and not rd_sync2;
+        end if;
+    end process; 
 
+    -- Register interface mux: ARM or Z80 owns the IP
+    i_tx_en <= arm_tx_en  when arm_grant  = '1' else z80_tx_en;
+    i_rx_en <= arm_rx_en  when arm_grant  = '1' else z80_rx_en;
+    i_waddr <= arm_addr   when arm_grant  = '1' else Z80_LA_BUS_INT(2 downto 0);
+    i_raddr <= arm_addr   when arm_grant  = '1' else Z80_LA_BUS_INT(2 downto 0);
+    i_wdata <= arm_wdata  when arm_grant  = '1' else Z80_DATA_IN_INT;
+
+    -- Interrupt to the ARM only while it owns the bus
+    o_int_arm <= o_int and arm_grant;
+
+
+    -- TX Line (Must default to '1' when idle)
+    TXD <= pico_tx when arm_grant  = '1' else hw_tx;
+
+    -- RX Routing
+    hw_rx   <= RXD when arm_grant  = '0' else '1';
+    pico_rx <= RXD when arm_grant  = '1' else '1';
+
+  -------------------------------------------------------------------------------
+    -- rv32 CPU Entity Instantiation
+    -------------------------------------------------------------------------------
+    u_cpu_top : entity work.cpu_top_level
+        port map (
+            -- Clock & Reset
+            clk_in    => CLK_IN,
+            resetn_in => nReset,
+
+            -- UART Hardware Pins
+            uart_tx => pico_tx,
+            uart_rx => pico_rx,
+
+            -- I2C Hardware Pins
+            i2c_tx_en   => arm_tx_en,
+            i2c_rx_en   => arm_rx_en,
+            i2c_addr    => arm_addr,
+            i2c_wdata   => arm_wdata,
+            i2c_rdata   => o_rdata,
+            i2c_int     => o_int_arm, 
+
+            --RV take control
+            RV32Master => ARMMaster,
+            RV32Grant  => arm_grant,       
+
+            -- External Parallel SRAM / Flash Hardware Pins
+            sram_addr => ext_sram_addr,
+            sram_dq   => ext_sram_dq,
+            sram_ce_n => ext_sram_ce_n,
+            sram_oe_n => ext_sram_oe_n,
+            sram_we_n => ext_sram_we_n,
+
+            -- Control & Status
+            START     => boot_start,
+            DONE      => boot_done,
+
+            -- Z80 Bus Arbitration
+            BUSACK_N  => LBUSACK_N,
+            BUSREQ_N  => ARM_busreq_n,
+
+            -- FPGA Control Signals
+            sCDT_Reg  => sCDT_Reg,
+            sCDT_Regout  => sCDT_Regout_arm,
+
+
+            
+            dbg_cmd   => arm_dbg_cmd
+ 
+        );
+
+    --Arm_Grant  uart and i2c is clean
+    process(CLK_IN)
+    begin
+        if rising_edge(CLK_IN) then
+            if nRESET = '0' or ARMMaster = '0' then
+                arm_grant <= '0';
+            elsif z80_i2c_idle = '1' and z80_uart_idle = '1' then
+                arm_grant <= '1';
+            end if;
         end if;
     end process;
+  
 
 
    -- sSDA <= SDA;
@@ -1017,7 +1200,8 @@ begin
             VDRegs     => DUMMY_VDREGS
         );
 
-  
+
+
     
     
     -- ***************************************************************
@@ -1180,21 +1364,26 @@ begin
     sMMURD <= '0' when MASTER_OUT.MMU_nMAP_RD_N = '0' else '1';
     sMMUBank <= sMMUBank_raw when sMMURD = '0' else (others => '1');
 
-    
-    L_RD_N <= 'Z'; --read only make the signal in
 
-    LWR_N <= 'Z' when flash_prog='0' else SRAM_WR_N_INT; --FlRam and Sram control
+--------- Z80 BUS ---
+    
+    L_RD_N <= ext_sram_oe_n when ext_sram_ce_n='0' else 'Z'; --arm cpu can read 
+
+    LWR_N <= 'Z' when flash_prog='0' else SRAM_WR_N_INT; --FlRam and Sram control tristate when flashing
     SRAM_WR_N_INT <=
-      CLEAR_WE_N when CLEAR_BUSY = '1'
-      else MMU_WR;
+      CLEAR_WE_N when CLEAR_BUSY = '1' else
+      ext_sram_we_n when ext_sram_ce_n = '0' else
+      MMU_WR;
 
     
     -- A. Chip Enables to Physical Pins
-    LRAMEN3_N <= '1' when flash_prog = '0'
-        else '0' when CLEAR_BUSY = '1'
+    LRAMEN3_N <= '1' when flash_prog = '0' 
+        else '0' when CLEAR_BUSY = '1' 
+        else '0' when (ext_sram_ce_n = '0' and ext_sram_addr(19 downto 16) <= x"F")
         else MMU_nCE0; -- 1MB SRAM
     LRAMEN2_N <= '0' when flash_prog = '0'
-        else '1' when CLEAR_BUSY = '1'
+        else '1' when CLEAR_BUSY = '1' 
+        else '0' when (ext_sram_ce_n = '0' and ext_sram_addr(19 downto 16) > x"F")
         else MMU_nCE1; -- 512Kb Flash RAM    
     
 
@@ -1230,19 +1419,24 @@ begin
     -- Normally passive: Z80 is the address master.
     -- During SRAM page clear, FPGA temporarily drives A0-A12.
 
-    LA0 <= CLEAR_ADDR(0) when CLEAR_BUSY = '1' else 'Z';
-    LA1 <= CLEAR_ADDR(1) when CLEAR_BUSY = '1' else 'Z';
-    LA2 <= CLEAR_ADDR(2) when CLEAR_BUSY = '1' else 'Z';
-    LA3 <= CLEAR_ADDR(3) when CLEAR_BUSY = '1' else 'Z';
-    LA4 <= CLEAR_ADDR(4) when CLEAR_BUSY = '1' else 'Z';
-    LA5 <= CLEAR_ADDR(5) when CLEAR_BUSY = '1' else 'Z';
-    LA6 <= CLEAR_ADDR(6) when CLEAR_BUSY = '1' else 'Z';
-    LA7 <= CLEAR_ADDR(7) when CLEAR_BUSY = '1' else 'Z';
-    LA8 <= CLEAR_ADDR(8) when CLEAR_BUSY = '1' else 'Z';
-    LA9 <= CLEAR_ADDR(9) when CLEAR_BUSY = '1' else 'Z';
-    LA10 <= CLEAR_ADDR(10) when CLEAR_BUSY = '1' else 'Z';
-    LA11 <= CLEAR_ADDR(11) when CLEAR_BUSY = '1' else 'Z';
-    LA12 <= CLEAR_ADDR(12) when CLEAR_BUSY = '1' else 'Z';
+    OUT_ADDR <= CLEAR_ADDR when CLEAR_BUSY = '1'
+           else ext_sram_addr when ext_sram_ce_n = '0'
+           else (others => 'Z');
+    OUT_ADDR_ENB <= '1' when CLEAR_BUSY = '1' or ext_sram_ce_n = '0' else '0';
+
+    LA0 <= OUT_ADDR(0) when OUT_ADDR_ENB = '1' else 'Z';
+    LA1 <= OUT_ADDR(1) when OUT_ADDR_ENB = '1' else 'Z';
+    LA2 <= OUT_ADDR(2) when OUT_ADDR_ENB = '1' else 'Z';
+    LA3 <= OUT_ADDR(3) when OUT_ADDR_ENB = '1' else 'Z';
+    LA4 <= OUT_ADDR(4) when OUT_ADDR_ENB = '1' else 'Z';
+    LA5 <= OUT_ADDR(5) when OUT_ADDR_ENB = '1' else 'Z';
+    LA6 <= OUT_ADDR(6) when OUT_ADDR_ENB = '1' else 'Z';
+    LA7 <= OUT_ADDR(7) when OUT_ADDR_ENB = '1' else 'Z';
+    LA8 <= OUT_ADDR(8) when OUT_ADDR_ENB = '1' else 'Z';
+    LA9 <= OUT_ADDR(9) when OUT_ADDR_ENB = '1' else 'Z';
+    LA10 <= OUT_ADDR(10) when OUT_ADDR_ENB = '1' else 'Z';
+    LA11 <= OUT_ADDR(11) when OUT_ADDR_ENB = '1' else 'Z';
+    LA12 <= OUT_ADDR(12) when OUT_ADDR_ENB = '1' else 'Z';
 
     -- LA13-LA15 are NOT part of the 20-bit SRAM address
     -- EA13-EA19 are separate extended address pins.
@@ -1254,25 +1448,25 @@ begin
     -- Normally driven by MMU.
     -- During SRAM page clear, FPGA drives the selected page.
 
-    EA19 <= CLEAR_ADDR(19) when CLEAR_BUSY = '1' else
+    EA19 <= OUT_ADDR(19) when OUT_ADDR_ENB = '1' else
             'Z' when flash_prog = '0' else
             MMU_EA_INT(19);
-    EA18 <= CLEAR_ADDR(18) when CLEAR_BUSY = '1' else
+    EA18 <= OUT_ADDR(18) when OUT_ADDR_ENB = '1' else
             'Z' when flash_prog = '0' else
             MMU_EA_INT(18);
-    EA17 <= CLEAR_ADDR(17) when CLEAR_BUSY = '1' else
+    EA17 <= OUT_ADDR(17) when OUT_ADDR_ENB = '1' else
             'Z' when flash_prog = '0' else
             MMU_EA_INT(17);
-    EA16 <= CLEAR_ADDR(16) when CLEAR_BUSY = '1' else
+    EA16 <= OUT_ADDR(16) when OUT_ADDR_ENB = '1' else
             'Z' when flash_prog = '0' else
             MMU_EA_INT(16);
-    EA15 <= CLEAR_ADDR(15) when CLEAR_BUSY = '1' else
+    EA15 <= OUT_ADDR(15) when OUT_ADDR_ENB = '1' else
             'Z' when flash_prog = '0' else
             MMU_EA_INT(15);
-    EA14 <= CLEAR_ADDR(14) when CLEAR_BUSY = '1' else
+    EA14 <= OUT_ADDR(14) when OUT_ADDR_ENB = '1' else
             'Z' when flash_prog = '0' else
             MMU_EA_INT(14);
-    EA13 <= CLEAR_ADDR(13) when CLEAR_BUSY = '1' else
+    EA13 <= OUT_ADDR(13) when OUT_ADDR_ENB = '1' else
             'Z' when flash_prog = '0' else
             MMU_EA_INT(13);
 
@@ -1303,6 +1497,7 @@ begin
 
     LBUSREQ_N <= '0' when flash_prog='0' and sTools_Act='0' 
             else '0' when CLEAR_BUSREQ_N = '0'    
+            else '0' when ARM_busreq_n = '0'
             else '1'; -- Low to force Z80 into Tristate (Bus Acknowledgment requested)
     nmi_input_clean <= L_NMI_N;
     L_NMI_N <= '0' when fpga_drive_nmi_low = '1' else 'Z';

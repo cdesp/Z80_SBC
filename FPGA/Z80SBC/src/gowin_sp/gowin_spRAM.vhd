@@ -1,10 +1,11 @@
---Copyright (C)2014-2021 Gowin Semiconductor Corporation.
+--Copyright (C)2014-2025 Gowin Semiconductor Corporation.
 --All rights reserved.
 --File Title: IP file
---GOWIN Version: V1.9.8
---Part Number: GW1N-LV1QN48C6/I5
---Device: GW1N-1
---Created Time: Thu Jun 09 20:29:12 2022
+--Tool Version: V1.9.12 (64-bit)
+--Part Number: GW5A-LV25MG121NC1/I0
+--Device: GW5A-25
+--Device Version: A
+--Created Time: Wed Oct  7 18:54:43 2026
 
 library IEEE;
 use IEEE.std_logic_1164.all;
@@ -17,34 +18,19 @@ entity Gowin_SPRAM is
         ce: in std_logic;
         reset: in std_logic;
         wre: in std_logic;
-        ad: in std_logic_vector(12 downto 0);
+        ad: in std_logic_vector(9 downto 0);
         din: in std_logic_vector(7 downto 0)
     );
 end Gowin_SPRAM;
 
 architecture Behavioral of Gowin_SPRAM is
 
-    signal sp_inst_0_dout_w: std_logic_vector(29 downto 0);
-    signal sp_inst_1_dout_w: std_logic_vector(29 downto 0);
-    signal sp_inst_2_dout_w: std_logic_vector(29 downto 0);
-    signal sp_inst_3_dout_w: std_logic_vector(29 downto 0);
+    signal sp_inst_0_dout_w: std_logic_vector(23 downto 0);
     signal gw_gnd: std_logic;
     signal sp_inst_0_BLKSEL_i: std_logic_vector(2 downto 0);
     signal sp_inst_0_AD_i: std_logic_vector(13 downto 0);
     signal sp_inst_0_DI_i: std_logic_vector(31 downto 0);
     signal sp_inst_0_DO_o: std_logic_vector(31 downto 0);
-    signal sp_inst_1_BLKSEL_i: std_logic_vector(2 downto 0);
-    signal sp_inst_1_AD_i: std_logic_vector(13 downto 0);
-    signal sp_inst_1_DI_i: std_logic_vector(31 downto 0);
-    signal sp_inst_1_DO_o: std_logic_vector(31 downto 0);
-    signal sp_inst_2_BLKSEL_i: std_logic_vector(2 downto 0);
-    signal sp_inst_2_AD_i: std_logic_vector(13 downto 0);
-    signal sp_inst_2_DI_i: std_logic_vector(31 downto 0);
-    signal sp_inst_2_DO_o: std_logic_vector(31 downto 0);
-    signal sp_inst_3_BLKSEL_i: std_logic_vector(2 downto 0);
-    signal sp_inst_3_AD_i: std_logic_vector(13 downto 0);
-    signal sp_inst_3_DI_i: std_logic_vector(31 downto 0);
-    signal sp_inst_3_DO_o: std_logic_vector(31 downto 0);
 
     --component declaration
     component SP
@@ -136,32 +122,17 @@ begin
     gw_gnd <= '0';
 
     sp_inst_0_BLKSEL_i <= gw_gnd & gw_gnd & gw_gnd;
-    sp_inst_0_AD_i <= ad(12 downto 0) & gw_gnd;
-    sp_inst_0_DI_i <= gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & din(1 downto 0);
-    dout(1 downto 0) <= sp_inst_0_DO_o(1 downto 0) ;
-    sp_inst_0_dout_w(29 downto 0) <= sp_inst_0_DO_o(31 downto 2) ;
-    sp_inst_1_BLKSEL_i <= gw_gnd & gw_gnd & gw_gnd;
-    sp_inst_1_AD_i <= ad(12 downto 0) & gw_gnd;
-    sp_inst_1_DI_i <= gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & din(3 downto 2);
-    dout(3 downto 2) <= sp_inst_1_DO_o(1 downto 0) ;
-    sp_inst_1_dout_w(29 downto 0) <= sp_inst_1_DO_o(31 downto 2) ;
-    sp_inst_2_BLKSEL_i <= gw_gnd & gw_gnd & gw_gnd;
-    sp_inst_2_AD_i <= ad(12 downto 0) & gw_gnd;
-    sp_inst_2_DI_i <= gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & din(5 downto 4);
-    dout(5 downto 4) <= sp_inst_2_DO_o(1 downto 0) ;
-    sp_inst_2_dout_w(29 downto 0) <= sp_inst_2_DO_o(31 downto 2) ;
-    sp_inst_3_BLKSEL_i <= gw_gnd & gw_gnd & gw_gnd;
-    sp_inst_3_AD_i <= ad(12 downto 0) & gw_gnd;
-    sp_inst_3_DI_i <= gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & din(7 downto 6);
-    dout(7 downto 6) <= sp_inst_3_DO_o(1 downto 0) ;
-    sp_inst_3_dout_w(29 downto 0) <= sp_inst_3_DO_o(31 downto 2) ;
+    sp_inst_0_AD_i <= gw_gnd & ad(9 downto 0) & gw_gnd & gw_gnd & gw_gnd;
+    sp_inst_0_DI_i <= gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & din(7 downto 0);
+    dout(7 downto 0) <= sp_inst_0_DO_o(7 downto 0) ;
+    sp_inst_0_dout_w(23 downto 0) <= sp_inst_0_DO_o(31 downto 8) ;
 
     sp_inst_0: SP
         generic map (
             READ_MODE => '0',
             WRITE_MODE => "00",
-            BIT_WIDTH => 2,
-            RESET_MODE => "ASYNC",
+            BIT_WIDTH => 8,
+            RESET_MODE => "SYNC",
             BLK_SEL => "000"
         )
         port map (
@@ -174,66 +145,6 @@ begin
             BLKSEL => sp_inst_0_BLKSEL_i,
             AD => sp_inst_0_AD_i,
             DI => sp_inst_0_DI_i
-        );
-
-    sp_inst_1: SP
-        generic map (
-            READ_MODE => '0',
-            WRITE_MODE => "00",
-            BIT_WIDTH => 2,
-            RESET_MODE => "ASYNC",
-            BLK_SEL => "000"
-        )
-        port map (
-            DO => sp_inst_1_DO_o,
-            CLK => clk,
-            OCE => oce,
-            CE => ce,
-            RESET => reset,
-            WRE => wre,
-            BLKSEL => sp_inst_1_BLKSEL_i,
-            AD => sp_inst_1_AD_i,
-            DI => sp_inst_1_DI_i
-        );
-
-    sp_inst_2: SP
-        generic map (
-            READ_MODE => '0',
-            WRITE_MODE => "00",
-            BIT_WIDTH => 2,
-            RESET_MODE => "ASYNC",
-            BLK_SEL => "000"
-        )
-        port map (
-            DO => sp_inst_2_DO_o,
-            CLK => clk,
-            OCE => oce,
-            CE => ce,
-            RESET => reset,
-            WRE => wre,
-            BLKSEL => sp_inst_2_BLKSEL_i,
-            AD => sp_inst_2_AD_i,
-            DI => sp_inst_2_DI_i
-        );
-
-    sp_inst_3: SP
-        generic map (
-            READ_MODE => '0',
-            WRITE_MODE => "00",
-            BIT_WIDTH => 2,
-            RESET_MODE => "ASYNC",
-            BLK_SEL => "000"
-        )
-        port map (
-            DO => sp_inst_3_DO_o,
-            CLK => clk,
-            OCE => oce,
-            CE => ce,
-            RESET => reset,
-            WRE => wre,
-            BLKSEL => sp_inst_3_BLKSEL_i,
-            AD => sp_inst_3_AD_i,
-            DI => sp_inst_3_DI_i
         );
 
 end Behavioral; --Gowin_SPRAM

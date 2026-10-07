@@ -34,10 +34,18 @@ module MENU
         KEY_LEFT  EQU $04   ; Adjust based on your firmware scan-code map
         KEY_RIGHT EQU $03   ; Adjust based on your firmware scan-code map
         KEY_ENTER EQU 13
+        KEY_ESC   EQU 27
 
 
 ; Placeholder system labels referenced outside this scope
-      
+
+SND_BEEP3:      PUSH AF
+                LD HL, nD6 							;NOTE D6 ON CHANNEL2
+                LD B, 10
+		CALL SND_DOBEEP
+                POP AF
+		RET
+
 
 @INITMENU:      CALL VGA_SETLOWTX ; THIS NEEDS THE FONT TOO AT FONT_ADDR EXCEPT IF 0
                 LD A, DEF_SCR_COL
@@ -76,21 +84,26 @@ DEMOITMEND:  NOP
         
         ; 1. Count absolute items in MENU buffer until double 00, 00
         LD HL,MENU
-        LD BC,0             ; B = Total Items, C = Temporary / String Flag
+        LD B,0              ; Total items
+
+        ; Check for an empty menu
+        LD A,(HL)
+        OR A
+        JR Z,COUNT_DONE
+
 COUNT_LOOP:
         LD A,(HL)
         INC HL
-        CP 0
-        JR NZ, NOT_ZERO_TERM
-        ; Found a zero. Check next byte
-        LD A,(HL)
-        CP 0
-        JR Z, COUNT_DONE    ; Double zero found! We are done counting.
-        INC B               ; Single zero means 1 complete item parsed
-        JR COUNT_LOOP
-NOT_ZERO_TERM:
-        JR COUNT_LOOP
+        OR A
+        JR NZ,COUNT_LOOP    ; Scan until string terminator
 
+        INC B               ; Count the completed item
+
+        LD A,(HL)
+        OR A
+        JR Z,COUNT_DONE     ; Double-zero terminator
+
+        JR COUNT_LOOP
 COUNT_DONE:
         ; Check if any items exist at all
         LD A,B
@@ -101,6 +114,7 @@ COUNT_DONE:
 
 MENU_HAS_ITEMS:
         LD (TOTAL_ITEMS),A  ; Store absolute total items found
+        CALL PRINT_A
         ; 2. Calculate Total Pages: Ceil(TOTAL_ITEMS / ITEMS_PER_PAGE)
         LD C,0              ; Clear page counter
         LD A,(TOTAL_ITEMS)
@@ -112,7 +126,7 @@ CALC_PAGES:
 CALC_DONE:
         LD A,C
         LD (TOTAL_PAGES),A
-
+        CALL PRINT_A
         ; 3. Reset positions to Page 1, Item 0
         XOR A
         LD (CURR_PAGE),A    ; 0-indexed page variables
@@ -125,10 +139,8 @@ MENU_LOOP:
 GETINPUT:   
         CALL GET_KBCHAR 		;TAKE A CHAR FROM RS232 OR PS2 KEYB
         CP 0
-        JR Z,GETINPUT
-        PUSH AF
-        CALL SND_BEEP2
-        POP AF
+        JR Z,GETINPUT       
+        CALL SND_BEEP3
 
         CP KEY_UP
         JR NZ, CHK_DN
@@ -209,9 +221,16 @@ CHK_RT:
 
 CHK_ENT:
         CP KEY_ENTER
-        JP NZ, GETINPUT     ; Unknown keys are discarded
+        JR NZ, CHK_ESC     ; 
+        JR DOSEL  
 
-        ; --- SELECTION CONFIRMED (ENTER) ---
+CHK_ESC: 
+        CP KEY_ESC  
+        JP NZ, GETINPUT;Unknown keys are discarded
+        SCF     ;CANCEL
+        RET
+
+DOSEL: ; --- SELECTION CONFIRMED (ENTER) ---
         CALL SEEK_PAGE_START ; Returns HL pointing to start of current page contents
         LD A,(SELECTED)
         CP 0

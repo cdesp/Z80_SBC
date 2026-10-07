@@ -137,6 +137,9 @@ CONTOK1:        LD A,(FILEOPENED)
                 XOR A                      ; Read-only
                 CALL STRG_OPNFILE
                 JR Z, CONTOK2B
+                CALL PRINT_A
+                ld hl,STRGBUFF
+                call RS_TXT
                 LD HL, FILOPNERR
                 JP MYDISKERROR   
 CONTOK2B:       ;FILE OPENED OK

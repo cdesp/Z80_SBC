@@ -5,13 +5,13 @@
 -part_number GW5A-LV25MG121NC1/I0
 
 
--mod_name Gowin_SPRAM
--file_name gowin_spRAM
--path G:/_Programming/_DOCS/Schematics/Z80_SBC/FPGA/Z80SBC/src/gowin_sp/
+-mod_name RV32_RAM
+-file_name RV32_RAM
+-path G:/_Programming/_DOCS/Schematics/Z80_SBC/FPGA/Z80SBC/src/RV32/gowin_sp/
 -type RAM_SP
 -file_type vhdl
--depth 1024
--width 8
+-depth 8192
+-width 32
 -read_mode bypass
 -write_mode normal
 -reset_mode sync

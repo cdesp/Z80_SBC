@@ -178,15 +178,12 @@ variable base_addr : unsigned(15 downto 0);
                     case phase is
                         when 0 =>
                             -- Step A: Set Address for current block/column
-                              bm_addr := BITMAP_BASE +
-                                to_unsigned(
-                                    (line_in_row * 2048) + 
-                                    (char_row * 80) + 
-                                    col_cnt, 
-                                    16
-                                )+ video_offset;
+                            -- Calculate 11-bit memory offset (0..2047) and keep it isolated from line_in_row (bits 13..11)
+                            bm_addr := BITMAP_BASE +
+                                       to_unsigned(line_in_row * 2048, 16) +
+                                       ((to_unsigned((char_row * 80) + col_cnt, 16) + video_offset) and x"07FF");
 
-                                    vram_addr_pxl <= bm_addr;
+                            vram_addr_pxl <= bm_addr;
 
                         when 4 =>
                             -- Step B: Latch VRAM data from bus
