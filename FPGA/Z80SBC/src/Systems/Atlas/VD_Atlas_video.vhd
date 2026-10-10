@@ -123,21 +123,10 @@ signal spr_oce   : std_logic := '1';
 signal spr_ce    : std_logic := '1';
 signal spr_reset : std_logic := '1';
 signal spr_wre   : std_logic := '1';
-signal spr_ad    : std_logic_vector(9 downto 0);
+signal spr_ad    : std_logic_vector(2 downto 0);
 signal spr_din   : std_logic_vector(7 downto 0);
 
-component Gowin_SPRAM
-    port (
-        dout: out std_logic_vector(7 downto 0);
-        clk: in std_logic;
-        oce: in std_logic;
-        ce: in std_logic;
-        reset: in std_logic;
-        wre: in std_logic;
-        ad: in std_logic_vector(9 downto 0);
-        din: in std_logic_vector(7 downto 0)
-    );
-end component;
+
 
 -- DEBUG
 SIGNAL CAPTURE : STD_LOGIC := '0';
@@ -152,17 +141,17 @@ frame_start <= '1' when (V_IN.h_cnt = 0 and V_IN.v_cnt = 0) else '0';
 --------------------------------------------------------------------
 -- SPRITE PIXEL MEMORY
 --------------------------------------------------------------------
-SPRMEM: Gowin_SPRAM
-    port map (
-        dout   => spr_dout,
-        clk    => V_IN.clk_pixel,
-        oce    => spr_oce,
-        ce     => spr_ce,
-        reset  => spr_reset,
-        wre    => spr_wre,
-        ad     => spr_ad,
-        din    => spr_din
-    );
+--SPRMEM: work.Gowin_SPRAM
+--    port map (
+--        dout   => spr_dout,
+--        clk    => V_IN.clk_pixel,
+--        oce    => spr_oce,
+--        ce     => spr_ce,
+--        reset  => spr_reset,
+--        wre    => spr_wre,
+--        ad     => spr_ad,
+--        din    => spr_din
+--    );
 
 --------------------------------------------------------------------
 -- VRAM STATE MACHINE

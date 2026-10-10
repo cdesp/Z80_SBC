@@ -80,7 +80,7 @@ signal ADDRin   : std_logic_vector(8-1 downto 0);
 signal kbintIN  : std_logic;
 signal kbData   : std_logic_vector(8-1 downto 0); 
 SIGNAL MYCPUCLK:std_logic:='0';  --Main Cpu Clock
-SIGNAL cpu_speed : integer range 0 to 255:=0;  --cpu_speed set by out 128,n
+SIGNAL cpu_speed : integer range 0 to 255:=4;  --cpu_speed set by out 128,n
 
 signal s_20ms_ce : std_logic;
 signal s_13ms_ce : std_logic;
@@ -378,8 +378,9 @@ BEGIN
 --POWTEST	EQU 1       ;0 FOR POWER
 --EXTEST	EQU 0       ;1 MEANS 24
        ELSE std_logic_vector(to_unsigned(MAINCLOCK /(2**cpu_speed), DATAout'length)) WHEN  nIORQin='0' and nRDin='0' AND  ADDRin=x"80" -- READ THE CPU CLOCK BY IN 128,A
-
-																				--bit 1 is pwrup should be 0 when we are ready
+     --    ELSE std_logic_vector(to_unsigned(cpu_speed, DATAout'length)) WHEN  nIORQin='0' and nRDin='0' AND  ADDRin=x"80" -- READ THE CPU CLOCK BY IN 128,A
+--cdesp 10/10/2026 return cpu_speed SEE THE CODE FIRST
+              --bit 1 is pwrup should be 0 when we are ready
     -- ELSE COPCTL WHEN nIORQin='0' and nRDin='0' AND ADDRin=x"03"	
 	 -- ELSE "101000"&CTS&RX WHEN commIN='0' AND ADDRin=x"16"	--IN 22 GET V24 SIGNALS (ZEROES NOT USED)
       else  "00000000";

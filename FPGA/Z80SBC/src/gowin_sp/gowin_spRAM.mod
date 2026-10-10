@@ -6,11 +6,11 @@
 
 
 -mod_name Gowin_SPRAM
--file_name gowin_spRAM
+-file_name Gowin_SPRAM
 -path G:/_Programming/_DOCS/Schematics/Z80_SBC/FPGA/Z80SBC/src/gowin_sp/
 -type RAM_SP
 -file_type vhdl
--depth 1024
+-depth 7
 -width 8
 -read_mode bypass
 -write_mode normal

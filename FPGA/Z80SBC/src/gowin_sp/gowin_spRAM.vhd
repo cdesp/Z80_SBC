@@ -5,7 +5,7 @@
 --Part Number: GW5A-LV25MG121NC1/I0
 --Device: GW5A-25
 --Device Version: A
---Created Time: Wed Oct  7 18:54:43 2026
+--Created Time: Thu Oct  8 18:36:25 2026
 
 library IEEE;
 use IEEE.std_logic_1164.all;
@@ -18,7 +18,7 @@ entity Gowin_SPRAM is
         ce: in std_logic;
         reset: in std_logic;
         wre: in std_logic;
-        ad: in std_logic_vector(9 downto 0);
+        ad: in std_logic_vector(2 downto 0);
         din: in std_logic_vector(7 downto 0)
     );
 end Gowin_SPRAM;
@@ -122,7 +122,7 @@ begin
     gw_gnd <= '0';
 
     sp_inst_0_BLKSEL_i <= gw_gnd & gw_gnd & gw_gnd;
-    sp_inst_0_AD_i <= gw_gnd & ad(9 downto 0) & gw_gnd & gw_gnd & gw_gnd;
+    sp_inst_0_AD_i <= gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & ad(2 downto 0) & gw_gnd & gw_gnd & gw_gnd;
     sp_inst_0_DI_i <= gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & gw_gnd & din(7 downto 0);
     dout(7 downto 0) <= sp_inst_0_DO_o(7 downto 0) ;
     sp_inst_0_dout_w(23 downto 0) <= sp_inst_0_DO_o(31 downto 8) ;

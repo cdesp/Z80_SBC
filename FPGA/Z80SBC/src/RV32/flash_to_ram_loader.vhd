@@ -4,7 +4,7 @@ use ieee.numeric_std.all;
 
 entity flash_to_ram_loader is
     generic (
-        FLASH_BASE : natural := 16#60000#;
+        FLASH_BASE     : natural := 16#60000#;
         IMG_BYTES  : natural := 16384 -- 16KB κώδικα = 4096 λέξεις των 32-bit
     );
     port (
@@ -30,14 +30,15 @@ entity flash_to_ram_loader is
     );
 end entity flash_to_ram_loader;
 
-architecture rtl of flash_to_ram_loader is
+architecture rtl of flash_to_ram_loader is     
+
     type state_type is (
         IDLE, REQ_BUS, 
         SETUP_B0, WAIT_B0, READ_B0,
         SETUP_B1, WAIT_B1, READ_B1,
         SETUP_B2, WAIT_B2, READ_B2,
         SETUP_B3, WAIT_B3, READ_B3,
-        WRITE_WORD, NEXT_WORD, FINISH
+        WRITE_WORD, WRITE_WORD2, NEXT_WORD, FINISH
     );
     signal state : state_type;
     
@@ -52,7 +53,7 @@ begin
         if resetn = '0' then
             state          <= IDLE;
             word_counter   <= (others => '0');
-            flash_addr_reg <= to_unsigned(FLASH_BASE, 20);
+            flash_addr_reg <= to_unsigned( FLASH_BASE, 20);
             busreq         <= '0';
             ram_wre        <= '0';
             done           <= '0';
@@ -66,10 +67,10 @@ begin
             ram_wre <= '0'; -- Default κατάσταση εγγραφής
             
             case state is
-                when IDLE =>
-                    done    <= '0';
+                when IDLE =>                    
                     fl_ce_n <= '1';
                     if start = '1' then
+                        done    <= '0';
                         word_counter   <= (others => '0');
                         flash_addr_reg <= to_unsigned(FLASH_BASE, 20);
                         busreq         <= '1'; -- Ζητάμε το bus από το σύστημα
@@ -166,6 +167,10 @@ begin
                 when WRITE_WORD =>
                     ram_addr <= std_logic_vector(word_counter);
                     ram_din  <= word_buffer;
+                    ram_wre  <= '1'; -- Ενεργοποίηση εγγραφής για 1 κύκλο ρολογιού
+                    state    <= WRITE_WORD2;
+
+                when WRITE_WORD2 =>
                     ram_wre  <= '1'; -- Ενεργοποίηση εγγραφής για 1 κύκλο ρολογιού
                     state    <= NEXT_WORD;
                     

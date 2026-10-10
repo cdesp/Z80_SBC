@@ -42,6 +42,9 @@ ENTITY MMU IS
 END MMU;
 
 ARCHITECTURE behavioral OF MMU IS
+    
+    constant MAXPAGE : unsigned(7 downto 0) := x"C4"; -- Maximum allowed page (195 in decimal)
+
 
     -- Component for N-bit Page Registers
     COMPONENT regn
@@ -97,7 +100,12 @@ ARCHITECTURE behavioral OF MMU IS
     SIGNAL Current_Mapped_Page_Int : INTEGER RANGE 0 TO 255;
     SIGNAL Write_Protected_Status : STD_LOGIC; -- Κατάσταση προστασίας της τρέχουσας σελίδας (0=RW, 1=RO)
 
+
+    -- Internal signal to check if current page payload is valid
+    signal valid_page : std_logic;
 BEGIN
+
+
 
     -- -------------------------------------------------------------
     -- 0. Setup and Constants
@@ -137,17 +145,19 @@ BEGIN
     -- MUX the data: If FPGA is writing, use FPGA data. Otherwise, use Z80 data.
     Muxed_Bank_Data <= FPGA_BANK_PAGE WHEN FPGA_BANK_WE = '1' ELSE DATA;
 
--- Generate write strobes (Active Low). 
-    -- Triggers if Z80 does an I/O write OR if FPGA asserts FPGA_BANK_WE for that specific bank.
-    nSetBANK0 <= '0' WHEN (BANKNUM="000" AND nINTMMU='0' AND nWR_CPU='0') OR (FPGA_BANK_WE='1' AND FPGA_BANK_SEL="000") ELSE '1';
-    nSetBANK1 <= '0' WHEN (BANKNUM="001" AND nINTMMU='0' AND nWR_CPU='0') OR (FPGA_BANK_WE='1' AND FPGA_BANK_SEL="001") ELSE '1';
-    nSetBANK2 <= '0' WHEN (BANKNUM="010" AND nINTMMU='0' AND nWR_CPU='0') OR (FPGA_BANK_WE='1' AND FPGA_BANK_SEL="010") ELSE '1';
-    nSetBANK3 <= '0' WHEN (BANKNUM="011" AND nINTMMU='0' AND nWR_CPU='0') OR (FPGA_BANK_WE='1' AND FPGA_BANK_SEL="011") ELSE '1';
-    nSetBANK4 <= '0' WHEN (BANKNUM="100" AND nINTMMU='0' AND nWR_CPU='0') OR (FPGA_BANK_WE='1' AND FPGA_BANK_SEL="100") ELSE '1';
-    nSetBANK5 <= '0' WHEN (BANKNUM="101" AND nINTMMU='0' AND nWR_CPU='0') OR (FPGA_BANK_WE='1' AND FPGA_BANK_SEL="101") ELSE '1';
-    nSetBANK6 <= '0' WHEN (BANKNUM="110" AND nINTMMU='0' AND nWR_CPU='0') OR (FPGA_BANK_WE='1' AND FPGA_BANK_SEL="110") ELSE '1';
-    nSetBANK7 <= '0' WHEN (BANKNUM="111" AND nINTMMU='0' AND nWR_CPU='0') OR (FPGA_BANK_WE='1' AND FPGA_BANK_SEL="111") ELSE '1';
+    --  Validate that page value is <= MAXPAGE (0xC3)
+    valid_page <= '1' WHEN unsigned(Muxed_Bank_Data) <= MAXPAGE ELSE '0';
 
+    -- Triggers if Z80 does an I/O write OR if FPGA asserts FPGA_BANK_WE for that specific bank.
+    -- Generate write strobes (Active Low) with valid_page gate
+    nSetBANK0 <= '0' WHEN valid_page = '1' AND ((BANKNUM = "000" AND nINTMMU = '0' AND nWR_CPU = '0') OR (FPGA_BANK_WE = '1' AND FPGA_BANK_SEL = "000")) ELSE '1';
+    nSetBANK1 <= '0' WHEN valid_page = '1' AND ((BANKNUM = "001" AND nINTMMU = '0' AND nWR_CPU = '0') OR (FPGA_BANK_WE = '1' AND FPGA_BANK_SEL = "001")) ELSE '1';
+    nSetBANK2 <= '0' WHEN valid_page = '1' AND ((BANKNUM = "010" AND nINTMMU = '0' AND nWR_CPU = '0') OR (FPGA_BANK_WE = '1' AND FPGA_BANK_SEL = "010")) ELSE '1';
+    nSetBANK3 <= '0' WHEN valid_page = '1' AND ((BANKNUM = "011" AND nINTMMU = '0' AND nWR_CPU = '0') OR (FPGA_BANK_WE = '1' AND FPGA_BANK_SEL = "011")) ELSE '1';
+    nSetBANK4 <= '0' WHEN valid_page = '1' AND ((BANKNUM = "100" AND nINTMMU = '0' AND nWR_CPU = '0') OR (FPGA_BANK_WE = '1' AND FPGA_BANK_SEL = "100")) ELSE '1';
+    nSetBANK5 <= '0' WHEN valid_page = '1' AND ((BANKNUM = "101" AND nINTMMU = '0' AND nWR_CPU = '0') OR (FPGA_BANK_WE = '1' AND FPGA_BANK_SEL = "101")) ELSE '1';
+    nSetBANK6 <= '0' WHEN valid_page = '1' AND ((BANKNUM = "110" AND nINTMMU = '0' AND nWR_CPU = '0') OR (FPGA_BANK_WE = '1' AND FPGA_BANK_SEL = "110")) ELSE '1';
+    nSetBANK7 <= '0' WHEN valid_page = '1' AND ((BANKNUM = "111" AND nINTMMU = '0' AND nWR_CPU = '0') OR (FPGA_BANK_WE = '1' AND FPGA_BANK_SEL = "111")) ELSE '1';
     -- Instantiate 8-bit bank registers. (Synchronous, Load controlled by nSetBANKx)
 
     Bankreg0 : regn
@@ -243,7 +253,10 @@ BEGIN
 
     -- nCE2 : Video RAM 64KB (8 pages: 192 to 199)
     -- Range: 0xC0 to 0xC7
-    nCE2 <= '0' WHEN (EXTADDR(20 DOWNTO 13) >= x"C0" AND EXTADDR(20 DOWNTO 13) <= x"C7") 
+    -- nCE2 : Video RAM 40KB (8 pages: 192 to 196) 
+    --NEWBRAIN NEEDS 32K VIDEO RAM ACCESSIBLE AND 1 MORE PAGE FOR FONTS
+    -- Range: 0xC0 to 0xC4 
+    nCE2 <= '0' WHEN (EXTADDR(20 DOWNTO 13) >= x"C0" AND EXTADDR(20 DOWNTO 13) <= x"C4") 
                      AND nMREQ='0' ELSE '1';
 
     -- keep remaining CE lines inactive (can be used later)

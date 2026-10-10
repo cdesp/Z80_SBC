@@ -109,6 +109,9 @@ architecture Behavioral of z80_to_gowin_16550_wrapper is
 
 begin
     nreset <= not rst_high;
+    txrdy_n <= ip_txrdyn;
+    rxrdy_n <= ip_rxrdyn;
+
 
     -- UART idle: lines quiet, TX buffer empty, no unread RX data, no Z80 access, for one frame
     process(CLK_FPGA)

@@ -65,11 +65,12 @@
         <File path="G:/_Programming/_DOCS/Schematics/FPGA_COMM_LIBS/neorv32/core/neorv32_uart.vhd" type="file.vhdl" enable="1" library="neorv32"/>
         <File path="G:/_Programming/_DOCS/Schematics/FPGA_COMM_LIBS/neorv32/core/neorv32_wdt.vhd" type="file.vhdl" enable="1" library="neorv32"/>
         <File path="G:/_Programming/_DOCS/Schematics/FPGA_COMM_LIBS/neorv32/core/neorv32_xbus.vhd" type="file.vhdl" enable="1" library="neorv32"/>
-        <File path="src/CPU_Instance.vhd" type="file.vhdl" enable="1"/>
         <File path="src/DP_VideoRam/DPVRAM.vhd" type="file.vhdl" enable="1"/>
         <File path="src/MMU.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/RV32/CPU_Instance.vhd" type="file.vhdl" enable="1"/>
         <File path="src/RV32/RV32_RAM.vhd" type="file.vhdl" enable="1"/>
         <File path="src/RV32/flash_to_ram_loader.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/RV32/rv32_coreReset.vhd" type="file.vhdl" enable="1"/>
         <File path="src/RegisterN.vhd" type="file.vhdl" enable="1"/>
         <File path="src/SRAM_Clear.vhd" type="file.vhdl" enable="1"/>
         <File path="src/Systems/Amstrad/Amstrad_TOP.vhd" type="file.vhdl" enable="1"/>
@@ -108,6 +109,6 @@
         <File path="src/uart_master/uart_master.vhd" type="file.vhdl" enable="1"/>
         <File path="src/z80_to_gowin_16550_wrapper.vhd" type="file.vhdl" enable="1"/>
         <File path="src/Z80SBC.cst" type="file.cst" enable="1"/>
-        <File path="src/Z80SBC.rao" type="file.gao" enable="0"/>
+        <File path="src/Z80SBC.rao" type="file.gao" enable="1"/>
     </FileList>
 </Project>

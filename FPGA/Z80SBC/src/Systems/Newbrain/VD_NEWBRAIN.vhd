@@ -194,10 +194,10 @@ begin
 
             if sUCR = '1' then
                 font_height := 8;  char_row := native_y / 8;  font_row := native_y mod 8;
-                font_base := x"8000";
+                font_base := x"8000"; --C4 PAGE
             else
                 font_height := 10; char_row := native_y / 10; font_row := native_y mod 10;
-                font_base := x"9000";
+                font_base := x"9000"; --C4 PAGE
             end if;
 
             -- 1. DECOUPLE TEXT AND GRAPHICS GEOMETRY

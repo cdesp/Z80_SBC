@@ -1,0 +1,29 @@
+{
+  "configurations": [
+    {
+      "name": "RISC-V NEORV32",
+      "includePath": [
+        "${workspaceFolder}/neorv32/**",
+        "K:/RISCV-Tools/xpack-riscv-none-elf-gcc-15.2.0-1/lib/gcc/riscv-none-elf/15.2.0/include/**",
+        "K:/RISCV-Tools/xpack-riscv-none-elf-gcc-15.2.0-1/riscv-none-elf/include/**"
+      ],
+      "browse": {
+        "path": [
+          "${workspaceFolder}/neorv32",
+          "K:/RISCV-Tools/xpack-riscv-none-elf-gcc-15.2.0-1/lib/gcc/riscv-none-elf/15.2.0/include",
+          "K:/RISCV-Tools/xpack-riscv-none-elf-gcc-15.2.0-1/riscv-none-elf/include"
+        ],
+        "limitSymbolsToIncludedHeaders": true
+      },
+      "compilerPath": "K:/RISCV-Tools/xpack-riscv-none-elf-gcc-15.2.0-1/bin/riscv-none-elf-gcc.exe",
+      "compilerArgs": [
+        "-march=rv32i_zicntr",
+        "-mabi=ilp32"
+      ],
+      "cStandard": "c11",
+      "cppStandard": "c++17",
+      "intelliSenseMode": "windows-gcc-x64"
+    }
+  ],
+  "version": 4
+}

@@ -103,8 +103,9 @@ architecture structural of Z80_FPGA_SYSTEM is
  
  -- --- Internal Bus Vectors (For easy use within the FPGA logic) ---
     -- PHYS_ADDR_BUS_INT is the full 21-bit physical address for memory access (A0-A20)
-    signal PHYS_ADDR_BUS_INT    : std_logic_vector(20 downto 0);
+    signal PHYS_ADDR_BUS_INT    : std_logic_vector(19 downto 0);
     signal OUT_ADDR             : std_logic_vector(19 downto 0);
+    signal EA_INT               : std_logic_vector(19 downto 13); -- Extended Address A13-A19
     signal Z80_LA_BUS_INT       : std_logic_vector(15 downto 0);
     signal Z80_DATA_IN_INT      : std_logic_vector(7 downto 0);
     signal Z80_DATA_OUT_INT     : std_logic_vector(7 downto 0);
@@ -398,8 +399,9 @@ signal z80_uart_idle : std_logic := '0';
     signal z80_i2c_idle : std_logic := '0';
 
     -- Signal for CPU Master Control
-    signal ARMMaster          : std_logic := '0';
-    signal arm_grant          : std_logic := '0';
+    signal arm_master          : std_logic := '0';
+    signal arm_grant           : std_logic := '0';
+    signal arm_IsInControl     : std_logic := '0';
     
     signal arm_dbg_cmd        : std_logic_vector(7 downto 0);
 
@@ -413,6 +415,7 @@ signal z80_uart_idle : std_logic := '0';
     -- Boot / Control Signals
     signal boot_start    : std_logic := '0';
     signal boot_done     : std_logic := '0';
+    signal copy_flash_done : std_logic := '0'; --goes to 1 when the copy started
 
     signal ARM_busreq_n  : std_logic := '1';
 
@@ -522,16 +525,22 @@ begin
         if nreset = '0' then
             first_out_seen <= '0';
             clear_start    <= '0';
+            copy_flash_done <= '0';
         elsif rising_edge(CLK_IN) then
             -- Default: one-clock pulse
             clear_start <= '0';
+            boot_start <= '0';
             if first_out_seen = '0' then
                 if (nIORQ_r = '0') and                          --out 00,xx
                    (nWR_CPU_r   = '0') and
                    (Z80_LA_BUS_INT(7 downto 0) = x"00") then
-                    clear_start    <= '1';
+
+                    clear_start    <= '1';          --clear page start
                     first_out_seen <= '1';
                 end if;
+            elsif CLEAR_DONE='1' and copy_flash_done='0' then
+                boot_start <= '1';                  --copy flash page to rv32 ram
+                copy_flash_done <= '1';              
             end if;
         end if;
     end process;
@@ -547,7 +556,7 @@ begin
             Z80_LA_BUS_INT <= LA15 & LA14 & LA13 & LA12 & LA11 & LA10 & LA9 & LA8 &
                             LA7 & LA6 & LA5 & LA4 & LA3 & LA2 & LA1 & LA0;
         
-            Z80_DATA_IN_INT <= LD7 & LD6 & LD5 & LD4 & LD3 & LD2 & LD1 & LD0;
+            Z80_DATA_IN_INT <= LD7 & LD6 & LD5 & LD4 & LD3 & LD2 & LD1 & LD0;           
 
             nIORQ_r <= L_IORQ_N; 
             nMREQ_r <= L_MREQ_N;
@@ -557,9 +566,11 @@ begin
      
     END PROCESS;
     
-    -- C. Full Physical Address (A0-A20) construction
-    -- A0-A12 from Z80; A13-A20 from MMU
-    PHYS_ADDR_BUS_INT <= MMU_EA_INT & Z80_LA_BUS_INT(12 downto 0);
+    EA_INT <= EA19 & EA18 & EA17 & EA16 & EA15 & EA14 & EA13; 
+
+    -- C. Full Physical Address (A0-A19) construction
+    -- A0-A12 from Z80; A13-A19 from MMU OR OTHER DEVICE
+    PHYS_ADDR_BUS_INT <= EA_INT & Z80_LA_BUS_INT(12 downto 0);
 
   -- ***************************************************************
     -- ** CLOCK MANAGER INSTANTIATION **
@@ -936,7 +947,7 @@ begin
         reseta      => reset_a_sync,     -- Inverted Active Low Reset
         cea         => '1',              -- Inverted Active Low Chip Enable '1' IS ALWAYS ENABLE TO UPDATE ADDRESSES
         wrea        => VRAM_WR and VRAM_CE_CPU,          -- Inverted Active Low Write Enable
-        ada         => MMU_EA_INT(15 downto 13) & Z80_LA_BUS_INT(12 downto 0),
+        ada         => MMU_EA_INT(15 downto 13) & Z80_LA_BUS_INT(12 downto 0), --was 15 downto 13) for 64kb
         dina        => Z80_DATA_IN_INT,      -- Z80 Data to VRAM
         douta       => VRAM_DATA_TO_CPU,      -- VRAM Data to Z80 MUX
         
@@ -948,7 +959,7 @@ begin
         resetb      => reset_a_sync,     -- Invert Active Low Reset
         ceb         => '1',                   -- Always enabled for continuous video read
         wreb        => '0',                   -- Video Port is Read-Only (Always Disabled)
-        adb         => VCTRL_ADDR_BUS,        -- Address from Video Controller
+        adb         => VCTRL_ADDR_BUS(15 downto 0),        -- Address from Video Controller -- was VCTRL_ADDR_BUS
         dinb        => (others => '0'),       -- Not used (Read-Only port)
         doutb       => VRAM_DATA_TO_VCTRL,    -- VRAM Data to Video Output Logic
 
@@ -1074,23 +1085,27 @@ begin
         end if;
     end process; 
 
+
+    arm_IsInControl <= '1' when arm_master='1' and arm_grant  = '1' else '0';
+
+    --i2c multiplex
     -- Register interface mux: ARM or Z80 owns the IP
-    i_tx_en <= arm_tx_en  when arm_grant  = '1' else z80_tx_en;
-    i_rx_en <= arm_rx_en  when arm_grant  = '1' else z80_rx_en;
-    i_waddr <= arm_addr   when arm_grant  = '1' else Z80_LA_BUS_INT(2 downto 0);
-    i_raddr <= arm_addr   when arm_grant  = '1' else Z80_LA_BUS_INT(2 downto 0);
-    i_wdata <= arm_wdata  when arm_grant  = '1' else Z80_DATA_IN_INT;
+    i_tx_en <= arm_tx_en  when arm_IsInControl  = '1' else z80_tx_en;
+    i_rx_en <= arm_rx_en  when arm_IsInControl  = '1' else z80_rx_en;
+    i_waddr <= arm_addr   when arm_IsInControl  = '1' else Z80_LA_BUS_INT(2 downto 0);
+    i_raddr <= arm_addr   when arm_IsInControl  = '1' else Z80_LA_BUS_INT(2 downto 0);
+    i_wdata <= arm_wdata  when arm_IsInControl  = '1' else Z80_DATA_IN_INT;
 
     -- Interrupt to the ARM only while it owns the bus
-    o_int_arm <= o_int and arm_grant;
+    o_int_arm <= o_int and arm_IsInControl;
 
-
+    -- UART multiplex
     -- TX Line (Must default to '1' when idle)
-    TXD <= pico_tx when arm_grant  = '1' else hw_tx;
+    TXD <= pico_tx when arm_IsInControl  = '1' else hw_tx;
 
-    -- RX Routing
-    hw_rx   <= RXD when arm_grant  = '0' else '1';
-    pico_rx <= RXD when arm_grant  = '1' else '1';
+    -- RX Routing to both
+    hw_rx   <= RXD; --when arm_IsInControl  = '0' else '1';
+    pico_rx <= RXD; --when arm_IsInControl  = '1' else '1';
 
   -------------------------------------------------------------------------------
     -- rv32 CPU Entity Instantiation
@@ -1114,7 +1129,7 @@ begin
             i2c_int     => o_int_arm, 
 
             --RV take control
-            RV32Master => ARMMaster,
+            RV32Master => arm_master,
             RV32Grant  => arm_grant,       
 
             -- External Parallel SRAM / Flash Hardware Pins
@@ -1146,9 +1161,10 @@ begin
     process(CLK_IN)
     begin
         if rising_edge(CLK_IN) then
-            if nRESET = '0' or ARMMaster = '0' then
+            if nRESET = '0' or arm_master = '0' then
                 arm_grant <= '0';
-            elsif z80_i2c_idle = '1' and z80_uart_idle = '1' then
+         --   elsif z80_i2c_idle = '1' and z80_uart_idle = '1' then
+               elsif LBUSACK_N='0' then
                 arm_grant <= '1';
             end if;
         end if;
@@ -1379,13 +1395,15 @@ begin
     -- A. Chip Enables to Physical Pins
     LRAMEN3_N <= '1' when flash_prog = '0' 
         else '0' when CLEAR_BUSY = '1' 
-        else '0' when (ext_sram_ce_n = '0' and ext_sram_addr(19 downto 16) <= x"F")
+        else '0' when (ext_sram_ce_n = '0' and boot_done='1')   --usually rv32 access the sram 
         else MMU_nCE0; -- 1MB SRAM
     LRAMEN2_N <= '0' when flash_prog = '0'
         else '1' when CLEAR_BUSY = '1' 
-        else '0' when (ext_sram_ce_n = '0' and ext_sram_addr(19 downto 16) > x"F")
+        else '0' when (ext_sram_ce_n = '0' and boot_done='0')   -- when booting enable flashram
         else MMU_nCE1; -- 512Kb Flash RAM    
     
+    ext_sram_dq <= LD7 & LD6 & LD5 & LD4 & LD3 & LD2 & LD1 & LD0 when ext_sram_oe_n='0' else (others=>'Z'); --for rv32 reading from ext ram
+    --if we want to write we should use the mux and add support
 
 
     -- Data Bus (LD0-LD7) Tristate output
@@ -1498,6 +1516,7 @@ begin
     LBUSREQ_N <= '0' when flash_prog='0' and sTools_Act='0' 
             else '0' when CLEAR_BUSREQ_N = '0'    
             else '0' when ARM_busreq_n = '0'
+            else '0' when arm_master ='1' --for i2c
             else '1'; -- Low to force Z80 into Tristate (Bus Acknowledgment requested)
     nmi_input_clean <= L_NMI_N;
     L_NMI_N <= '0' when fpga_drive_nmi_low = '1' else 'Z';

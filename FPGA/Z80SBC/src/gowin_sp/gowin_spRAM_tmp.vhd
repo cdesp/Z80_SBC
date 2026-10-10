@@ -5,7 +5,7 @@
 --Part Number: GW5A-LV25MG121NC1/I0
 --Device: GW5A-25
 --Device Version: A
---Created Time: Wed Oct  7 18:54:43 2026
+--Created Time: Thu Oct  8 18:36:25 2026
 
 --Change the instance name and port connections to the signal names
 ----------Copy here to design--------
@@ -18,7 +18,7 @@ component Gowin_SPRAM
         ce: in std_logic;
         reset: in std_logic;
         wre: in std_logic;
-        ad: in std_logic_vector(9 downto 0);
+        ad: in std_logic_vector(2 downto 0);
         din: in std_logic_vector(7 downto 0)
     );
 end component;
